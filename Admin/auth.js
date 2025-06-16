@@ -6,7 +6,7 @@ import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/fir
 
 // Sua configuração do Firebase (a mesma do paineladmin.html)
 const firebaseConfig = {
-    apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
+    
     authDomain: "app-ditalia.firebaseapp.com",
     projectId: "app-ditalia",
     storageBucket: "app-ditalia.firebasestorage.app",
