@@ -1,0 +1,1242 @@
+/* ==========================================================================
+   styleadmin-2.css - Estilos Específicos das Seções do Painel
+   ========================================================================== */
+
+
+/* ==========================================================================
+   1. ESTILOS DA SEÇÃO DE PEDIDOS (COM MELHORIAS)
+   ========================================================================== */
+
+.order-summary-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: var(--space-sm);
+    background-color: var(--admin-white);
+    padding: var(--space-sm);
+    border: 1px solid var(--admin-border-color);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: var(--space-md);
+}
+.summary-item { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    padding: var(--space-sm); 
+    cursor: pointer; 
+    border-radius: var(--border-radius-md); 
+    transition: background-color 0.2s ease, color 0.2s ease; 
+    color: var(--admin-text-light); 
+    text-align: center; 
+}
+.summary-item i { font-size: 1.5em; margin-bottom: var(--space-xs); }
+.summary-item span { font-size: 0.8em; font-weight: 500; }
+.summary-item .count { font-size: 0.9em; font-weight: 700; margin-top: var(--space-xs); }
+.summary-item:hover { background-color: #f8f9fa; }
+.summary-options { display: flex; align-items: center; justify-content: center; padding: var(--space-sm); cursor: pointer; color: var(--admin-text-light); border-left: 1px solid var(--admin-border-color); }
+.summary-options i { font-size: 1.3em; }
+
+.order-actions-toolbar { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    gap: var(--space-md);
+    padding: var(--space-sm) 0; 
+    margin-bottom: var(--space-md); 
+}
+.new-order-main-btn { 
+    flex-shrink: 0;
+}
+/* Estilo para o novo campo de busca */
+#order-search-input {
+    flex-grow: 1;
+    max-width: 400px;
+}
+.action-icon-buttons { 
+    display: flex; 
+    gap: var(--space-sm); 
+    background-color: var(--admin-light-gray-bg);
+    border: 1px solid var(--admin-border-color);
+    border-radius: var(--border-radius-md);
+    padding: 2px;
+}
+.action-icon-buttons .btn-icon { 
+    background-color: transparent;
+    border: none;
+    color: var(--admin-text-light);
+}
+.action-icon-buttons .btn-icon:hover,
+.action-icon-buttons .btn-icon.active { 
+    background-color: var(--admin-white);
+    color: var(--admin-primary-blue);
+}
+
+.order-status-filters { 
+    display: flex; 
+    gap: var(--space-sm); 
+    margin-bottom: var(--space-md); 
+    padding-bottom: 10px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    scrollbar-color: var(--admin-border-color) transparent;
+}
+.order-status-filters::-webkit-scrollbar { height: 5px; }
+.order-status-filters::-webkit-scrollbar-thumb { background-color: var(--admin-border-color); border-radius: 10px; }
+
+.filter-tab { 
+    background-color: var(--admin-white); 
+    color: var(--admin-text-dark); 
+    border: 1px solid var(--admin-border-color); 
+    padding: 0.5rem 1rem;
+    font-weight: 500; 
+    border-radius: 20px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+.filter-tab:hover { 
+    background-color: #f8f9fa;
+    border-color: var(--admin-primary-blue);
+}
+.filter-tab.active { 
+    background-color: var(--admin-primary-blue); 
+    color: var(--admin-white); 
+    border-color: var(--admin-primary-blue); 
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+}
+.filter-tab .count { 
+    background-color: var(--admin-light-gray-bg);
+    color: var(--admin-primary-blue);
+    font-size: 0.8em; 
+    padding: 2px 7px;
+    border-radius: 10px; 
+    margin-left: 8px; 
+    font-weight: 600; 
+}
+.filter-tab.active .count { 
+    background-color: var(--admin-white); 
+    color: var(--admin-primary-blue); 
+}
+
+#orders-list-container.empty { display: flex; justify-content: center; align-items: center; padding: var(--space-xl) var(--space-md); min-height: 300px; text-align: center; }
+.empty-orders-state { 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center; 
+    color: var(--admin-text-light);
+    background-color: var(--admin-white);
+    padding: var(--space-xl);
+    border-radius: var(--border-radius-lg);
+    border: 1px dashed var(--admin-border-color);
+}
+.empty-state-icon { font-size: 3.5em; color: var(--admin-primary-blue); margin-bottom: var(--space-md); }
+.empty-state-message { font-size: 1.1em; color: var(--admin-text-dark); margin-bottom: var(--space-lg); max-width: 300px; line-height: 1.6; }
+
+.orders-list-container.card-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-md); }
+.order-card { background-color: var(--admin-white); border-radius: var(--border-radius-lg); box-shadow: var(--box-shadow-sm); border: 1px solid var(--admin-border-color); border-left: 5px solid var(--admin-secondary-gray); display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.order-card:hover { transform: translateY(-3px); box-shadow: var(--box-shadow-md); }
+.order-card[data-status="recebido"], .order-card[data-status="aguardando-pagamento"], .order-card[data-status="aguardando-comprovante"] { border-left-color: #ff9800; }
+.order-card[data-status="em-preparo"] { border-left-color: var(--admin-primary-blue); }
+.order-card[data-status="saiu-para-entrega"] { border-left-color: #9c27b0; }
+.order-card[data-status="entregue"] { border-left-color: var(--admin-success-green); }
+.order-card[data-status="cancelado"] { border-left-color: var(--admin-danger-red); opacity: 0.8; }
+.card-header, .card-body, .card-footer { padding: 12px 18px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--admin-border-color); font-size: 0.8em; color: var(--admin-text-light); }
+.order-type-id { font-weight: 500; }
+.order-type-id i { margin-right: 5px; }
+.card-body { flex-grow: 1; padding-top: var(--space-md); }
+.customer-name { font-size: 1.2em; font-weight: 500; color: var(--admin-text-dark); margin-bottom: 10px; }
+.order-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--admin-border-color); margin-top: auto; background-color: #fcfcfc; border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg); }
+.order-value { font-size: 1.4em; font-weight: 700; color: var(--admin-primary-blue); }
+.card-actions { display: flex; gap: 8px; }
+
+.tag { padding: 4px 10px; border-radius: 15px; font-size: 0.75em; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.tag-status { background-color: #ffcdd2; color: #c62828; }
+.tag-payment-paid { background-color: #c8e6c9; color: #2e7d32; }
+.tag-payment-unpaid { background-color: #ffcdd2; color: #c62828; }
+.tag-payment-delivery { background-color: #d1e7fd; color: #0d6efd; }
+
+/* ==========================================================================
+   2. ESTILOS DA SEÇÃO DE CARDÁPIO, CLIENTES E CONFIGURAÇÕES
+   ========================================================================== */
+
+#category-list-container .category-item {
+    background-color: var(--admin-white);
+    border: 1px solid var(--admin-border-color);
+    border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+    padding: 12px 20px;
+    margin-bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--box-shadow-sm);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+#category-list-container .category-item:hover {
+    background-color: #f8f9fa;
+}
+
+.category-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-grow: 1;
+}
+
+.category-icon {
+    color: var(--admin-primary-blue);
+    font-size: 1.5em;
+    width: 30px;
+    text-align: center;
+}
+
+.category-name-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.category-name {
+    font-weight: 500;
+    font-size: 1.15em;
+    color: var(--admin-text-dark);
+}
+
+.item-count {
+    font-size: 0.8em;
+    color: var(--admin-text-light);
+}
+
+.category-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.category-actions .btn-icon i {
+    font-size: 1.1em;
+}
+
+.pizza-items-in-category {
+    margin-top: 0;
+    margin-bottom: var(--space-lg);
+    padding: var(--space-md);
+    background-color: var(--admin-white);
+    border: 1px solid var(--admin-border-color);
+    border-top: none;
+    border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
+}
+
+.admin-menu-item-card {
+    background-color: var(--admin-white);
+    border: 1px solid #f1f1f1;
+    border-radius: var(--border-radius-md);
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.admin-menu-item-card:last-child {
+    margin-bottom: 0;
+}
+
+.admin-menu-item-card img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.admin-menu-item-card .details {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-menu-item-card .details h4 {
+    margin: 0;
+    font-size: 1.05em;
+}
+
+.admin-menu-item-card .details p {
+    margin: 0;
+    font-size: 0.85em;
+    color: var(--admin-text-light);
+    line-height: 1.4;
+}
+
+.admin-menu-item-card .details p.price {
+    font-size: 1em;
+    color: var(--admin-success-green);
+    margin-top: 4px;
+}
+
+.admin-menu-item-card .actions {
+    margin-left: auto;
+    flex-shrink: 0;
+    display: flex;
+    gap: 8px;
+}
+
+.btn.btn-primary-outline {
+    background-color: transparent;
+    border: 1px solid var(--admin-primary-blue);
+    color: var(--admin-primary-blue);
+}
+.btn.btn-primary-outline:hover {
+    background-color: var(--admin-primary-blue);
+    color: var(--admin-white);
+}
+.btn.btn-danger-outline {
+    background-color: transparent;
+    border: 1px solid var(--admin-danger-red);
+    color: var(--admin-danger-red);
+}
+.btn.btn-danger-outline:hover {
+    background-color: var(--admin-danger-red);
+    color: var(--admin-white);
+}
+
+#customers-list-container { display: flex; flex-direction: column; gap: var(--space-sm); }
+.customer-card { background-color: var(--admin-white); border-radius: var(--border-radius-md); border: 1px solid var(--admin-border-color); border-left: 5px solid var(--admin-secondary-gray); box-shadow: var(--box-shadow-sm); cursor: pointer; }
+.customer-card:hover { border-left-color: var(--admin-primary-blue); box-shadow: var(--box-shadow-md); }
+.customer-summary { display: flex; justify-content: space-between; align-items: center; padding: var(--space-md); }
+.customer-info { display: flex; flex-direction: column; }
+.customer-name { font-size: 1.1em; font-weight: 500; }
+.customer-whatsapp { font-size: 0.9em; color: var(--admin-text-light); }
+.expand-icon { font-size: 1.2em; color: var(--admin-text-light); transition: transform 0.3s ease-in-out; }
+.customer-card.expanded .expand-icon { transform: rotate(180deg); }
+.customer-details { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out; padding: 0 var(--space-md); border-top: 1px solid transparent; }
+.customer-card.expanded .customer-details { max-height: 500px; padding: var(--space-md); border-top-color: var(--admin-border-color); }
+.customer-details .detail-item { display: flex; flex-direction: column; margin-bottom: var(--space-sm); font-size: 0.95em; }
+.customer-details .detail-item strong { display: flex; align-items: center; gap: var(--space-sm); font-weight: 500; margin-bottom: 2px; }
+.customer-details .detail-item span { color: var(--admin-text-light); padding-left: 28px; }
+.customer-details .detail-actions { margin-top: var(--space-md); text-align: right; }
+
+/* ==========================================================================
+   ESTILOS CORRIGIDOS PARA SEÇÃO DE CONFIGURAÇÕES
+   ========================================================================== */
+.settings-group {
+    background-color: var(--admin-white);
+    border: 1px solid var(--admin-border-color);
+    border-radius: var(--border-radius-lg);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--box-shadow-sm);
+    overflow: hidden;
+    transition: all 0.3s ease-in-out;
+}
+
+.settings-group > h3 {
+    background-color: var(--admin-white);
+    color: var(--admin-text-dark);
+    font-size: 1.1em;
+    font-weight: 500;
+    padding: 16px 20px;
+    margin: 0;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: background-color 0.2s ease;
+}
+
+.settings-group > h3:hover {
+    background-color: #f8f9fa;
+}
+
+.settings-group.active > h3 {
+    background-color: #e7f0fe;
+    color: var(--admin-primary-blue-darker);
+}
+
+.settings-group > h3 i {
+    color: var(--admin-primary-blue);
+    margin-right: 12px;
+    font-size: 1.1em;
+    width: 24px;
+    text-align: center;
+}
+
+.settings-content-wrapper {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    visibility: hidden;
+    transition: max-height 0.4s ease-out, opacity 0.3s ease-in;
+}
+
+.settings-group.active .settings-content-wrapper {
+    max-height: 1500px;
+    opacity: 1;
+    visibility: visible;
+    transition: max-height 0.4s ease-out, opacity 0.3s ease-out 0.1s;
+}
+
+.settings-content-wrapper > * {
+    padding: var(--space-lg);
+}
+
+#operating-hours-fields-container .day-schedule-row { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-sm); padding-bottom: var(--space-sm); border-bottom: 1px dashed var(--admin-border-color); }
+#operating-hours-fields-container .day-label { flex-basis: 140px; font-weight: 500; text-align: right; }
+.table-responsive { max-height: 400px; overflow-y: auto; border: 1px solid var(--admin-border-color); }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+.admin-table th, .admin-table td { border-bottom: 1px solid var(--admin-border-color); padding: var(--space-sm); text-align: left; }
+.admin-table th { background-color: var(--admin-light-gray-bg); font-weight: 500; }
+
+/* ==========================================================================
+   3. ESTILOS DA SEÇÃO PDV (COM MELHORIAS VISUAIS)
+   ========================================================================== */
+
+#pdv-initial-state { text-align: center; }
+#pdv-initial-state p { color: var(--admin-text-light); margin-bottom: var(--space-md); }
+.pdv-layout-container { display: flex; flex-wrap: wrap; gap: var(--space-lg); }
+.pdv-order-column { flex: 2; min-width: 320px; display: flex; flex-direction: column; gap: var(--space-lg); }
+.pdv-summary-column { flex: 1; min-width: 300px; }
+.pdv-card { 
+    background-color: var(--admin-white); 
+    border: 1px solid var(--admin-border-color); 
+    border-radius: var(--border-radius-lg); 
+    box-shadow: none; 
+}
+.pdv-card.sticky-card { position: sticky; top: 80px; }
+.pdv-card-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: var(--space-md); 
+    border-bottom: 1px solid var(--admin-border-color); 
+}
+.pdv-card-title { 
+    margin: 0; 
+    font-size: 1.1em; 
+    font-weight: 500; 
+    color: var(--admin-text-dark); 
+    display: flex; 
+    align-items: center; 
+    gap: var(--space-sm); 
+}
+.pdv-card-title i { color: var(--admin-primary-blue); }
+.pdv-card-body { padding: var(--space-lg); }
+
+#pdv-order-creation-view .form-group {
+    position: relative;
+}
+
+.input-with-icon { position: relative; display: flex; align-items: center; }
+.input-with-icon.right-icon .form-control { padding-left: 12px; padding-right: 40px; }
+.input-with-icon.right-icon .pdv-icon-btn { position: absolute; right: 1px; top: 1px; bottom: 1px; border: none; background-color: var(--admin-light-gray-bg); color: var(--admin-primary-blue); padding: 0 10px; border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; cursor: pointer; }
+.input-with-icon.right-icon .pdv-icon-btn.whatsapp { color: var(--admin-success-green); }
+.input-with-icon.right-icon .pdv-icon-btn:hover { background-color: #e2e6ea; }
+#pdv-customer-details-container { padding-top: var(--space-md); }
+.pdv-details-title { font-size: 1em; font-weight: 500; margin-bottom: var(--space-sm); color: var(--admin-text-light); }
+.pdv-address-display { background-color: var(--admin-light-gray-bg); border-radius: var(--border-radius-md); padding: var(--space-sm) var(--space-md); font-size: 0.9em; line-height: 1.6; }
+.pdv-address-display p { margin: 2px 0; }
+.pdv-address-display strong { font-weight: 500; }
+.pdv-cart-items-list { min-height: 100px; max-height: 400px; overflow-y: auto; }
+.empty-cart-text { 
+    text-align: center; 
+    color: var(--admin-text-light); 
+    padding: var(--space-xl); 
+    background-color: var(--admin-light-gray-bg);
+    border-radius: var(--border-radius-md);
+    border: 2px dashed var(--admin-border-color);
+}
+.pdv-cart-item { display: flex; justify-content: space-between; align-items: center; padding: var(--space-sm) 0; border-bottom: 1px solid var(--admin-border-color); font-size: 0.95em; }
+.pdv-cart-item:last-child { border-bottom: none; }
+.pdv-cart-item .quantity { font-weight: 500; color: var(--admin-primary-blue); margin-right: var(--space-sm); }
+.pdv-cart-item .cart-item-actions { display: flex; align-items: center; gap: 10px; }
+.pdv-cart-item .cart-item-actions span { font-weight: 500; }
+.pdv-cart-item .cart-item-actions .remove-item-btn { background-color: #f8d7da; color: #842029; border: none; border-radius: 50%; width: 22px; height: 22px; line-height: 22px; padding: 0; text-align: center; }
+.pdv-totals { font-size: 1em; }
+.summary-line { display: flex; justify-content: space-between; margin-bottom: 12px; }
+.summary-line span:first-of-type { color: var(--admin-text-light); }
+.summary-line span:last-of-type, .summary-line div span { font-weight: 500; color: var(--admin-text-dark); }
+.summary-line .edit-fee-btn { background: none; border: none; color: var(--admin-text-light); cursor: pointer; margin-left: var(--space-xs); }
+.summary-line .edit-fee-btn:hover { color: var(--admin-primary-blue); }
+.pdv-divider { border: none; border-top: 1px solid var(--admin-border-color); margin: var(--space-lg) 0; }
+.pdv-footer-summary { background-color: var(--admin-white); padding: var(--space-md); border-top: 1px solid var(--admin-border-color); border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg); }
+.pdv-grand-total { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-md); }
+.pdv-grand-total .pdv-payment-status { font-weight: bold; }
+.pdv-grand-total .pdv-payment-status.not-paid { color: var(--admin-danger-red); }
+.pdv-grand-total .pdv-payment-status.paid { color: var(--admin-success-green); }
+.pdv-grand-total .pdv-payment-status.paid-on-delivery { color: var(--admin-primary-blue); }
+.pdv-grand-total .total-amount { text-align: right; }
+.pdv-grand-total .total-amount span { font-size: 1em; color: var(--admin-text-dark); display: block; }
+.pdv-grand-total .total-amount strong { font-size: 2.2em; color: var(--admin-success-green); line-height: 1; }
+.pdv-actions-footer .btn { padding-top: var(--space-md); padding-bottom: var(--space-md); font-size: 1.1em; font-weight: 600; }
+
+/* ==========================================================================
+   4. ESTILOS PARA VENDAS (COM MELHORIAS)
+   ========================================================================== */
+
+.sales-filter-form .form-row { align-items: flex-end; gap: 12px; }
+.sales-filter-form .form-actions { padding-bottom: 8px; }
+
+.sales-summary-container-v2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: var(--space-lg); margin-bottom: var(--space-lg); }
+.summary-box-v2 { background-color: var(--admin-white); padding: var(--space-lg); border-radius: var(--border-radius-lg); box-shadow: var(--box-shadow-sm); display: flex; align-items: center; gap: var(--space-lg); border: 1px solid var(--admin-border-color); }
+.summary-box-v2 .icon { font-size: 2em; color: var(--admin-primary-blue); background-color: #e7f0fe; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.summary-box-v2 .text .label { font-size: 0.9em; color: var(--admin-text-light); margin-bottom: var(--space-xs); display: block; }
+.summary-box-v2 .text .value { font-size: 1.5em; font-weight: 700; color: var(--admin-text-dark); }
+
+.sales-card-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-md); }
+.sales-card { background-color: var(--admin-white); border-radius: var(--border-radius-md); border: 1px solid var(--admin-border-color); box-shadow: var(--box-shadow-sm); padding: var(--space-md); display: grid; grid-template-areas: "id status" "date value" "customer value"; gap: 4px 16px; align-items: center; }
+.sales-card .info-id { grid-area: id; font-size: 0.85em; color: var(--admin-text-light); }
+.sales-card .info-date { grid-area: date; font-weight: 500; }
+.sales-card .info-customer { grid-area: customer; font-size: 0.9em; color: var(--admin-text-light); }
+.sales-card .info-status { grid-area: status; justify-self: end; }
+.sales-card .info-value { grid-area: value; justify-self: end; align-self: center; font-size: 1.4em; font-weight: 700; color: var(--admin-success-green); }
+
+.payment-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-md);
+    margin-top: var(--space-lg);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--admin-border-color);
+}
+
+.payment-summary-box { 
+    background-color: var(--admin-white); 
+    border: 1px solid var(--admin-border-color);
+    padding: var(--space-md); 
+    border-radius: var(--border-radius-md); 
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.payment-summary-box .label { display: flex; align-items: center; gap: 8px; font-size: 0.9em; font-weight: 500; color: var(--admin-text-light); margin-bottom: var(--space-xs); }
+.payment-summary-box .value { font-size: 1.4em; font-weight: 700; color: var(--admin-text-dark); align-self: flex-end; }
+.payment-summary-box.pix { border-bottom: 4px solid #17a2b8; }
+.payment-summary-box.cartao { border-bottom: 4px solid #ffc107; }
+.payment-summary-box.dinheiro { border-bottom: 4px solid #28a745; }
+
+
+/* ==========================================================================
+   ESTILOS PARA O MODAL DE DETALHES DO PEDIDO
+   ========================================================================== */
+
+#order-details-modal .modal-body {
+    background-color: #f8f9fa;
+}
+
+#order-details-modal .modal-section-title {
+    background-color: #e7f0fe;
+    color: #0b5ed7;
+    font-size: 1.05em;
+    font-weight: 500;
+    padding: 8px 12px;
+    margin: 16px 0 12px 0;
+    border-left: 4px solid #0d6efd;
+    border-radius: 0 4px 4px 0;
+    display: flex;
+    align-items: center;
+}
+
+#order-details-modal .modal-section-title i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+#order-details-modal .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 16px;
+    padding: 0 8px;
+}
+
+#order-details-modal .detail-item {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 8px;
+}
+
+#order-details-modal .detail-item strong {
+    font-size: 0.8em;
+    color: #6c757d;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+}
+
+#order-details-modal .detail-item span {
+    font-size: 0.95em;
+    color: #212529;
+}
+
+#order-details-modal .detail-item.full-width {
+    grid-column: 1 / -1;
+}
+
+#order-details-modal .notes-section span {
+    background-color: #fffbe6;
+    border: 1px solid #ffe58f;
+    padding: 10px;
+    border-radius: 4px;
+    display: block;
+    white-space: pre-wrap;
+}
+
+#order-details-modal ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#order-details-modal ul li {
+    display: flex;
+    align-items: flex-start;
+    padding: 8px;
+    border-bottom: 1px dashed #dee2e6;
+}
+
+#order-details-modal ul li:last-child {
+    border-bottom: none;
+}
+
+#order-details-modal .item-quantity {
+    font-weight: 500;
+    color: #0d6efd;
+    margin-right: 10px;
+}
+
+#order-details-modal .item-info {
+    flex-grow: 1;
+}
+
+#order-details-modal .item-name {
+    font-weight: 500;
+}
+
+#order-details-modal .item-notes {
+    display: block;
+    font-size: 0.85em;
+    color: #6c757d;
+}
+
+#order-details-modal .item-price {
+    font-weight: 500;
+}
+
+
+/* ==========================================================================
+   5. RESPONSIVIDADE E AJUSTES FINAIS
+   ========================================================================== */
+
+@media (max-width: 992px) {
+    .pdv-layout-container { flex-direction: column; }
+    .pdv-card.sticky-card { position: static; }
+}
+
+@media (max-width: 768px) {
+    .admin-main-content { padding: 10px; }
+    .view-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .admin-drawer { width: 250px; right: -270px; }
+    .form-row { flex-direction: column; gap: 0; }
+    .form-row .form-group { margin-bottom: var(--space-md); }
+    .admin-modal .modal-content { width: 95%; padding: 0; }
+    
+    .admin-form.sales-filter-form .form-row {
+        flex-direction: row; 
+        flex-wrap: wrap;     
+        align-items: flex-end;
+    }
+}
+
+@media (max-width: 576px) {
+    .admin-top-bar .admin-title { display: none; }
+    .menu-drawer-button span { display: none; }
+    .form-actions { flex-direction: column; }
+    .form-actions button { width: 100%; }
+}
+
+/* ==========================================================================
+   6. ESTILOS PARA O RANKING DE PRODUTOS MAIS VENDIDOS (COM MELHORIAS)
+   ========================================================================== */
+
+.bestsellers-container {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--admin-border-color);
+}
+.bestsellers-container h4 {
+    font-size: 1.2em;
+    font-weight: 500;
+    color: var(--admin-text-dark);
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.bestsellers-container h4 i {
+    color: var(--admin-primary-blue);
+}
+.bestsellers-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid var(--admin-border-color);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+}
+.bestseller-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--admin-border-color);
+}
+.bestseller-item:nth-child(even) {
+    background-color: #f8f9fa;
+}
+.bestseller-item:last-child {
+    border-bottom: none;
+}
+.bestseller-rank {
+    font-size: 1em;
+    font-weight: 700;
+    color: var(--admin-text-light);
+    width: 35px;
+    height: 35px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--admin-border-color);
+    border-radius: 50%;
+}
+.bestseller-item:first-child .bestseller-rank {
+    background-color: #ffd700;
+    border-color: #e6c200;
+    color: #6e5f00;
+}
+.bestseller-name {
+    flex-grow: 1;
+    font-weight: 500;
+}
+.bestseller-quantity {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: var(--admin-primary-blue);
+}
+.bestseller-quantity span {
+    font-size: 0.8em;
+    font-weight: 400;
+    color: var(--admin-text-light);
+    margin-left: 2px;
+}
+
+/* ==========================================================================
+   7. ESTILOS PARA O MODAL DE SELEÇÃO DE PRODUTOS DO PDV
+   ========================================================================== */
+
+.pdv-product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    padding: 5px;
+}
+.pdv-product-grid .product-item {
+    border: 1px solid var(--admin-border-color);
+    border-radius: var(--border-radius-md);
+    text-align: center;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    background-color: var(--admin-white);
+    box-shadow: var(--box-shadow-sm);
+    transition: transform 0.2s ease;
+}
+.pdv-product-grid .product-item:hover {
+    transform: translateY(-3px);
+}
+.pdv-product-grid .product-item .promo-tag {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: var(--admin-danger-red);
+    color: white;
+    padding: 2px 6px;
+    font-size: 0.7em;
+    border-radius: 4px;
+    font-weight: bold;
+}
+.pdv-product-grid .product-item img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+.pdv-product-grid .product-item .item-name {
+    font-weight: 500;
+    margin-bottom: 5px;
+    flex-grow: 1;
+    font-size: 0.9em;
+    line-height: 1.3;
+}
+.pdv-product-grid .product-item .item-price {
+    font-weight: bold;
+    color: var(--admin-primary-blue);
+    margin-bottom: 10px;
+}
+.pdv-product-grid .product-item .item-price.promo {
+    color: var(--admin-success-green);
+}
+.pdv-product-grid .product-item .item-price.original {
+    font-weight: normal;
+    text-decoration: line-through;
+    color: var(--admin-text-light);
+    font-size: 0.85em;
+    margin-top: -8px;
+    margin-bottom: 8px;
+}
+
+/* ==========================================================================
+   8. ESTILOS PARA A BUSCA DE CLIENTES NO PDV
+   ========================================================================== */
+
+.pdv-search-results {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--admin-white);
+    border: 1px solid var(--admin-border-color);
+    border-top: none;
+    border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
+    box-shadow: var(--box-shadow-md);
+    z-index: 1000;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.pdv-search-results.active {
+    display: block;
+}
+
+.pdv-search-result-item {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pdv-search-result-item:last-child {
+    border-bottom: none;
+}
+
+.pdv-search-result-item:hover {
+    background-color: var(--admin-light-gray-bg);
+}
+
+.pdv-search-result-item .name {
+    font-weight: 500;
+}
+
+.pdv-search-result-item .whatsapp {
+    font-size: 0.9em;
+    color: var(--admin-text-light);
+}
+
+.pdv-search-result-item.no-results {
+    color: var(--admin-text-light);
+    cursor: default;
+    font-style: italic;
+}
+
+/* ==========================================================================
+   9. NOVOS ESTILOS PARA TIPO DE PEDIDO E FILTROS
+   ========================================================================== */
+
+.pdv-order-type-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--space-sm);
+}
+
+.pdv-order-type-selector label {
+    display: block;
+    position: relative;
+}
+
+.pdv-order-type-selector input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.pdv-order-type-selector span {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: var(--space-sm);
+    border: 2px solid var(--admin-border-color);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.2s ease-in-out;
+}
+
+.pdv-order-type-selector span i {
+    font-size: 1.3em;
+    color: var(--admin-text-light);
+    transition: color 0.2s ease-in-out;
+}
+
+.pdv-order-type-selector input[type="radio"]:checked + span {
+    border-color: var(--admin-primary-blue);
+    background-color: #e7f0fe;
+    color: var(--admin-primary-blue);
+    box-shadow: 0 0 0 2px rgba(13, 110, 253, .25);
+}
+
+.pdv-order-type-selector input[type="radio"]:checked + span i {
+    color: var(--admin-primary-blue);
+}
+
+.order-summary-bar .summary-item.active {
+    background-color: #e7f0fe;
+    color: var(--admin-primary-blue);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+}
+
+.order-summary-bar .summary-item.active i,
+.order-summary-bar .summary-item.active .count {
+    color: var(--admin-primary-blue);
+}
+
+/* ==========================================================================
+   10. CORREÇÃO DE LAYOUT FORÇADA PARA O PDV
+   ========================================================================== */
+
+.pdv-order-column > .pdv-card {
+    margin-bottom: var(--space-lg);
+}
+
+.pdv-order-column {
+    gap: 0;
+}
+
+/* ==========================================================================
+   11. NOVOS ESTILOS PARA FUNCIONALIDADES DA BARRA DE AÇÕES DE PEDIDOS
+   ========================================================================== */
+
+/* Estilos para a visualização em lista */
+.orders-list-container.list-view {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.order-list-item {
+    background-color: var(--admin-white);
+    border: 1px solid var(--admin-border-color);
+    border-radius: var(--border-radius-md);
+    padding: 10px 15px;
+    display: grid;
+    grid-template-columns: 80px 1fr 120px 100px 180px;
+    gap: 15px;
+    align-items: center;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+.order-list-item:hover {
+    background-color: #f8f9fa;
+}
+
+.order-list-item > div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+}
+.list-item-id { font-weight: 500; }
+.list-item-customer { flex-direction: column; align-items: flex-start; gap: 2px; }
+.list-item-customer .name { font-weight: 500; }
+.list-item-customer .type { font-size: 0.9em; color: var(--admin-text-light); }
+.list-item-status .tag { font-size: 0.7em; }
+.list-item-value { font-weight: 700; font-size: 1.1em; color: var(--admin-primary-blue); justify-content: flex-end; }
+.list-item-actions { justify-content: flex-end; }
+.list-item-actions .btn, .list-item-actions .status-select-card {
+    font-size: 0.85em;
+    padding: 4px 8px;
+}
+.status-select-card {
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--admin-border-color);
+    background-color: var(--admin-white);
+}
+
+/* Estilos para o modal de resumo de entregas */
+#delivery-summary-body .delivery-route-item {
+    padding: 15px;
+    border-bottom: 1px dashed var(--admin-border-color);
+}
+#delivery-summary-body .delivery-route-item:last-child {
+    border-bottom: none;
+}
+#delivery-summary-body .route-customer {
+    font-weight: 500;
+    font-size: 1.1em;
+    margin-bottom: 5px;
+}
+#delivery-summary-body .route-address {
+    color: var(--admin-text-light);
+    line-height: 1.5;
+}
+#delivery-summary-body .route-address strong {
+    color: var(--admin-text-dark);
+}
+
+/* ==========================================================================
+   12. CORREÇÃO PARA A BARRA DE AÇÕES DE PEDIDOS
+   ========================================================================== */
+
+/* CÓDIGO NOVO E CORRIGIDO */
+.order-actions-right {
+    position: relative; /* Define este container como a referência de posição */
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    /* As outras regras flex não são mais necessárias aqui */
+}
+
+#order-search-input {
+    position: absolute; /* Posiciona o input de forma flutuante */
+    top: 100%; /* Coloca o topo do input no final do container pai */
+    right: 0; /* Alinha o input à direita do container pai */
+    margin-top: 8px; /* Adiciona um pequeno espaço abaixo dos botões */
+    width: 250px; /* Define uma largura fixa para o campo */
+    z-index: 10; /* Garante que ele fique sobre outros elementos se necessário */
+    box-shadow: var(--box-shadow-md); /* Adiciona uma sombra para destacá-lo */
+}
+
+/* ==========================================================================
+   13. CORREÇÃO RESPONSIVA PARA A VISUALIZAÇÃO EM LISTA
+   ========================================================================== */
+
+/* Este bloco só será ativado em telas com largura máxima de 768px (celulares e tablets pequenos) */
+@media (max-width: 768px) {
+    .order-list-item {
+        /* Muda o layout da grade para um mais vertical */
+        grid-template-columns: 1fr auto; /* Define 2 colunas: uma flexível e uma do tamanho do conteúdo */
+        grid-template-areas:
+            "id       value"
+            "customer customer"
+            "status   actions";
+        row-gap: 12px; /* Aumenta o espaço vertical entre as linhas */
+        padding: var(--space-md);
+    }
+
+    /* Oculta a tag "Delivery", "Balcão", etc., para economizar espaço */
+    .order-list-item .list-item-customer .type {
+        display: none;
+    }
+
+    /* Atribui cada parte do item à sua nova área na grade */
+    .order-list-item .list-item-id { 
+        grid-area: id; 
+        font-size: 0.9em;
+    }
+    .order-list-item .list-item-customer { 
+        grid-area: customer;
+        padding-top: 8px;
+        border-top: 1px dashed var(--admin-border-color);
+    }
+    .order-list-item .list-item-status { 
+        grid-area: status; 
+        justify-self: start; /* Alinha o status à esquerda */
+    }
+    .order-list-item .list-item-value { 
+        grid-area: value; 
+        align-self: center; /* Centraliza o valor verticalmente */
+    }
+    .order-list-item .list-item-actions { 
+        grid-area: actions; 
+        justify-self: end; /* Alinha as ações à direita */
+    }
+}
+
+/* ==========================================================================
+   14. ESTILOS PARA SELEÇÃO DE ENTREGADOR NO MODAL DE PEDIDO
+   ========================================================================== */
+
+#order-details-modal .delivery-assignment-section {
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    background-color: #e7f0fe;
+    border-top: 2px solid var(--admin-primary-blue);
+}
+
+#order-details-modal .delivery-assignment-section .form-group {
+    margin-bottom: 0;
+}
+
+/* ============================================= */
+/* --- ESTILOS PARA GERENCIAMENTO DE BORDAS --- */
+/* ============================================= */
+
+/* Container da lista de bordas */
+.stuffed-crust-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px; /* Espaçamento entre os cards */
+}
+
+/* Card individual para cada borda */
+.stuffed-crust-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--admin-bg-light);
+    padding: 12px 16px;
+    border-radius: var(--admin-border-radius-md);
+    border: 1px solid var(--admin-border-color);
+    box-shadow: var(--admin-shadow-sm);
+    transition: all 0.2s ease-in-out;
+}
+
+.stuffed-crust-card:hover {
+    border-color: var(--admin-primary-color);
+    transform: translateY(-2px);
+}
+
+/* Informações da borda (nome e preço) */
+.crust-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-weight: 500;
+}
+
+.crust-info i {
+    color: var(--admin-primary-color);
+    font-size: 1.2rem;
+}
+
+.crust-name {
+    color: var(--admin-text-dark);
+}
+
+.crust-price {
+    font-weight: 700;
+    color: var(--admin-success-green);
+    background-color: #e6f7ec;
+    padding: 4px 8px;
+    border-radius: var(--admin-border-radius-sm);
+    font-size: 0.9rem;
+}
+
+/* Ações (botões de editar/excluir) */
+.crust-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ============================================= */
+/* --- ESTILOS PARA VISIBILIDADE DE ITEM (NOVO) --- */
+/* ============================================= */
+
+/* Estilo para o botão de visibilidade */
+.toggle-visibility-btn {
+    color: var(--admin-text-light);
+    transition: color 0.2s ease;
+}
+
+.toggle-visibility-btn:hover {
+    color: var(--admin-primary-blue);
+}
+
+.toggle-visibility-btn .fa-eye-slash {
+    color: var(--admin-danger-red);
+}
+
+/* Efeito visual para o card do item quando estiver oculto */
+.admin-menu-item-card.item-hidden {
+    opacity: 0.6;
+    background-image: linear-gradient(135deg, #fdfdfd 25%, #f7f7f7 25%, #f7f7f7 50%, #fdfdfd 50%, #fdfdfd 75%, #f7f7f7 75%, #f7f7f7 100%);
+    background-size: 28.28px 28.28px;
+    border-style: dashed;
+}
+
+.admin-menu-item-card.item-hidden h4 {
+    text-decoration: line-through;
+}
+
+/* ==========================================================================
+   ESTILOS PARA O TOP 5 EM FORMATO DE LISTA VERTICAL
+   ========================================================================== */
+
+.bestsellers-container > h4 {
+    border-bottom: 1px solid var(--admin-border-color);
+    padding-bottom: var(--space-sm);
+    margin-bottom: var(--space-sm);
+}
+
+.top5-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.top5-list-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 8px;
+    border-bottom: 1px solid #f0f2f5; /* Uma borda mais suave */
+}
+
+.top5-list-item:last-child {
+    border-bottom: none;
+}
+
+.top5-list-item .rank {
+    font-size: 0.9em;
+    font-weight: 700;
+    color: var(--admin-text-light);
+    width: 30px;
+    text-align: left;
+    flex-shrink: 0;
+}
+
+.top5-list-item .product-name {
+    flex-grow: 1;
+    font-weight: 500;
+    padding: 0 10px;
+    font-size: 0.95em;
+}
+
+.top5-list-item .quantity-sold {
+    font-size: 1em;
+    font-weight: 700;
+    color: var(--admin-primary-blue);
+    text-align: right;
+}
+
+.top5-list-item .quantity-sold span {
+    font-size: 0.8em;
+    color: var(--admin-text-light);
+    font-weight: 400;
+    margin-left: 4px;
+}
+
+/* Destaques para o Top 3 */
+.top5-list-item.rank-1 .rank { color: #b8860b; font-weight: 900; }
+.top5-list-item.rank-2 .rank { color: #71797E; font-weight: 900; }
+.top5-list-item.rank-3 .rank { color: #8C7853; font-weight: 900; }
