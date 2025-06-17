@@ -290,23 +290,28 @@ Total do Pedido: <span id="checkout-grand-total">R$ 0,00</span>
 </div>
 </div>
 
-<div id="loyalty-modal" class="modal">
-<div class="modal-content">
-<button class="close-button" id="close-loyalty-modal">&times;</button>
-<h3>Programa de Fidelidade</h3>
 <div class="modal-scrollable-content" style="padding: 20px;">
-<p>
-Digite seu número do WhatsApp (com DDD) para consultar seus pontos:
-</p>
-<div class="form-group">
-<label for="loyalty-whatsapp">WhatsApp:</label>
-<input type="tel" id="loyalty-whatsapp" name="loyalty-whatsapp" placeholder="Apenas números (ex: 12999998888)" required pattern="[0-9]{10,11}">
-</div>
-<button id="view-points-button" class="add-to-cart-button-modal" style="margin-top: 15px; width: 100%;">Ver Meus Pontos</button>
-<hr style="margin: 20px 0;">
-<div id="loyalty-results-area"></div>
-</div>
-</div>
+    <div id="phone-input-section">
+        <p>Digite seu número do WhatsApp (com DDD) para entrar e ver seus pontos:</p>
+        <div class="form-group">
+            <label for="loyalty-whatsapp">WhatsApp:</label>
+            <input type="tel" id="loyalty-whatsapp" name="loyalty-whatsapp" placeholder="Apenas números (ex: 12999998888)" required pattern="[0-9]{10,11}">
+        </div>
+        <button id="send-code-button" class="add-to-cart-button-modal" style="margin-top: 15px; width: 100%;">Enviar Código SMS</button>
+        <div id="recaptcha-container" style="margin-top: 15px;"></div>
+    </div>
+
+    <div id="code-input-section" style="display: none;">
+        <p>Enviamos um código para o seu celular. Por favor, insira abaixo:</p>
+        <div class="form-group">
+            <label for="sms-code">Código de 6 dígitos:</label>
+            <input type="text" id="sms-code" name="sms-code" placeholder="123456" required>
+        </div>
+        <button id="verify-code-button" class="add-to-cart-button-modal" style="margin-top: 15px; width: 100%;">Verificar e Entrar</button>
+    </div>
+
+    <hr style="margin: 20px 0;">
+    <div id="loyalty-results-area"></div>
 </div>
 
 <div id="pix-info-modal" class="modal pix-info-modal">
