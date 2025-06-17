@@ -416,64 +416,34 @@ Clique em Enviar para informar seu pedido!.
 </div>
 
 <script type="module">
-import {
-initializeApp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-getFirestore,
-doc,
-getDoc,
-setDoc,
-updateDoc,
-collection,
-getDocs,
-query,
-where,
-orderBy,
-onSnapshot,
-deleteDoc,
-writeBatch,
-serverTimestamp,
-Timestamp,
-limit,
-arrayUnion
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    // Importando módulos do App, Firestore E AUTENTICAÇÃO
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const firebaseConfig = {
-apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
-authDomain: "app-ditalia.firebaseapp.com",
-projectId: "app-ditalia",
-storageBucket: "app-ditalia.firebasestorage.app",
-messagingSenderId: "122567535166",
-appId: "1:122567535166:web:19de7b8925042027063f6f",
-measurementId: "G-5QW3MVGYME"
-};
+    // Sua configuração do Firebase (sem alterações)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
+      authDomain: "app-ditalia.firebaseapp.com",
+      projectId: "app-ditalia",
+      storageBucket: "app-ditalia.firebasestorage.app",
+      messagingSenderId: "122567535166",
+      appId: "1:122567535166:web:19de7b8925042027063f6f",
+      measurementId: "G-5QW3MVGYME"
+    };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    // Inicialização
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app); // Inicializa a autenticação
 
-window.firebaseApp = app;
-window.db = db;
-window.firebaseFirestore = {
-doc,
-getDoc,
-getDocs,
-setDoc,
-updateDoc,
-collection,
-query,
-where,
-orderBy,
-onSnapshot,
-deleteDoc,
-writeBatch,
-serverTimestamp,
-Timestamp,
-limit,
-arrayUnion
-};
+    // Disponibiliza TUDO globalmente para os outros scripts
+    window.firebaseApp = app;
+    window.db = db;
+    window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion };
+    window.firebaseAuth = { getAuth, RecaptchaVerifier, signInWithPhoneNumber }; // Disponibiliza as funções de autenticação
 
-console.log("Firebase (modular) e Firestore inicializados para o Site Principal!");
+    console.log("Firebase (modular) e Firestore inicializados para o Site Principal!");
 </script>
 
 <script src="menu.js" defer></script>
