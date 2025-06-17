@@ -1,4 +1,4 @@
-// checkout.js - VERSÃO ATUALIZADA PARA LOGIN COM GOOGLE (UID)
+// checkout.js - VERSÃO FINAL COM LÓGICA DE ENTREGA GRÁTIS E LOGIN GOOGLE
 
 async function saveOrderToFirestore(orderData) {
     if (!window.db || !window.firebaseFirestore) {
@@ -25,7 +25,6 @@ async function saveOrderToFirestore(orderData) {
     }
 }
 
-// *** FUNÇÃO ATUALIZADA ***
 async function saveCustomerProfile(customerData) {
     if (!window.db || !window.firebaseFirestore) {
         console.error("Firestore não inicializado. Perfil do cliente não pode ser salvo.");
@@ -35,13 +34,11 @@ async function saveCustomerProfile(customerData) {
         const { doc, setDoc, serverTimestamp } = window.firebaseFirestore;
         const db = window.db;
 
-        // Se o cliente está logado, o ID é o UID. Senão, é o WhatsApp (para manter compatibilidade).
         const customerId = window.currentCustomerDetails?.id || customerData.whatsapp;
         
         const customerDocRef = doc(db, "customer", customerId);
         const dataToSave = { ...customerData, lastUpdatedAt: serverTimestamp() };
         
-        // Usa { merge: true } para não apagar dados existentes, apenas atualizar/adicionar.
         await setDoc(customerDocRef, dataToSave, { merge: true });
         console.log(`Perfil do cliente ${customerId} salvo/atualizado com sucesso!`);
 
@@ -50,9 +47,7 @@ async function saveCustomerProfile(customerData) {
     }
 }
 
-// *** FUNÇÃO ATUALIZADA ***
 async function markCouponAsUsed(couponCode) {
-    // Pega o ID do cliente logado. Se não houver, não faz nada.
     const customerId = window.currentCustomerDetails?.id;
     if (!window.db || !window.firebaseFirestore || !couponCode || !customerId) {
         return;
@@ -61,7 +56,7 @@ async function markCouponAsUsed(couponCode) {
     const couponRef = doc(window.db, "coupons", couponCode);
     try {
         await updateDoc(couponRef, {
-            usedBy: arrayUnion(customerId) // Usa o UID para marcar o cupom
+            usedBy: arrayUnion(customerId)
         });
         console.log(`Cupom ${couponCode} marcado como usado pelo cliente ${customerId}.`);
     } catch (error) {
@@ -147,24 +142,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : String(price);
     }
 
+    // *** FUNÇÃO ATUALIZADA PARA LIDAR COM ENTREGA GRÁTIS ***
     function updateCheckoutTotalDisplay() {
         const cartSubtotal = typeof window.getCartSubtotalAmount === 'function' ? window.getCartSubtotalAmount() : 0;
         const loyaltyDiscount = window.getAppliedLoyaltyDiscountInfo ? window.getAppliedLoyaltyDiscountInfo() : null;
         const couponDiscount = window.getAppliedCouponInfo ? window.getAppliedCouponInfo() : null;
         
-        let discountAmount = 0;
-        if (loyaltyDiscount) {
-            discountAmount = loyaltyDiscount.discountAmount;
-        } else if (couponDiscount) {
-            if (couponDiscount.type === 'percentage') {
-                discountAmount = cartSubtotal * (couponDiscount.value / 100);
-            } else {
-                discountAmount = couponDiscount.value;
-            }
-        }
+        let totalDiscountAmount = 0;
+        let effectiveDeliveryFee = currentDeliveryFee;
 
-        const grandTotal = cartSubtotal - discountAmount + currentDeliveryFee;
-        
+        // Lógica para mostrar a taxa de entrega na UI
         if (checkoutDeliveryFeeAmountSpan && checkoutDeliveryFeeLine) {
             const selectedNeighborhood = checkoutNeighborhoodSelect.value;
             if (selectedNeighborhood && deliveryFeesData.hasOwnProperty(selectedNeighborhood)) {
@@ -180,7 +167,41 @@ document.addEventListener('DOMContentLoaded', () => {
                 checkoutDeliveryFeeLine.style.display = 'none';
             }
         }
-        if (checkoutGrandTotalSpan) checkoutGrandTotalSpan.textContent = formatPriceLocal(grandTotal);
+
+        // Lógica para calcular descontos
+        if (loyaltyDiscount) {
+            totalDiscountAmount = loyaltyDiscount.discountAmount;
+            checkoutAppliedDiscountInfoDiv.innerHTML = `Desconto Fidelidade: - ${formatPriceLocal(totalDiscountAmount)}`;
+            checkoutAppliedDiscountInfoDiv.style.display = 'block';
+
+        } else if (couponDiscount) {
+            if (couponDiscount.type === 'free_delivery') {
+                totalDiscountAmount = currentDeliveryFee;
+                effectiveDeliveryFee = 0; // A taxa a ser somada no final é zero
+                checkoutAppliedDiscountInfoDiv.innerHTML = `Desconto (Entrega Grátis): - ${formatPriceLocal(totalDiscountAmount)}`;
+            } else if (couponDiscount.type === 'percentage') {
+                totalDiscountAmount = cartSubtotal * (couponDiscount.value / 100);
+                checkoutAppliedDiscountInfoDiv.innerHTML = `Desconto (${couponDiscount.code}): - ${formatPriceLocal(totalDiscountAmount)}`;
+            } else { // Cupom de valor fixo
+                totalDiscountAmount = couponDiscount.value;
+                checkoutAppliedDiscountInfoDiv.innerHTML = `Desconto (${couponDiscount.code}): - ${formatPriceLocal(totalDiscountAmount)}`;
+            }
+            
+            if(totalDiscountAmount > 0) {
+                checkoutAppliedDiscountInfoDiv.style.display = 'block';
+            } else {
+                checkoutAppliedDiscountInfoDiv.style.display = 'none';
+            }
+        } else {
+            checkoutAppliedDiscountInfoDiv.style.display = 'none';
+        }
+        
+        // Calcula o total final
+        const grandTotal = cartSubtotal - totalDiscountAmount + effectiveDeliveryFee;
+
+        if (checkoutGrandTotalSpan) {
+            checkoutGrandTotalSpan.textContent = formatPriceLocal(grandTotal);
+        }
     }
 
     const closeCheckoutModal = () => {
@@ -213,23 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryHtml += '</ul>';
         if (checkoutOrderSummaryDiv) checkoutOrderSummaryDiv.innerHTML = summaryHtml;
         
-        const appliedLoyaltyDiscount = typeof window.getAppliedLoyaltyDiscountInfo === 'function' ? window.getAppliedLoyaltyDiscountInfo() : null;
-        const appliedCoupon = typeof window.getAppliedCouponInfo === 'function' ? window.getAppliedCouponInfo() : null;
-
-        if (checkoutAppliedDiscountInfoDiv) {
-            if (appliedLoyaltyDiscount?.discountAmount > 0) {
-                checkoutAppliedDiscountInfoDiv.innerHTML = `Desconto Fidelidade Aplicado: - ${formatPriceLocal(appliedLoyaltyDiscount.discountAmount)}`;
-                checkoutAppliedDiscountInfoDiv.style.display = 'block';
-            } else if (appliedCoupon) {
-                 const subtotal = typeof window.getCartSubtotalAmount === 'function' ? window.getCartSubtotalAmount() : 0;
-                 let discountValue = appliedCoupon.type === 'percentage' ? subtotal * (appliedCoupon.value / 100) : appliedCoupon.value;
-                 checkoutAppliedDiscountInfoDiv.innerHTML = `Desconto (${appliedCoupon.code}): - ${formatPriceLocal(discountValue)}`;
-                 checkoutAppliedDiscountInfoDiv.style.display = 'block';
-            } else {
-                checkoutAppliedDiscountInfoDiv.style.display = 'none';
-            }
-        }
-
         if (checkoutNeighborhoodSelect) {
             checkoutNeighborhoodSelect.innerHTML = '<option value="" disabled selected>Selecione o bairro...</option>';
             Object.keys(deliveryFeesData).sort().forEach(neighborhood => {
@@ -255,14 +259,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     const savedNeighborhood = window.currentCustomerDetails.address.neighborhood;
                     if (savedNeighborhood && checkoutNeighborhoodSelect.querySelector(`option[value="${savedNeighborhood}"]`)) {
                         checkoutNeighborhoodSelect.value = savedNeighborhood;
-                        checkoutNeighborhoodSelect.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                     document.getElementById('checkout-complement').value = window.currentCustomerDetails.address.complement || '';
                     document.getElementById('checkout-reference').value = window.currentCustomerDetails.address.reference || '';
                 }
             }
         }
-        updateCheckoutTotalDisplay();
+        updateCheckoutTotalDisplay(); // Chama a função aqui para inicializar os totais
+        if (document.getElementById('checkout-neighborhood').value) {
+           document.getElementById('checkout-neighborhood').dispatchEvent(new Event('change', { bubbles: true }));
+        }
         checkoutModal.classList.add('show');
         document.body.style.overflow = 'hidden';
     };
@@ -297,7 +303,7 @@ document.addEventListener('DOMContentLoaded', () => {
             whatsapp, 
             firstName: name, 
             lastName: lastname,
-            email: window.currentCustomerDetails?.email || '', // Adiciona o email do usuário logado
+            email: window.currentCustomerDetails?.email || '',
             address: { street, number, neighborhood: selectedNeighborhoodValue, complement, reference },
             points: window.currentCustomerDetails?.points || 0,
         };
@@ -311,23 +317,25 @@ document.addEventListener('DOMContentLoaded', () => {
             pointsUsed = loyaltyDiscount.pointsUsed;
         }
         
-        // *** CHAMADA ATUALIZADA ***
         if (couponDiscount && couponDiscount.oneTimeUsePerCustomer) {
             await markCouponAsUsed(couponDiscount.code);
         }
         
-        let discountAmount = 0;
+        let totalDiscountAmount = 0;
         if (loyaltyDiscount) {
-            discountAmount = loyaltyDiscount.discountAmount;
+            totalDiscountAmount = loyaltyDiscount.discountAmount;
         } else if (couponDiscount) {
-            if (couponDiscount.type === 'percentage') {
-                discountAmount = cartSubtotal * (couponDiscount.value / 100);
+            if (couponDiscount.type === 'free_delivery') {
+                totalDiscountAmount = currentDeliveryFee;
+            } else if (couponDiscount.type === 'percentage') {
+                totalDiscountAmount = cartSubtotal * (couponDiscount.value / 100);
             } else {
-                discountAmount = couponDiscount.value;
+                totalDiscountAmount = couponDiscount.value;
             }
         }
-
-        const finalGrandTotal = cartSubtotal - discountAmount + currentDeliveryFee;
+        
+        const effectiveDeliveryFee = (couponDiscount?.type === 'free_delivery') ? 0 : currentDeliveryFee;
+        const finalGrandTotal = cartSubtotal - totalDiscountAmount + effectiveDeliveryFee;
         const pointsEarned = Math.floor(finalGrandTotal / 50);
         customerData.points += pointsEarned;
 
@@ -336,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const orderData = {
             source: "WebApp",
             customer: { 
-                id: window.currentCustomerDetails?.id || whatsapp, // Salva o ID do usuário no pedido
+                id: window.currentCustomerDetails?.id || whatsapp,
                 firstName: name, 
                 lastName: lastname, 
                 whatsapp: whatsapp 
@@ -344,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
             delivery: { address: `${street}, ${number}`, neighborhood: selectedNeighborhoodValue, complement, reference, fee: currentDeliveryFee },
             payment: { method: paymentMethod, changeFor: changeNeededValue ? parseFloat(changeNeededValue) : null },
             items: window.getCartItems(),
-            totals: { subtotal: cartSubtotal, discount: discountAmount, deliveryFee: currentDeliveryFee, grandTotal: finalGrandTotal },
+            totals: { subtotal: cartSubtotal, discount: totalDiscountAmount, deliveryFee: currentDeliveryFee, grandTotal: finalGrandTotal },
             loyalty: { pointsUsed, pointsEarned, finalPointsBalance: customerData.points },
             coupon: couponDiscount 
         };
@@ -399,7 +407,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `Subtotal: ${formatPriceLocal(orderData.totals.subtotal)}\n`;
             
             if(orderData.totals.discount > 0) {
-                let discountLabel = loyaltyDiscount ? 'Desconto Fidelidade:' : `Desconto (${couponDiscount.code}):`;
+                let discountLabel = loyaltyDiscount ? 'Desconto Fidelidade:' : `Desconto (${couponDiscount?.code || 'Entrega Grátis'}):`;
                 orderText += `${discountLabel} -${formatPriceLocal(orderData.totals.discount)}\n`;
             }
             
