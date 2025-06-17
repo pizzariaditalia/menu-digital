@@ -219,7 +219,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // LÓGICA DE ABERTURA/FECHAMENTO E RENDERIZAÇÃO DOS MODAIS
     // =========================================================================
     
-    // **NOVA FUNÇÃO** para renderizar o conteúdo do modal
     function renderLoyaltyModalContent() {
         const googleLoginSection = document.getElementById('google-login-section');
         const loyaltyResultsArea = document.getElementById('loyalty-results-area');
@@ -230,9 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
             googleLoginSection.style.display = 'none';
             loyaltyResultsArea.style.display = 'block';
 
-            // --- INÍCIO DA ALTERAÇÃO ---
             let rulesHtml = DISCOUNT_TIERS.map(tier => 
-                `<li><strong>${tier.points} pontos</strong> = ${tier.percentage * 100}% de desconto em pizzas</li>`
+                `<li style="margin-bottom: 8px;"><strong>${tier.points} pontos</strong> = ${tier.percentage * 100}% de desconto em pizzas</li>`
             ).join('');
 
             loyaltyResultsArea.innerHTML = `
@@ -244,18 +242,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
 
                 <div class="loyalty-rules-section" style="margin-top: 25px; text-align: left;">
-                    <h4 style="font-size: 1.1em; margin-bottom: 10px;">Como Resgatar:</h4>
+                    <h4 style="font-size: 1.1em; margin-bottom: 10px; color: var(--dark-gray);">Como Resgatar:</h4>
                     <ul style="list-style: none; padding-left: 0; font-size: 0.9em; color: var(--medium-gray);">
                         ${rulesHtml}
                     </ul>
-                    <p style="font-size: 0.8em; color: #888; margin-top: 15px; text-align: center;">
-                        O maior desconto disponível para seus pontos será oferecido no carrinho.
+                    <p style="font-size: 0.8em; color: #888; margin-top: 15px; text-align: center; font-style: italic;">
+                        O maior desconto disponível para seus pontos será oferecido no seu carrinho.
                     </p>
                 </div>
 
                 <button id="logout-button" class="button-link-style" style="margin-top: 20px; color: var(--medium-gray);">Sair da conta</button>
             `;
-            // --- FIM DA ALTERAÇÃO ---
             
         } else {
             googleLoginSection.style.display = 'block';
