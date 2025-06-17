@@ -1,4 +1,4 @@
-// loyalty.js - VERSÃO FINAL COM LOGIN POR GOOGLE
+// loyalty.js - VERSÃO FINAL COM LOGIN POR GOOGLE E UI INTELIGENTE NO MODAL
 
 // =========================================================================
 // CONSTANTES E FUNÇÕES GLOBAIS DO MÓDULO
@@ -35,8 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loyaltyButton = document.getElementById('loyalty-button');
     const loyaltyModal = document.getElementById('loyalty-modal');
     const closeLoyaltyModalButton = document.getElementById('close-loyalty-modal');
-    const loyaltyResultsArea = document.getElementById('loyalty-results-area');
-    const googleLoginButton = document.getElementById('google-login-button'); // Nosso novo botão
+    const googleLoginButton = document.getElementById('google-login-button');
 
     // Elementos de "Últimos Pedidos"
     const lastOrdersButton = document.getElementById('last-orders-button');
@@ -62,44 +61,53 @@ document.addEventListener('DOMContentLoaded', () => {
         const { setDoc, doc } = window.firebaseFirestore;
 
         try {
-            // 1. Abre o Pop-up de Login do Google
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             
             console.log("Usuário logado com Google:", user.uid, user.displayName);
 
-            // 2. Verifica se o cliente já existe no nosso banco de dados
             const customerData = await getCustomerFromFirestore(user.uid);
 
             if (customerData) {
-                // Se o cliente já existe, apenas atualiza o estado global
                 console.log("Cliente existente encontrado:", customerData);
                 updateGlobalCustomerState(customerData, user.email);
             } else {
-                // 3. Se é o PRIMEIRO LOGIN, cria um novo registro para ele no Firestore
                 console.log("Primeiro login. Criando novo cliente no Firestore...");
                 const newCustomer = {
                     firstName: user.displayName || 'Novo Cliente',
                     email: user.email,
                     points: 0,
                     lastUpdatedAt: new Date(),
-                    whatsapp: user.phoneNumber || '' // Tenta pegar o telefone, se houver
+                    whatsapp: user.phoneNumber || ''
                 };
 
-                // Salva o novo cliente no Firestore usando o UID como ID do documento
                 const customerDocRef = doc(window.db, "customer", user.uid);
                 await setDoc(customerDocRef, newCustomer);
 
                 updateGlobalCustomerState({ id: user.uid, ...newCustomer }, user.email);
             }
 
-            // 4. Fecha a janela de login e avisa o usuário
             closeLoyaltyModal();
             alert(`Bem-vindo, ${user.displayName}! Login realizado com sucesso.`);
 
         } catch (error) {
             console.error("Erro durante o login com Google:", error);
             alert("Não foi possível fazer o login com o Google. Por favor, tente novamente.");
+        }
+    }
+
+    async function signOutUser() {
+        if (!window.firebaseAuth) return;
+        const auth = window.firebaseAuth.getAuth();
+        try {
+            await auth.signOut();
+            window.currentCustomerDetails = null; 
+            updateGlobalCustomerState(null, null);
+            closeLoyaltyModal();
+            alert("Você saiu da sua conta.");
+        } catch (error) {
+            console.error("Erro ao fazer logout:", error);
+            alert("Não foi possível sair. Tente novamente.");
         }
     }
 
@@ -120,17 +128,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (customerData) {
             window.currentCustomerDetails = customerData;
             localStorage.setItem('activeCustomerId', customerData.id);
-            if (loyaltyResultsArea) {
-                 loyaltyResultsArea.innerHTML = `<p>Olá, ${customerData.firstName}! Você tem <strong>${customerData.points || 0}</strong> pontos.</p>`;
-            }
             displayCustomerWelcomeInfo(customerData);
             showWelcomePointsPopup(customerData.points);
         } else {
             window.currentCustomerDetails = null;
             localStorage.removeItem('activeCustomerId');
-            if (loyaltyResultsArea) {
-                loyaltyResultsArea.innerHTML = `<p>Bem-vindo! Faça login com sua conta Google para começar a juntar pontos!</p>`;
-            }
             displayCustomerWelcomeInfo(null);
         }
         
@@ -148,16 +150,14 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => popup.classList.remove('show'), 5000);
     }
     
-    // VERSÃO CORRIGIDA E MAIS SEGURA
-function displayCustomerWelcomeInfo(customer) {
-    // Acessamos o botão aqui dentro para garantir que ele já exista na página
-    const lastOrdersButton = document.getElementById('last-orders-button');
-
-    // Verificamos novamente se o botão foi encontrado antes de tentar usá-lo
-    if (lastOrdersButton) {
-        lastOrdersButton.style.display = customer ? 'flex' : 'none';
+    function displayCustomerWelcomeInfo(customer) {
+        const lastOrdersButton = document.getElementById('last-orders-button');
+        if (lastOrdersButton) {
+            lastOrdersButton.style.display = customer ? 'flex' : 'none';
+        }
     }
-}
+    window.displayCustomerWelcomeInfo = displayCustomerWelcomeInfo;
+
     // =========================================================================
     // LÓGICA DE "ÚLTIMOS PEDIDOS"
     // =========================================================================
@@ -165,8 +165,6 @@ function displayCustomerWelcomeInfo(customer) {
     async function fetchLastOrders(customerId) {
         if (!window.db || !window.firebaseFirestore) return [];
         const { collection, query, where, orderBy, limit, getDocs } = window.firebaseFirestore;
-        // A consulta por 'whatsapp' pode precisar ser ajustada para 'email' ou 'customerId'
-        // dependendo de como os pedidos são salvos. Vamos manter assim por enquanto.
         const q = query(collection(window.db, "pedidos"), where("customer.id", "==", customerId), orderBy("createdAt", "desc"), limit(3));
         try {
             const querySnapshot = await getDocs(q);
@@ -179,7 +177,6 @@ function displayCustomerWelcomeInfo(customer) {
     }
 
     function renderLastOrders(orders) {
-        // Esta função permanece a mesma de antes
         if (!lastOrdersListDiv) return;
         if (orders.length === 0) {
             lastOrdersListDiv.innerHTML = '<p class="empty-list-message">Nenhum pedido encontrado no seu histórico.</p>';
@@ -226,14 +223,38 @@ function displayCustomerWelcomeInfo(customer) {
 
     function openLoyaltyModal() {
         if (!loyaltyModal) return;
-        loyaltyResultsArea.innerHTML = '';
+
+        const googleLoginSection = document.getElementById('google-login-section');
+        const loyaltyResultsArea = document.getElementById('loyalty-results-area');
+
+        if (window.currentCustomerDetails) {
+            googleLoginSection.style.display = 'none';
+            loyaltyResultsArea.style.display = 'block';
+
+            loyaltyResultsArea.innerHTML = `
+                <p style="margin-bottom: 20px;">Olá, <strong>${window.currentCustomerDetails.firstName}</strong>!</p>
+                <div class="points-display-banner">
+                    <p class="points-banner-text">Você tem</p>
+                    <span class="points-banner-value">${window.currentCustomerDetails.points || 0}</span>
+                    <p class="points-banner-label">pontos</p>
+                </div>
+                <button id="logout-button" class="button-link-style" style="margin-top: 20px; color: var(--medium-gray);">Sair da conta</button>
+            `;
+        } else {
+            googleLoginSection.style.display = 'block';
+            loyaltyResultsArea.style.display = 'none';
+            loyaltyResultsArea.innerHTML = '';
+        }
+
         loyaltyModal.classList.add('show');
         document.body.style.overflow = 'hidden';
     }
+
     function closeLoyaltyModal() {
         if (loyaltyModal) loyaltyModal.classList.remove('show');
         document.body.style.overflow = '';
     }
+
     async function openLastOrdersModal() {
         if (!lastOrdersModal || !window.currentCustomerDetails) {
             alert("Você precisa fazer o login primeiro para ver seus pedidos.");
@@ -242,9 +263,10 @@ function displayCustomerWelcomeInfo(customer) {
         lastOrdersModal.classList.add('show');
         document.body.style.overflow = 'hidden';
         lastOrdersListDiv.innerHTML = '<p>Buscando seu histórico de pedidos...</p>';
-        const orders = await fetchLastOrders(window.currentCustomerDetails.id); // Busca por ID
+        const orders = await fetchLastOrders(window.currentCustomerDetails.id);
         renderLastOrders(orders);
     }
+
     function closeLastOrdersModal() {
         if (lastOrdersModal) lastOrdersModal.classList.remove('show');
         document.body.style.overflow = '';
@@ -254,18 +276,19 @@ function displayCustomerWelcomeInfo(customer) {
         const auth = window.firebaseAuth?.getAuth();
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                // Usuário está logado
                 const customerData = await getCustomerFromFirestore(user.uid);
                 if (customerData) {
                     updateGlobalCustomerState(customerData, user.email);
+                } else {
+                    // Caso raro: usuário autenticado no Firebase mas sem registro no DB.
+                    // O fluxo de login normal (signInWithGoogle) resolve isso.
+                    console.warn("Usuário autenticado sem registro no DB. O próximo login irá criar o perfil.");
                 }
             } else {
-                // Usuário está deslogado
                 updateGlobalCustomerState(null, null);
             }
         });
     }
-
 
     // =========================================================================
     // EVENT LISTENERS (OUVINTES DE EVENTOS)
@@ -273,10 +296,17 @@ function displayCustomerWelcomeInfo(customer) {
 
     if (loyaltyButton) loyaltyButton.addEventListener('click', openLoyaltyModal);
     if (closeLoyaltyModalButton) closeLoyaltyModalButton.addEventListener('click', closeLoyaltyModal);
-    if (googleLoginButton) googleLoginButton.addEventListener('click', signInWithGoogle); // NOVO
+    if (googleLoginButton) googleLoginButton.addEventListener('click', signInWithGoogle);
     if (lastOrdersButton) lastOrdersButton.addEventListener('click', openLastOrdersModal);
     if (closeLastOrdersModalButton) closeLastOrdersModalButton.addEventListener('click', closeLastOrdersModal);
 
-    // Carrega o cliente se ele já estiver logado na sessão ao carregar a página
+    if (loyaltyModal) {
+        loyaltyModal.addEventListener('click', (event) => {
+            if (event.target.id === 'logout-button') {
+                signOutUser();
+            }
+        });
+    }
+
     loadCurrentCustomerOnPageLoad();
 });
