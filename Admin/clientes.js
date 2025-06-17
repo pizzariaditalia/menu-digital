@@ -1,7 +1,6 @@
 // Arquivo: clientes.js
-// VERSÃO FINAL COM CÁLCULO DE QUANTIDADE E DATA DO ÚLTIMO PEDIDO E EDIÇÃO CORRIGIDA
+// VERSÃO FINAL COM LÓGICA RETROCOMPATÍVEL PARA PEDIDOS ANTIGOS
 
-// Variável para evitar reinicialização desnecessária
 let customersSectionInitialized = false;
 
 async function initializeCustomersSection() {
@@ -9,7 +8,6 @@ async function initializeCustomersSection() {
     customersSectionInitialized = true;
     console.log("Módulo Clientes.js: Inicializando...");
 
-    // Seletores de Elementos do DOM
     const customersListContainer = document.getElementById('customers-list-container');
     const searchCustomerInput = document.getElementById('search-customer-input');
     const editCustomerModal = document.getElementById('edit-customer-modal');
@@ -17,8 +15,6 @@ async function initializeCustomersSection() {
     const closeEditCustomerModalBtn = editCustomerModal ? editCustomerModal.querySelector('.close-modal-btn') : null;
 
     let allCustomers = [];
-
-    // --- Funções de Interação com o Firestore ---
 
     async function fetchAllCustomers() {
         if (!window.db || !window.firebaseFirestore) return [];
@@ -57,8 +53,6 @@ async function initializeCustomersSection() {
             window.showToast("Erro ao salvar cliente.", "error");
         }
     }
-
-    // --- Funções de UI (Interface) ---
 
     function createCustomerCardHTML(customer) {
         const fullName = `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
@@ -123,21 +117,17 @@ async function initializeCustomersSection() {
         addCardEventListeners();
     }
 
-    // *** FUNÇÃO ATUALIZADA PARA BUSCAR DADOS FRESCOS ***
     async function openEditModal(customerId) {
         if (!editCustomerModal || !editCustomerForm) return;
-
         const { doc, getDoc } = window.firebaseFirestore;
         const customerRef = doc(window.db, "customer", customerId);
         const customerSnap = await getDoc(customerRef);
-
         if (!customerSnap.exists()) {
             window.showToast("Cliente não encontrado!", "error");
             return;
         }
         const customer = customerSnap.data();
         
-        // O formulário de edição está no paineladmin.html, então vamos preenchê-lo
         const formContent = `
             <div class="modal-body">
                 <input type="hidden" id="edit-customer-id" value="${customerId}">
@@ -190,8 +180,6 @@ async function initializeCustomersSection() {
         });
     }
 
-    // --- Lógica de Eventos ---
-
     if (searchCustomerInput) {
         searchCustomerInput.addEventListener('input', (e) => {
             renderCustomersList(allCustomers, e.target.value);
@@ -223,11 +211,10 @@ async function initializeCustomersSection() {
             
             await saveCustomerToFirestore(customerId, updatedData);
             closeEditCustomerModal();
-            main(); // Recarrega a lista para mostrar as alterações
+            main();
         });
     }
 
-    // --- FUNÇÃO PRINCIPAL DE EXECUÇÃO (ATUALIZADA) ---
     async function main() {
         if (customersListContainer) {
             customersListContainer.innerHTML = '<p class="empty-list-message">Carregando clientes e processando pedidos...</p>';
@@ -238,19 +225,19 @@ async function initializeCustomersSection() {
             fetchAllOrders()
         ]);
 
-        // *** LÓGICA CORRIGIDA ***
-        // Usa um Map para melhor performance e para garantir a chave correta
         const orderStats = new Map();
         for (const order of orders) {
-            // Usa o UID do cliente (customer.id) que está salvo no pedido
-            const customerId = order.customer?.id; 
-            if (!customerId) continue; // Pula pedidos antigos ou sem ID de cliente
+            // *** CORREÇÃO PRINCIPAL ***
+            // Pega o ID (UID) se existir, senão, pega o WhatsApp.
+            const customerIdentifier = order.customer?.id || order.customer?.whatsapp;
+            
+            if (!customerIdentifier) continue;
 
-            if (!orderStats.has(customerId)) {
-                orderStats.set(customerId, { count: 0, lastOrderDate: null });
+            if (!orderStats.has(customerIdentifier)) {
+                orderStats.set(customerIdentifier, { count: 0, lastOrderDate: null });
             }
 
-            const stats = orderStats.get(customerId);
+            const stats = orderStats.get(customerIdentifier);
             stats.count++;
             const orderDate = order.createdAt?.toDate();
             if (orderDate && (!stats.lastOrderDate || orderDate > stats.lastOrderDate)) {
@@ -259,7 +246,8 @@ async function initializeCustomersSection() {
         }
 
         allCustomers = customers.map(customer => {
-            const stats = orderStats.get(customer.id); // Busca as estatísticas pelo UID do cliente
+            // Tenta buscar as estatísticas pelo ID (UID) primeiro, depois pelo WhatsApp, garantindo a compatibilidade.
+            const stats = orderStats.get(customer.id) || orderStats.get(customer.whatsapp);
             return {
                 ...customer,
                 orderCount: stats ? stats.count : 0,
