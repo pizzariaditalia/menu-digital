@@ -9,410 +9,327 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ea1d2c" />
-<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>
-  eruda.init();
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>
+    eruda.init();
+  </script>
 </head>
 <body>
 
 <div id="splash-screen">
-<img src="img/logos/logo1.png" alt="Logo D'Italia Pizzaria" class="splash-logo">
-<p id="splash-text"></p>
+  <img src="img/logos/logo1.png" alt="Logo D'Italia Pizzaria" class="splash-logo">
+  <p id="splash-text"></p>
 </div>
 
 <div class="app-container">
-<div id="store-status-alert" class="store-status-alert">
-<i class="fas fa-clock"></i>
-<span>Loja fechada. Abrimos às 18:30.</span>
-</div>
-<header class="app-header">
-<div class="header-banner">
-<img src="img/banner/banner2.png" alt="Banner do restaurante" class="banner-image">
-<div class="header-actions">
-<div class="status"></div>
-<div class="action-buttons">
-<button class="icon-button" id="install-pwa-button" style="display: none;">
-<i class="fas fa-download"></i> Baixar App
-</button>
-<button class="icon-button" id="loyalty-button"><i class="fas fa-gift"></i> Fidelidade</button>
-<button class="icon-button" id="last-orders-button" style="display: none; margin-left: 8px;">
-<i class="fas fa-history"></i> Últimos Pedidos
-</button>
-<div id="welcome-points-popup" class="points-popup">
-<i class="fas fa-star"></i>
-<span>Você tem <strong id="popup-points-value">0</strong> pontos!</span>
-</div>
-</div>
-</div>
-</div>
-<div class="restaurant-logo-wrapper">
-<img src="img/logos/logo.png" alt="Logo da Pizzaria" class="restaurant-logo">
-</div>
-</header>
+  <div id="store-status-alert" class="store-status-alert">
+    <i class="fas fa-clock"></i>
+    <span>Loja fechada. Abrimos às 18:30.</span>
+  </div>
+  <header class="app-header">
+    <div class="header-banner">
+      <img src="img/banner/banner2.png" alt="Banner do restaurante" class="banner-image">
+      <div class="header-actions">
+        <div class="status"></div>
+        <div class="action-buttons">
+          <button class="icon-button" id="install-pwa-button" style="display: none;">
+            <i class="fas fa-download"></i> Baixar App
+          </button>
+          <button class="icon-button" id="loyalty-button"><i class="fas fa-gift"></i> Fidelidade</button>
+          <button class="icon-button" id="last-orders-button" style="display: none; margin-left: 8px;">
+            <i class="fas fa-history"></i> Últimos Pedidos
+          </button>
+          <div id="welcome-points-popup" class="points-popup">
+            <i class="fas fa-star"></i>
+            <span>Você tem <strong id="popup-points-value">0</strong> pontos!</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="restaurant-logo-wrapper">
+      <img src="img/logos/logo.png" alt="Logo da Pizzaria" class="restaurant-logo">
+    </div>
+  </header>
 
-<main class="main-content">
-<div class="restaurant-info-card">
-<h2>D'Italia Pizzaria</h2>
-<div class="social-icons">
-<a href="https://wa.me/551292226418" class="icon-circle"><i class="fab fa-whatsapp"></i></a>
-<a href="https://g.co/kgs/va9NjTG" class="icon-circle"><i class="fab fa-google"></i></a>
-<a href="https://www.facebook.com/share/1BepJ5iZds/" class="icon-circle"><i class="fab fa-facebook-f"></i></a>
-<a href="https://www.instagram.com/ditaliapizzaria.001?igsh=MWhhaHlyMGs0djRvOQ==" class="icon-circle"><i class="fab fa-instagram"></i></a>
-</div>
-<p class="details">
-<a href="https://g.co/kgs/5ZHYjoE" style="color: inherit; text-decoration: none;">⭐ 5.0 (Avaliações)</a>
-</p>
-<p id="min-order-line" class="details" style="margin-left: 4px; display: none;">
-<i class="fas fa-dollar-sign" style="color: red"></i> Pedido Mínimo <span id="min-order-value"></span>
-<i class="fas fa-bicycle" style="color: red; margin-left: 16px;"></i> 30-60 min
-</p>
-</div>
+  <main class="main-content">
+    <div class="restaurant-info-card">
+      <h2>D'Italia Pizzaria</h2>
+      <div class="social-icons">
+        <a href="https://wa.me/551292226418" class="icon-circle"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://g.co/kgs/va9NjTG" class="icon-circle"><i class="fab fa-google"></i></a>
+        <a href="https://www.facebook.com/share/1BepJ5iZds/" class="icon-circle"><i class="fab fa-facebook-f"></i></a>
+        <a href="https://www.instagram.com/ditaliapizzaria.001?igsh=MWhhaHlyMGs0djRvOQ==" class="icon-circle"><i class="fab fa-instagram"></i></a>
+      </div>
+      <p class="details">
+        <a href="https://g.co/kgs/5ZHYjoE" style="color: inherit; text-decoration: none;">⭐ 5.0 (Avaliações)</a>
+      </p>
+      <p id="min-order-line" class="details" style="margin-left: 4px; display: none;">
+        <i class="fas fa-dollar-sign" style="color: red"></i> Pedido Mínimo <span id="min-order-value"></span>
+        <i class="fas fa-bicycle" style="color: red; margin-left: 16px;"></i> 30-60 min
+      </p>
+    </div>
 
-<div id="coupons-banner" class="coupons-banner" style="display: none;">
-<div class="coupons-banner-content">
-<i class="fas fa-tags"></i>
-<span class="coupons-banner-text">Super descontos disponíveis!</span>
-</div>
-<button id="view-coupons-button" class="coupons-banner-button">Veja</button>
-</div>
+    <div id="coupons-banner" class="coupons-banner" style="display: none;">
+      <div class="coupons-banner-content">
+        <i class="fas fa-tags"></i>
+        <span class="coupons-banner-text">Super descontos disponíveis!</span>
+      </div>
+      <button id="view-coupons-button" class="coupons-banner-button">Veja</button>
+    </div>
 
-<div id="loading-indicator" style="text-align: center; padding: 40px; font-size: 1.2em; display: none;">
-<p>
-Carregando cardápio...
-</p>
-</div>
+    <div id="loading-indicator" style="text-align: center; padding: 40px; font-size: 1.2em; display: none;">
+      <p>Carregando cardápio...</p>
+    </div>
 
-<div id="horizontal-promos-section" class="promo-section-container" style="display: none;">
-<h3>🔥 Promoções Imperdíveis</h3>
-<div id="horizontal-promos-list" class="horizontal-scroll-list"></div>
-</div>
+    <div id="horizontal-promos-section" class="promo-section-container" style="display: none;">
+      <h3>🔥 Promoções Imperdíveis</h3>
+      <div id="horizontal-promos-list" class="horizontal-scroll-list"></div>
+    </div>
 
-<nav class="tabs">
-<button class="tab-button" data-category="pizzas-tradicionais">Pizzas Tradicionais</button>
-<button class="tab-button" data-category="pizzas-especiais">Pizzas Especiais</button>
-<button class="tab-button" data-category="pizzas-doces">Pizzas Doces</button>
-<button class="tab-button" data-category="bebidas">Bebidas</button>
-</nav>
+    <nav class="tabs">
+      <button class="tab-button" data-category="pizzas-tradicionais">Pizzas Tradicionais</button>
+      <button class="tab-button" data-category="pizzas-especiais">Pizzas Especiais</button>
+      <button class="tab-button" data-category="pizzas-doces">Pizzas Doces</button>
+      <button class="tab-button" data-category="bebidas">Bebidas</button>
+    </nav>
 
-<div class="menu-content-wrapper">
-<div class="menu-content-inner">
-<div id="pizzas-tradicionais-content" class="category-content"></div>
-<div id="pizzas-especiais-content" class="category-content"></div>
-<div id="pizzas-doces-content" class="category-content"></div>
-<div id="bebidas-content" class="category-content"></div>
-</div>
-</div>
-</main>
+    <div class="menu-content-wrapper">
+      <div class="menu-content-inner">
+        <div id="pizzas-tradicionais-content" class="category-content"></div>
+        <div id="pizzas-especiais-content" class="category-content"></div>
+        <div id="pizzas-doces-content" class="category-content"></div>
+        <div id="bebidas-content" class="category-content"></div>
+      </div>
+    </div>
+  </main>
 
-<footer class="cart-bar">
-<div class="cart-icon-wrapper">
-<i class="fas fa-shopping-basket"></i>
-<span class="cart-count">0</span>
-</div>
-<button class="view-cart-button" id="view-cart-button">Ver carrinho</button>
-<span class="cart-total">R$ 0,00</span>
-</footer>
+  <footer class="cart-bar">
+    <div class="cart-icon-wrapper">
+      <i class="fas fa-shopping-basket"></i>
+      <span class="cart-count">0</span>
+    </div>
+    <button class="view-cart-button" id="view-cart-button">Ver carrinho</button>
+    <span class="cart-total">R$ 0,00</span>
+  </footer>
 </div>
 
 <div id="product-modal" class="modal product-modal">
-<div class="modal-content">
-<button class="close-button">&times;</button>
-<div class="modal-scrollable-content">
-<img id="modal-product-image" src="" alt="Imagem da Pizza" class="modal-image">
-<h3 id="modal-product-name"></h3>
-<p id="modal-product-description"></p>
-<div id="selected-halves-info" style="display: none; margin-bottom: 15px; background-color: #f9f9f9; padding: 10px; border-radius: 5px;">
-<p style="margin: 0 0 5px 0;">
-<strong>Meio:</strong> <span id="first-half-name-display"></span>
-</p>
-<p style="margin: 0;">
-<strong>Meio:</strong> <span id="second-half-name-display"></span>
-</p>
-</div>
-<div class="options-section">
-<h4>Escolha uma das opções de Tamanho:</h4>
-<div class="option-group">
-<label class="option-label">
-<input type="radio" name="pizza-size" value="inteira" checked> Inteira
-<span id="price-inteira" class="option-price"></span>
-</label>
-</div>
-<div class="option-group">
-<label class="option-label">
-<input type="radio" name="pizza-size" value="metade"> Metade
-<span id="price-metade" class="option-price"></span>
-</label>
-</div>
-</div>
-<div id="second-half-options" class="options-section hidden">
-<div id="second-half-list"></div>
-</div>
-<div id="stuffed-crust-options-container" class="options-section hidden">
-<h4>Escolha a Borda Recheada (Opcional):</h4>
-<div id="stuffed-crust-type-list"></div>
-</div>
-</div>
-<div class="notes-section">
-<h4>Observações:</h4>
-<textarea id="product-notes" placeholder="Ex: Sem cebola, massa fina, etc."></textarea>
-</div>
-<div class="modal-fixed-bottom">
-<button id="add-to-cart-modal-button" class="add-to-cart-button-modal">Adicionar ao Carrinho</button>
-</div>
-</div>
+    <div class="modal-content">
+        <button class="close-button">&times;</button>
+        <div class="modal-scrollable-content">
+            <img id="modal-product-image" src="" alt="Imagem da Pizza" class="modal-image">
+            <h3 id="modal-product-name"></h3>
+            <p id="modal-product-description"></p>
+            <div id="selected-halves-info" style="display: none; margin-bottom: 15px; background-color: #f9f9f9; padding: 10px; border-radius: 5px;">
+                <p style="margin: 0 0 5px 0;"><strong>Meio:</strong> <span id="first-half-name-display"></span></p>
+                <p style="margin: 0;"><strong>Meio:</strong> <span id="second-half-name-display"></span></p>
+            </div>
+            <div class="options-section">
+                <h4>Escolha uma das opções de Tamanho:</h4>
+                <div class="option-group"><label class="option-label"><input type="radio" name="pizza-size" value="inteira" checked> Inteira<span id="price-inteira" class="option-price"></span></label></div>
+                <div class="option-group"><label class="option-label"><input type="radio" name="pizza-size" value="metade"> Metade<span id="price-metade" class="option-price"></span></label></div>
+            </div>
+            <div id="second-half-options" class="options-section hidden"><div id="second-half-list"></div></div>
+            <div id="stuffed-crust-options-container" class="options-section hidden">
+                <h4>Escolha a Borda Recheada (Opcional):</h4>
+                <div id="stuffed-crust-type-list"></div>
+            </div>
+        </div>
+        <div class="notes-section">
+            <h4>Observações:</h4>
+            <textarea id="product-notes" placeholder="Ex: Sem cebola, massa fina, etc."></textarea>
+        </div>
+        <div class="modal-fixed-bottom">
+            <button id="add-to-cart-modal-button" class="add-to-cart-button-modal">Adicionar ao Carrinho</button>
+        </div>
+    </div>
 </div>
 
 <div id="cart-modal" class="modal cart-modal">
-<div class="modal-content">
-<div class="cart-header">
-<h3>Seu Carrinho</h3>
-<button class="close-button">&times;</button>
-</div>
-
-<div class="cart-scrollable-content">
-<div id="cart-items-list" class="cart-items-list">
-<div class="empty-cart-message">
-<p>
-Seu carrinho está vazio.
-</p>
-</div>
-</div>
-<div id="cart-loyalty-section" class="cart-discount-section">
-<h4 style="font-size: 1.1em; margin-top:0; margin-bottom: 10px;">Resgatar Pontos de Fidelidade?</h4>
-<div id="loyalty-discount-info"></div>
-<button id="apply-loyalty-discount-button" class="button-link-style" style="font-size: 1em;">Aplicar Desconto</button>
-<button id="remove-loyalty-discount-button" class="button-link-style" style="font-size: 1em; display:none; color: var(--primary-red);">Remover Desconto</button>
-<p id="loyalty-discount-applied-message" style="font-size:0.9em; color: var(--green-status); font-weight: bold; display:none; margin-top:5px;"></p>
-</div>
-<div id="cart-coupon-section" class="cart-discount-section">
-<h4 style="font-size: 1.1em; margin-top:0; margin-bottom: 10px;">Aplicar Cupom de Desconto</h4>
-<div id="coupon-input-area">
-<div class="coupon-input-wrapper">
-<input type="text" id="coupon-code-input" placeholder="Digite o código do cupom">
-<button id="apply-coupon-button">Aplicar</button>
-</div>
-<div id="coupon-message"></div>
-</div>
-<div id="applied-coupon-info" style="display: none;">
-<span id="applied-coupon-text"></span>
-<button id="remove-coupon-button" class="button-link-style" style="font-size: 1em; color: var(--primary-red);">Remover</button>
-</div>
-</div>
-</div>
-
-<div class="cart-footer-wrapper">
-<div class="cart-summary">
-<div class="summary-line" id="cart-subtotal-line">
-<span>Subtotal</span>
-<span id="cart-subtotal">R$ 0,00</span>
-</div>
-<div class="summary-line" id="cart-discount-line" style="display: none;">
-<span>Desconto</span>
-<span id="cart-discount-amount" style="color: var(--green-status);">- R$ 0,00</span>
-</div>
-<div class="summary-line total-line">
-<span>Total</span>
-<span id="cart-total-summary">R$ 0,00</span>
-</div>
-</div>
-<button class="checkout-button">Finalizar Pedido</button>
-</div>
-</div>
+    <div class="modal-content">
+        <div class="cart-header">
+            <h3>Seu Carrinho</h3>
+            <button class="close-button">&times;</button>
+        </div>
+        <div class="cart-scrollable-content">
+            <div id="cart-items-list" class="cart-items-list">
+                <div class="empty-cart-message"><p>Seu carrinho está vazio.</p></div>
+            </div>
+            <div id="cart-loyalty-section" class="cart-discount-section">
+                <h4 style="font-size: 1.1em; margin-top:0; margin-bottom: 10px;">Resgatar Pontos de Fidelidade?</h4>
+                <div id="loyalty-discount-info"></div>
+                <button id="apply-loyalty-discount-button" class="button-link-style" style="font-size: 1em;">Aplicar Desconto</button>
+                <button id="remove-loyalty-discount-button" class="button-link-style" style="font-size: 1em; display:none; color: var(--primary-red);">Remover Desconto</button>
+                <p id="loyalty-discount-applied-message" style="font-size:0.9em; color: var(--green-status); font-weight: bold; display:none; margin-top:5px;"></p>
+            </div>
+            <div id="cart-coupon-section" class="cart-discount-section">
+                <h4 style="font-size: 1.1em; margin-top:0; margin-bottom: 10px;">Aplicar Cupom de Desconto</h4>
+                <div id="coupon-input-area">
+                    <div class="coupon-input-wrapper">
+                        <input type="text" id="coupon-code-input" placeholder="Digite o código do cupom">
+                        <button id="apply-coupon-button">Aplicar</button>
+                    </div>
+                    <div id="coupon-message"></div>
+                </div>
+                <div id="applied-coupon-info" style="display: none;">
+                    <span id="applied-coupon-text"></span>
+                    <button id="remove-coupon-button" class="button-link-style" style="font-size: 1em; color: var(--primary-red);">Remover</button>
+                </div>
+            </div>
+        </div>
+        <div class="cart-footer-wrapper">
+            <div class="cart-summary">
+                <div class="summary-line" id="cart-subtotal-line"><span>Subtotal</span><span id="cart-subtotal">R$ 0,00</span></div>
+                <div class="summary-line" id="cart-discount-line" style="display: none;"><span>Desconto</span><span id="cart-discount-amount" style="color: var(--green-status);">- R$ 0,00</span></div>
+                <div class="summary-line total-line"><span>Total</span><span id="cart-total-summary">R$ 0,00</span></div>
+            </div>
+            <button class="checkout-button">Finalizar Pedido</button>
+        </div>
+    </div>
 </div>
 
 <div id="checkout-modal" class="modal checkout-modal">
-<div class="modal-content">
-<button class="close-button" id="close-checkout-modal">&times;</button>
-<h3>Finalizar Pedido</h3>
-<div class="modal-scrollable-content" style="padding: 20px;">
-<h4>Seu Pedido:</h4>
-<div id="checkout-order-summary">
-<p>
-Carregando resumo do pedido...
-</p>
-</div>
-<div id="checkout-applied-discount-info" style="font-size: 0.9em; color: var(--green-status); text-align: right; margin-top: -5px; margin-bottom: 5px;"></div>
-<div id="checkout-delivery-fee-line" style="font-size: 0.9em; color: var(--dark-gray); text-align: right; margin-bottom: 5px; display: none;">
-Taxa de Entrega: <span id="checkout-delivery-fee-amount">R$ 0,00</span>
-</div>
-<p style="text-align: right; font-weight: bold; margin-top: 10px;">
-Total do Pedido: <span id="checkout-grand-total">R$ 0,00</span>
-</p>
-<hr style="margin: 20px 0;">
-<h4>Dados para Entrega e Contato:</h4>
-<form id="checkout-form">
-<div class="form-group">
-<label for="checkout-name">Nome:</label><input type="text" id="checkout-name" name="name" required>
-</div>
-<div class="form-group">
-<label for="checkout-lastname">Sobrenome:</label><input type="text" id="checkout-lastname" name="lastname" required>
-</div>
-<div class="form-group">
-<label for="checkout-whatsapp">WhatsApp (com DDD):</label><input type="tel" id="checkout-whatsapp" name="whatsapp" placeholder="Apenas números" required pattern="[0-9]{10,11}">
-</div>
-<div class="form-group">
-<label for="checkout-street">Rua/Avenida:</label><input type="text" id="checkout-street" name="street" required>
-</div>
-<div class="form-group">
-<label for="checkout-number">Número:</label><input type="text" id="checkout-number" name="number" required>
-</div>
-<div class="form-group">
-<label for="checkout-neighborhood">Bairro:</label>
-<select id="checkout-neighborhood" name="neighborhood" required>
-<option value="" disabled selected>Selecione o bairro...</option>
-</select>
-</div>
-<div class="form-group">
-<label for="checkout-complement">Complemento (Apto, Bloco, Casa):</label><input type="text" id="checkout-complement" name="complement">
-</div>
-<div class="form-group">
-<label for="checkout-reference">Ponto de Referência:</label><input type="text" id="checkout-reference" name="reference">
-</div>
-
-<h4>Forma de Pagamento:</h4>
-<div class="form-group">
-<select id="checkout-payment-method" name="paymentMethod" required>
-<option value="" disabled selected>Selecione...</option>
-<option value="Dinheiro">Dinheiro</option>
-<option value="Cartão de Crédito">Cartão de Crédito</option>
-<option value="Cartão de Débito">Cartão de Débito</option>
-<option value="Pix">Pix</option>
-</select>
-</div>
-<div class="form-group hidden" id="change-for-group">
-<label for="checkout-change">Troco para quanto? (Se Dinheiro)</label>
-<input type="number" id="checkout-change" name="change" min="0" step="0.01" placeholder="Deixe em branco se não precisar">
-</div>
-<button type="submit" class="add-to-cart-button-modal" style="margin-top: 20px;">Enviar Pedido por WhatsApp </button>
-</form>
-</div>
-</div>
-</div>
-
-<div class="modal-scrollable-content" style="padding: 20px;">
-    <div id="phone-input-section">
-        <p>Digite seu número do WhatsApp (com DDD) para entrar e ver seus pontos:</p>
-        <div class="form-group">
-            <label for="loyalty-whatsapp">WhatsApp:</label>
-            <input type="tel" id="loyalty-whatsapp" name="loyalty-whatsapp" placeholder="Apenas números (ex: 12999998888)" required pattern="[0-9]{10,11}">
+    <div class="modal-content">
+        <button class="close-button" id="close-checkout-modal">&times;</button>
+        <h3>Finalizar Pedido</h3>
+        <div class="modal-scrollable-content" style="padding: 20px;">
+            <h4>Seu Pedido:</h4>
+            <div id="checkout-order-summary"><p>Carregando resumo do pedido...</p></div>
+            <div id="checkout-applied-discount-info" style="font-size: 0.9em; color: var(--green-status); text-align: right; margin-top: -5px; margin-bottom: 5px;"></div>
+            <div id="checkout-delivery-fee-line" style="font-size: 0.9em; color: var(--dark-gray); text-align: right; margin-bottom: 5px; display: none;">Taxa de Entrega: <span id="checkout-delivery-fee-amount">R$ 0,00</span></div>
+            <p style="text-align: right; font-weight: bold; margin-top: 10px;">Total do Pedido: <span id="checkout-grand-total">R$ 0,00</span></p>
+            <hr style="margin: 20px 0;">
+            <h4>Dados para Entrega e Contato:</h4>
+            <form id="checkout-form">
+                <div class="form-group"><label for="checkout-name">Nome:</label><input type="text" id="checkout-name" name="name" required></div>
+                <div class="form-group"><label for="checkout-lastname">Sobrenome:</label><input type="text" id="checkout-lastname" name="lastname" required></div>
+                <div class="form-group"><label for="checkout-whatsapp">WhatsApp (com DDD):</label><input type="tel" id="checkout-whatsapp" name="whatsapp" placeholder="Apenas números" required pattern="[0-9]{10,11}"></div>
+                <div class="form-group"><label for="checkout-street">Rua/Avenida:</label><input type="text" id="checkout-street" name="street" required></div>
+                <div class="form-group"><label for="checkout-number">Número:</label><input type="text" id="checkout-number" name="number" required></div>
+                <div class="form-group">
+                    <label for="checkout-neighborhood">Bairro:</label>
+                    <select id="checkout-neighborhood" name="neighborhood" required><option value="" disabled selected>Selecione o bairro...</option></select>
+                </div>
+                <div class="form-group"><label for="checkout-complement">Complemento (Apto, Bloco, Casa):</label><input type="text" id="checkout-complement" name="complement"></div>
+                <div class="form-group"><label for="checkout-reference">Ponto de Referência:</label><input type="text" id="checkout-reference" name="reference"></div>
+                <h4>Forma de Pagamento:</h4>
+                <div class="form-group">
+                    <select id="checkout-payment-method" name="paymentMethod" required>
+                        <option value="" disabled selected>Selecione...</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                        <option value="Cartão de Crédito">Cartão de Crédito</option>
+                        <option value="Cartão de Débito">Cartão de Débito</option>
+                        <option value="Pix">Pix</option>
+                    </select>
+                </div>
+                <div class="form-group hidden" id="change-for-group">
+                    <label for="checkout-change">Troco para quanto? (Se Dinheiro)</label>
+                    <input type="number" id="checkout-change" name="change" min="0" step="0.01" placeholder="Deixe em branco se não precisar">
+                </div>
+                <button type="submit" class="add-to-cart-button-modal" style="margin-top: 20px;">Enviar Pedido por WhatsApp </button>
+            </form>
         </div>
-        <button id="send-code-button" class="add-to-cart-button-modal" style="margin-top: 15px; width: 100%;">Enviar Código SMS</button>
-        <div id="recaptcha-container" style="margin-top: 15px;"></div>
     </div>
+</div>
 
-    <div id="code-input-section" style="display: none;">
-        <p>Enviamos um código para o seu celular. Por favor, insira abaixo:</p>
-        <div class="form-group">
-            <label for="sms-code">Código de 6 dígitos:</label>
-            <input type="text" id="sms-code" name="sms-code" placeholder="123456" required>
+<div id="loyalty-modal" class="modal">
+    <div class="modal-content">
+        <button class="close-button" id="close-loyalty-modal">&times;</button>
+        <h3>Programa de Fidelidade</h3>
+        <div class="modal-scrollable-content" style="padding: 20px;">
+            <div id="phone-input-section">
+                <p>Digite seu número do WhatsApp (com DDD) para entrar e ver seus pontos:</p>
+                <div class="form-group">
+                    <label for="loyalty-whatsapp">WhatsApp:</label>
+                    <input type="tel" id="loyalty-whatsapp" name="loyalty-whatsapp" placeholder="Apenas números (ex: 12999998888)" required pattern="[0-9]{10,11}">
+                </div>
+                <button id="send-code-button" class="add-to-cart-button-modal" style="margin-top: 15px; width: 100%;">Enviar Código SMS</button>
+                <div id="recaptcha-container" style="margin-top: 15px;"></div>
+            </div>
+            <div id="code-input-section" style="display: none;">
+                <p>Enviamos um código para o seu celular. Por favor, insira abaixo:</p>
+                <div class="form-group">
+                    <label for="sms-code">Código de 6 dígitos:</label>
+                    <input type="text" id="sms-code" name="sms-code" placeholder="123456" required>
+                </div>
+                <button id="verify-code-button" class="add-to-cart-button-modal" style="margin-top: 15px; width: 100%;">Verificar e Entrar</button>
+            </div>
+            <hr style="margin: 20px 0;">
+            <div id="loyalty-results-area"></div>
         </div>
-        <button id="verify-code-button" class="add-to-cart-button-modal" style="margin-top: 15px; width: 100%;">Verificar e Entrar</button>
     </div>
-
-    <hr style="margin: 20px 0;">
-    <div id="loyalty-results-area"></div>
 </div>
 
 <div id="pix-info-modal" class="modal pix-info-modal">
-<div class="modal-content">
-<button class="close-button pix-info-close-button">&times;</button>
-<h3>Pagamento via Pix</h3>
-<div class="modal-scrollable-content">
-<p>
-Por favor, realize o pagamento utilizando a chave Pix abaixo. Após o pagamento, <strong>envie o comprovante para o nosso WhatsApp</strong> para agilizarmos a preparação do seu pedido.
-</p>
-<div class="pix-details-container">
-<p>
-<strong>Valor Total do Pedido:</strong> <span id="pix-payment-amount">R$ 0,00</span>
-</p>
-<hr>
-<p>
-<strong>Chave Pix Aleatória:</strong>
-</p>
-<div class="pix-key-wrapper">
-<input type="text" id="pix-key-display" value="carregando..." readonly>
-<button id="copy-pix-key-button" class="button-simple" title="Copiar Chave Pix"><i class="far fa-copy"></i> Copiar</button>
-</div>
-<p id="pix-key-copied-message" style="display:none; color: var(--green-status); font-size: var(--font-size-sm); margin-top: var(--space-xs);">
-Chave Pix copiada!
-</p>
-<p style="margin-top: var(--space-md);">
-<strong>Beneficiário:</strong> <span id="pix-recipient-name">Carregando...</span>
-</p>
-<p>
-<strong>CPF:</strong> <span id="pix-recipient-cpf">Carregando...</span>
-</p>
-<p>
-<strong>Instituição:</strong> <span id="pix-recipient-institution">Carregando...</span>
-</p>
-</div>
-<hr style="margin-top: var(--space-lg); margin-bottom: var(--space-lg);">
-<p style="font-weight: bold; text-align: center;">
-(Não esqueça de anexar o comprovante na conversa!).
-</p>
-</div>
-<div class="modal-fixed-bottom">
-<button id="proceed-with-pix-order-button" class="add-to-cart-button-modal">Enviar Pedido</button>
-</div>
-</div>
+    <div class="modal-content">
+        <button class="close-button pix-info-close-button">&times;</button>
+        <h3>Pagamento via Pix</h3>
+        <div class="modal-scrollable-content">
+            <p>Por favor, realize o pagamento utilizando a chave Pix abaixo. Após o pagamento, <strong>envie o comprovante para o nosso WhatsApp</strong> para agilizarmos a preparação do seu pedido.</p>
+            <div class="pix-details-container">
+                <p><strong>Valor Total do Pedido:</strong> <span id="pix-payment-amount">R$ 0,00</span></p><hr>
+                <p><strong>Chave Pix Aleatória:</strong></p>
+                <div class="pix-key-wrapper">
+                    <input type="text" id="pix-key-display" value="carregando..." readonly>
+                    <button id="copy-pix-key-button" class="button-simple" title="Copiar Chave Pix"><i class="far fa-copy"></i> Copiar</button>
+                </div>
+                <p id="pix-key-copied-message" style="display:none; color: var(--green-status); font-size: var(--font-size-sm); margin-top: var(--space-xs);">Chave Pix copiada!</p>
+                <p style="margin-top: var(--space-md);"><strong>Beneficiário:</strong> <span id="pix-recipient-name">Carregando...</span></p>
+                <p><strong>CPF:</strong> <span id="pix-recipient-cpf">Carregando...</span></p>
+                <p><strong>Instituição:</strong> <span id="pix-recipient-institution">Carregando...</span></p>
+            </div>
+            <hr style="margin-top: var(--space-lg); margin-bottom: var(--space-lg);">
+            <p style="font-weight: bold; text-align: center;">(Não esqueça de anexar o comprovante na conversa!).</p>
+        </div>
+        <div class="modal-fixed-bottom">
+            <button id="proceed-with-pix-order-button" class="add-to-cart-button-modal">Enviar Pedido</button>
+        </div>
+    </div>
 </div>
 
 <div id="promo-popup-modal" class="modal">
-<div class="modal-content promo-popup-content">
-<button class="close-button" id="close-promo-popup">&times;</button>
-<img src="img/banner/gift-banner.png" alt="Banner da Promoção de Pontos" class="promo-popup-image">
-</div>
+    <div class="modal-content promo-popup-content">
+        <button class="close-button" id="close-promo-popup">&times;</button>
+        <img src="img/banner/gift-banner.png" alt="Banner da Promoção de Pontos" class="promo-popup-image">
+    </div>
 </div>
 
 <div id="coupons-modal" class="modal coupons-modal">
-<div class="modal-content">
-<button class="close-button">&times;</button>
-<h3><i class="fas fa-tags"></i> Cupons de Desconto</h3>
-<div id="coupons-list" class="coupons-list">
-<p>
-Carregando cupons...
-</p>
-</div>
-</div>
+    <div class="modal-content">
+        <button class="close-button">&times;</button>
+        <h3><i class="fas fa-tags"></i> Cupons de Desconto</h3>
+        <div id="coupons-list" class="coupons-list"><p>Carregando cupons...</p></div>
+    </div>
 </div>
 
 <div id="last-orders-modal" class="modal">
-<div class="modal-content">
-<button class="close-button">&times;</button>
-<h3><i class="fas fa-history"></i> Seus Últimos Pedidos</h3>
-<div class="modal-scrollable-content" style="padding: 20px;">
-<div id="last-orders-list">
-<p>
-Carregando seus últimos pedidos...
-</p>
-</div>
-</div>
-</div>
+    <div class="modal-content">
+        <button class="close-button">&times;</button>
+        <h3><i class="fas fa-history"></i> Seus Últimos Pedidos</h3>
+        <div class="modal-scrollable-content" style="padding: 20px;">
+            <div id="last-orders-list"><p>Carregando seus últimos pedidos...</p></div>
+        </div>
+    </div>
 </div>
 
 <div id="order-success-animation-overlay">
-<div class="success-animation-container">
-<div class="success-content">
-<h2 id="success-animation-message">Parabéns!</h2>
-<p>
-Agora você tem <strong id="success-animation-points">0</strong> pontos!
-</p>
-</div>
-</div>
+    <div class="success-animation-container">
+        <div class="success-content">
+            <h2 id="success-animation-message">Parabéns!</h2>
+            <p>Agora você tem <strong id="success-animation-points">0</strong> pontos!</p>
+        </div>
+    </div>
 </div>
 
 <div id="custom-confirm-modal" class="modal">
-<div class="modal-content confirm-modal-content">
-<h3 id="custom-confirm-title">Pedido Registrado!</h3>
-<p id="custom-confirm-message">
-Clique em Enviar para informar seu pedido!.
-</p>
-<div class="confirm-modal-actions">
-<button id="custom-confirm-cancel" class="btn-confirm-cancel">Cancelar</button>
-<button id="custom-confirm-ok" class="btn-confirm-ok">Enviar</button>
-</div>
-</div>
+    <div class="modal-content confirm-modal-content">
+        <h3 id="custom-confirm-title">Pedido Registrado!</h3>
+        <p id="custom-confirm-message">Clique em Enviar para informar seu pedido!.</p>
+        <div class="confirm-modal-actions">
+            <button id="custom-confirm-cancel" class="btn-confirm-cancel">Cancelar</button>
+            <button id="custom-confirm-ok" class="btn-confirm-ok">Enviar</button>
+        </div>
+    </div>
 </div>
 
 <script type="module">
@@ -442,7 +359,7 @@ Clique em Enviar para informar seu pedido!.
     window.db = db;
     window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion };
     
-    // ESTA LINHA É A MAIS IMPORTANTE QUE ESTAVA FALTANDO:
+    // Disponibiliza as funções de autenticação para o loyalty.js
     window.firebaseAuth = { getAuth, RecaptchaVerifier, signInWithPhoneNumber }; 
 
     console.log("Firebase (modular), Firestore e Auth inicializados para o Site Principal!");
@@ -457,15 +374,11 @@ Clique em Enviar para informar seu pedido!.
 <script src="scripts.js" defer></script>
 <script>
 if ('serviceWorker' in navigator) {
-window.addEventListener('load', () => {
-navigator.serviceWorker.register('sw.js')
-.then((reg) => {
-console.log('Service Worker registrado com sucesso!', reg.scope);
-})
-.catch((err) => {
-console.log('Falha ao registrar o Service Worker: ', err);
-});
-});
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then((reg) => console.log('Service Worker registrado com sucesso!', reg.scope))
+      .catch((err) => console.log('Falha ao registrar o Service Worker: ', err));
+  });
 }
 </script>
 </body>
