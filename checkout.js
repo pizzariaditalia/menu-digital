@@ -1,4 +1,4 @@
-// checkout.js - VERSÃO COM MODAL DE CONFIRMAÇÃO CUSTOMIZADO
+// checkout.js - VERSÃO ATUALIZADA PARA LOGIN COM GOOGLE (UID)
 
 async function saveOrderToFirestore(orderData) {
     if (!window.db || !window.firebaseFirestore) {
@@ -25,6 +25,7 @@ async function saveOrderToFirestore(orderData) {
     }
 }
 
+// *** FUNÇÃO ATUALIZADA ***
 async function saveCustomerProfile(customerData) {
     if (!window.db || !window.firebaseFirestore) {
         console.error("Firestore não inicializado. Perfil do cliente não pode ser salvo.");
@@ -33,16 +34,26 @@ async function saveCustomerProfile(customerData) {
     try {
         const { doc, setDoc, serverTimestamp } = window.firebaseFirestore;
         const db = window.db;
-        const customerDocRef = doc(db, "customer", customerData.whatsapp);
+
+        // Se o cliente está logado, o ID é o UID. Senão, é o WhatsApp (para manter compatibilidade).
+        const customerId = window.currentCustomerDetails?.id || customerData.whatsapp;
+        
+        const customerDocRef = doc(db, "customer", customerId);
         const dataToSave = { ...customerData, lastUpdatedAt: serverTimestamp() };
+        
+        // Usa { merge: true } para não apagar dados existentes, apenas atualizar/adicionar.
         await setDoc(customerDocRef, dataToSave, { merge: true });
-        console.log(`Perfil do cliente ${customerData.whatsapp} salvo/atualizado com sucesso!`);
+        console.log(`Perfil do cliente ${customerId} salvo/atualizado com sucesso!`);
+
     } catch (error) {
         console.error("Erro ao salvar o perfil do cliente no Firestore:", error);
     }
 }
 
-async function markCouponAsUsed(couponCode, customerId) {
+// *** FUNÇÃO ATUALIZADA ***
+async function markCouponAsUsed(couponCode) {
+    // Pega o ID do cliente logado. Se não houver, não faz nada.
+    const customerId = window.currentCustomerDetails?.id;
     if (!window.db || !window.firebaseFirestore || !couponCode || !customerId) {
         return;
     }
@@ -50,7 +61,7 @@ async function markCouponAsUsed(couponCode, customerId) {
     const couponRef = doc(window.db, "coupons", couponCode);
     try {
         await updateDoc(couponRef, {
-            usedBy: arrayUnion(customerId)
+            usedBy: arrayUnion(customerId) // Usa o UID para marcar o cupom
         });
         console.log(`Cupom ${couponCode} marcado como usado pelo cliente ${customerId}.`);
     } catch (error) {
@@ -58,7 +69,7 @@ async function markCouponAsUsed(couponCode, customerId) {
     }
 }
 
-function showOrderSuccessAnimation(data) {
+async function showOrderSuccessAnimation(data) {
     return new Promise(resolve => {
         const overlay = document.getElementById('order-success-animation-overlay');
         const pointsSpan = document.getElementById('success-animation-points');
@@ -87,7 +98,6 @@ function showCustomConfirm(whatsappUrl) {
 
     modal.classList.add('show');
 
-    // Usamos 'once: true' para que os eventos sejam disparados apenas uma vez
     btnOk.addEventListener('click', () => {
         window.open(whatsappUrl, '_blank');
         modal.classList.remove('show');
@@ -284,7 +294,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let customerData = {
-            whatsapp, firstName: name, lastName: lastname,
+            whatsapp, 
+            firstName: name, 
+            lastName: lastname,
+            email: window.currentCustomerDetails?.email || '', // Adiciona o email do usuário logado
             address: { street, number, neighborhood: selectedNeighborhoodValue, complement, reference },
             points: window.currentCustomerDetails?.points || 0,
         };
@@ -298,8 +311,9 @@ document.addEventListener('DOMContentLoaded', () => {
             pointsUsed = loyaltyDiscount.pointsUsed;
         }
         
+        // *** CHAMADA ATUALIZADA ***
         if (couponDiscount && couponDiscount.oneTimeUsePerCustomer) {
-            await markCouponAsUsed(couponDiscount.code, whatsapp);
+            await markCouponAsUsed(couponDiscount.code);
         }
         
         let discountAmount = 0;
@@ -321,7 +335,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const orderData = {
             source: "WebApp",
-            customer: { firstName: name, lastName: lastname, whatsapp: whatsapp },
+            customer: { 
+                id: window.currentCustomerDetails?.id || whatsapp, // Salva o ID do usuário no pedido
+                firstName: name, 
+                lastName: lastname, 
+                whatsapp: whatsapp 
+            },
             delivery: { address: `${street}, ${number}`, neighborhood: selectedNeighborhoodValue, complement, reference, fee: currentDeliveryFee },
             payment: { method: paymentMethod, changeFor: changeNeededValue ? parseFloat(changeNeededValue) : null },
             items: window.getCartItems(),
