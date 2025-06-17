@@ -1,7 +1,7 @@
 {
   "name": "D'Italia Pizzaria",
-  "short_name": "D'Italia",
-  "start_url": "/index.html",
+  "short_name": "D'Italia Pizzaria",
+  "start_url": "https://pizzariaditalia.github.io/menu-digital/index.html",
   "display": "standalone",
   "background_color": "#f7f7f7",
   "theme_color": "#ea1d2c",
@@ -13,7 +13,7 @@
       "sizes": "192x192"
     },
     {
-      "src": "img/icons/icon-512x512.png",
+      "src": "img/icons/icon.png",
       "type": "image/png",
       "sizes": "512x512"
     }
