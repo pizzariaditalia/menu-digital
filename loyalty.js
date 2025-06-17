@@ -1,4 +1,4 @@
-// loyalty.js - VERSÃO FINAL COM AUTENTICAÇÃO POR TELEFONE E FUNCIONALIDADES COMPLETAS
+// loyalty.js - VERSÃO FINAL COM AUTENTICAÇÃO POR TELEFONE E BUSCA POR UID
 
 // =========================================================================
 // CONSTANTES E FUNÇÕES GLOBAIS DO MÓDULO
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(`Código de verificação enviado para ${formattedPhoneNumber}`);
         } catch (error) {
             console.error("Erro ao enviar SMS:", error);
-            alert("Não foi possível enviar o código. Verifique o número ou tente novamente.");
+            alert("Não foi possível enviar o código. Verifique o número ou tente novamente. (O reCAPTCHA pode ter falhado).");
             window.recaptchaVerifier.render().catch(err => console.error("Falha ao renderizar reCAPTCHA:", err));
         } finally {
             sendCodeButton.disabled = false;
@@ -120,10 +120,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = result.user;
             console.log("Usuário autenticado com sucesso:", user.uid);
             
-            const whatsappNumber = user.phoneNumber.replace('+55', '');
-            const customerData = await getCustomerFromFirestore(whatsappNumber);
+            // --- LÓGICA CORRIGIDA ---
+            const userUID = user.uid; // Pega o UID do usuário logado
+            const customerData = await getCustomerFromFirestore(userUID); // Busca usando o UID
+            const whatsappNumber = user.phoneNumber.replace('+55', ''); // Pega o whats para outros usos
             
             updateGlobalCustomerState(customerData, whatsappNumber);
+            // --- FIM DA LÓGICA CORRIGIDA ---
             
             closeLoyaltyModal();
             alert("Login realizado com sucesso!");
@@ -141,10 +144,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // LÓGICA DE DADOS (FIRESTORE E ESTADO GLOBAL)
     // =========================================================================
 
-    async function getCustomerFromFirestore(whatsappNumber) {
+    // --- FUNÇÃO CORRIGIDA ---
+    async function getCustomerFromFirestore(userId) { // A função agora espera um 'userId' (que será o UID)
         if (!window.db || !window.firebaseFirestore) return null;
         const { doc, getDoc } = window.firebaseFirestore;
-        const customerDocRef = doc(window.db, "customer", whatsappNumber);
+        // Usa o 'userId' para buscar o documento corretamente
+        const customerDocRef = doc(window.db, "customer", userId); 
         const docSnap = await getDoc(customerDocRef);
         return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
     }
@@ -204,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) {
             console.error("Erro ao buscar últimos pedidos:", error);
-            alert("Não foi possível carregar os últimos pedidos. As regras de segurança podem não permitir esta ação ou você não está autenticado.");
+            alert("Não foi possível carregar os últimos pedidos. As regras de segurança podem não permitir esta ação.");
             return [];
         }
     }
@@ -222,11 +227,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const d = order.createdAt.toDate();
                 formattedDate = `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
             }
-            const displayOrderId = (order.orderId || order.id || 'N/A').substring(0, 8);
             return `
             <div class="order-history-card">
               <div class="order-history-header">
-                  <span class="order-id">Pedido #${displayOrderId}</span>
+                  <span class="order-id">Pedido #${(order.orderId || order.id).substring(0, 8)}</span>
                   <span class="order-status">${order.status || 'Status N/A'}</span>
               </div>
               <div class="order-history-body">
@@ -290,11 +294,13 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     }
     
+    // --- FUNÇÃO CORRIGIDA ---
     async function loadCurrentCustomerOnPageLoad() {
         const auth = window.firebaseAuth?.getAuth();
         if (auth?.currentUser) {
+            const userUID = auth.currentUser.uid;
             const whatsappNumber = auth.currentUser.phoneNumber.replace('+55', '');
-            const customerData = await getCustomerFromFirestore(whatsappNumber);
+            const customerData = await getCustomerFromFirestore(userUID);
             updateGlobalCustomerState(customerData, whatsappNumber);
         }
     }
