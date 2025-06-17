@@ -1,4 +1,4 @@
-// loyalty.js - VERSÃO FINAL COM LOGIN POR GOOGLE E UI INTELIGENTE NO MODAL
+// loyalty.js - VERSÃO FINAL COM LÓGICA REATIVA PARA O MODAL
 
 // =========================================================================
 // CONSTANTES E FUNÇÕES GLOBAIS DO MÓDULO
@@ -101,8 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const auth = window.firebaseAuth.getAuth();
         try {
             await auth.signOut();
-            window.currentCustomerDetails = null; 
-            updateGlobalCustomerState(null, null);
+            // A função onAuthStateChanged cuidará de atualizar o estado
             closeLoyaltyModal();
             alert("Você saiu da sua conta.");
         } catch (error) {
@@ -124,18 +123,25 @@ document.addEventListener('DOMContentLoaded', () => {
         return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
     }
     
+    // *** FUNÇÃO ATUALIZADA ***
     function updateGlobalCustomerState(customerData, identifier) {
         if (customerData) {
             window.currentCustomerDetails = customerData;
             localStorage.setItem('activeCustomerId', customerData.id);
-            displayCustomerWelcomeInfo(customerData);
-            showWelcomePointsPopup(customerData.points);
         } else {
             window.currentCustomerDetails = null;
             localStorage.removeItem('activeCustomerId');
-            displayCustomerWelcomeInfo(null);
+        }
+
+        // Chamadas para atualizar a UI
+        displayCustomerWelcomeInfo(customerData);
+        if (customerData) {
+            showWelcomePointsPopup(customerData.points);
         }
         
+        // **NOVO**: Atualiza o conteúdo do modal sempre que o estado do usuário mudar
+        renderLoyaltyModalContent();
+
         if (typeof window.updateCartUI === 'function') {
             window.updateCartUI();
         }
@@ -218,14 +224,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // LÓGICA DE ABERTURA/FECHAMENTO DOS MODAIS
+    // LÓGICA DE ABERTURA/FECHAMENTO E RENDERIZAÇÃO DOS MODAIS
     // =========================================================================
-
-    function openLoyaltyModal() {
-        if (!loyaltyModal) return;
-
+    
+    // **NOVA FUNÇÃO** para renderizar o conteúdo do modal
+    function renderLoyaltyModalContent() {
         const googleLoginSection = document.getElementById('google-login-section');
         const loyaltyResultsArea = document.getElementById('loyalty-results-area');
+
+        if (!googleLoginSection || !loyaltyResultsArea) return;
 
         if (window.currentCustomerDetails) {
             googleLoginSection.style.display = 'none';
@@ -243,9 +250,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             googleLoginSection.style.display = 'block';
             loyaltyResultsArea.style.display = 'none';
-            loyaltyResultsArea.innerHTML = '';
         }
-
+    }
+    
+    // **FUNÇÃO ATUALIZADA**
+    function openLoyaltyModal() {
+        if (!loyaltyModal) return;
+        renderLoyaltyModalContent(); // Apenas renderiza o conteúdo e abre
         loyaltyModal.classList.add('show');
         document.body.style.overflow = 'hidden';
     }
@@ -277,13 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const customerData = await getCustomerFromFirestore(user.uid);
-                if (customerData) {
-                    updateGlobalCustomerState(customerData, user.email);
-                } else {
-                    // Caso raro: usuário autenticado no Firebase mas sem registro no DB.
-                    // O fluxo de login normal (signInWithGoogle) resolve isso.
-                    console.warn("Usuário autenticado sem registro no DB. O próximo login irá criar o perfil.");
-                }
+                updateGlobalCustomerState(customerData, user.email);
             } else {
                 updateGlobalCustomerState(null, null);
             }
