@@ -1,4 +1,4 @@
-// loyalty.js - VERSÃO COM BOTÃO "PEDIR NOVAMENTE" FUNCIONAL E CORREÇÕES DE RENDERIZAÇÃO
+// loyalty.js - VERSÃO COM CORREÇÃO DE PONTOS E CHECKOUT
 
 // --- Estrutura dos Níveis de Desconto de Fidelidade ---
 const DISCOUNT_TIERS = [{
@@ -104,17 +104,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (activeWhatsapp) {
       const customer = await getCustomerFromFirestore(activeWhatsapp);
       if (customer) {
-        window.currentCustomerDetails = customer;
-        displayCustomerWelcomeInfo(customer);
-        showWelcomePointsPopup(customer.points);
+        // CORREÇÃO: Usar a nova função centralizada ao carregar a página também
+        updateGlobalCustomerState(customer, activeWhatsapp);
       } else {
-        localStorage.removeItem('activeCustomerWhatsapp');
-        window.currentCustomerDetails = null;
-        displayCustomerWelcomeInfo(null);
+        updateGlobalCustomerState(null, null);
       }
     } else {
-      window.currentCustomerDetails = null;
-      displayCustomerWelcomeInfo(null);
+      updateGlobalCustomerState(null, null);
     }
   }
 
@@ -155,9 +151,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // =========================================================================
-  // FUNÇÃO ATUALIZADA E ROBUSTA PARA RENDERIZAR OS PEDIDOS
-  // =========================================================================
   function renderLastOrders(orders) {
     if (!lastOrdersListDiv) return;
 
@@ -171,16 +164,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     lastOrdersListDiv.innerHTML = orders.map(order => {
-      // Verificação de segurança para a data do pedido
       let formattedDate = 'Data indisponível';
       if (order.createdAt && typeof order.createdAt.toDate === 'function') {
         const orderDate = order.createdAt.toDate();
-        formattedDate = `${orderDate.toLocaleDateString('pt-BR')} às ${orderDate.toLocaleTimeString('pt-BR', {
-          hour: '2-digit', minute: '2-digit'
-        })}`;
+        formattedDate = `${orderDate.toLocaleDateString('pt-BR')} às ${orderDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
       }
-
-      // Verificação de segurança para o ID do pedido, usando o ID do documento como fallback
       const displayOrderId = (order.orderId || order.id || 'N/A').substring(0, 8);
 
       return `
@@ -203,19 +191,15 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
     }).join('');
 
-    // Adiciona o evento de clique aos novos botões
     lastOrdersListDiv.querySelectorAll('.btn-reorder').forEach(button => {
       button.addEventListener('click', (event) => {
         const orderId = event.target.dataset.orderId;
         const orderToReorder = orders.find(o => o.id === orderId);
 
         if (orderToReorder && orderToReorder.items) {
-          // Adiciona cada item do pedido antigo ao carrinho
           orderToReorder.items.forEach(item => {
             window.addToCart(item);
           });
-
-          // Fecha o modal de histórico e abre o carrinho para o cliente ver
           closeLastOrdersModal();
           window.openCartModal();
         }
@@ -248,10 +232,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (lastOrdersModal) lastOrdersModal.addEventListener('click', (event) => {
     if (event.target === lastOrdersModal) closeLastOrdersModal();
   });
-
-  // Copie e cole esta função inteira, substituindo a antiga em loyalty.js
-
-async function handleViewPoints() {
+  
+  // FUNÇÃO ATUALIZADA DA CORREÇÃO ANTERIOR
+  async function handleViewPoints() {
     if (!loyaltyWhatsAppInput || !loyaltyResultsArea) return;
     const whatsappNumber = loyaltyWhatsAppInput.value.trim().replace(/\D/g, '');
 
@@ -266,21 +249,14 @@ async function handleViewPoints() {
     viewPointsButton.disabled = false;
     viewPointsButton.textContent = "Ver Meus Pontos";
 
-    // --- Início da Correção ---
-    // Removemos a lógica de atualização daqui e centralizamos em uma nova função.
     updateGlobalCustomerState(customer, whatsappNumber);
-    // --- Fim da Correção ---
-}
+  }
 
-// NOVA FUNÇÃO: Adicione esta nova função em qualquer lugar dentro do arquivo loyalty.js
-// Ela será a responsável por atualizar todo o site com os dados do cliente.
-function updateGlobalCustomerState(customerData, whatsapp) {
+  // NOVA FUNÇÃO DA CORREÇÃO ANTERIOR
+  function updateGlobalCustomerState(customerData, whatsapp) {
     if (customerData) {
-        // 1. Armazena os dados globalmente e no navegador
         window.currentCustomerDetails = customerData;
         localStorage.setItem('activeCustomerWhatsapp', whatsapp);
-
-        // 2. Mostra a mensagem de pontos no modal de fidelidade
         if (loyaltyResultsArea) {
              loyaltyResultsArea.innerHTML = `
                 <div class="points-display-banner">
@@ -290,13 +266,9 @@ function updateGlobalCustomerState(customerData, whatsapp) {
                 </div>
             `;
         }
-       
-        // 3. Atualiza a UI principal (botão de últimos pedidos e pop-up de boas-vindas)
         displayCustomerWelcomeInfo(customerData);
         showWelcomePointsPopup(customerData.points);
-
     } else {
-        // Se não encontrou cliente, limpa tudo
         window.currentCustomerDetails = null;
         localStorage.removeItem('activeCustomerWhatsapp');
         if (loyaltyResultsArea) {
@@ -308,9 +280,14 @@ function updateGlobalCustomerState(customerData, whatsapp) {
         displayCustomerWelcomeInfo(null);
     }
     
-    // 4. AVISA O CARRINHO PARA ATUALIZAR A UI (mostrar opções de desconto, etc)
-    // Esta é a parte crucial que estava faltando ser mais robusta.
     if (typeof window.updateCartUI === 'function') {
         window.updateCartUI();
     }
-}
+  }
+
+
+  if (viewPointsButton) viewPointsButton.addEventListener('click', handleViewPoints);
+  
+  loadCurrentCustomerOnPageLoad();
+
+}); // ESTA É A CHAVE '}' QUE PROVAVELMENTE ESTAVA FALTANDO
