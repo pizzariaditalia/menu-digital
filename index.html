@@ -416,12 +416,12 @@ Clique em Enviar para informar seu pedido!.
 </div>
 
 <script type="module">
-    // Importando módulos do App, Firestore E AUTENTICAÇÃO
+    // Importando módulos do App, Firestore E AGORA O DE AUTENTICAÇÃO
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    // Sua configuração do Firebase (sem alterações)
+    // Sua configuração do Firebase (não muda)
     const firebaseConfig = {
       apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
       authDomain: "app-ditalia.firebaseapp.com",
@@ -432,18 +432,20 @@ Clique em Enviar para informar seu pedido!.
       measurementId: "G-5QW3MVGYME"
     };
 
-    // Inicialização
+    // Inicialização do App, Firestore e Auth
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app); // Inicializa a autenticação
+    const auth = getAuth(app); 
 
-    // Disponibiliza TUDO globalmente para os outros scripts
+    // Disponibiliza TUDO globalmente para os outros scripts poderem usar
     window.firebaseApp = app;
     window.db = db;
     window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion };
-    window.firebaseAuth = { getAuth, RecaptchaVerifier, signInWithPhoneNumber }; // Disponibiliza as funções de autenticação
+    
+    // ESTA LINHA É A MAIS IMPORTANTE QUE ESTAVA FALTANDO:
+    window.firebaseAuth = { getAuth, RecaptchaVerifier, signInWithPhoneNumber }; 
 
-    console.log("Firebase (modular) e Firestore inicializados para o Site Principal!");
+    console.log("Firebase (modular), Firestore e Auth inicializados para o Site Principal!");
 </script>
 
 <script src="menu.js" defer></script>
