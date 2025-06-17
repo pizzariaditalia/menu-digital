@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Seletores de Elementos do DOM ---
     const loyaltyButton = document.getElementById('loyalty-button');
+    console.log("Tentando encontrar o botão de fidelidade:", loyaltyButton);
     const loyaltyModal = document.getElementById('loyalty-modal');
     const closeLoyaltyModalButton = document.getElementById('close-loyalty-modal');
     const loyaltyResultsArea = document.getElementById('loyalty-results-area');
