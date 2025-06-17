@@ -148,13 +148,16 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => popup.classList.remove('show'), 5000);
     }
     
-    function displayCustomerWelcomeInfo(customer) {
-        if (lastOrdersButton) {
-            lastOrdersButton.style.display = customer ? 'flex' : 'none';
-        }
-    }
-    window.displayCustomerWelcomeInfo = displayCustomerWelcomeInfo;
+    // VERSÃO CORRIGIDA E MAIS SEGURA
+function displayCustomerWelcomeInfo(customer) {
+    // Acessamos o botão aqui dentro para garantir que ele já exista na página
+    const lastOrdersButton = document.getElementById('last-orders-button');
 
+    // Verificamos novamente se o botão foi encontrado antes de tentar usá-lo
+    if (lastOrdersButton) {
+        lastOrdersButton.style.display = customer ? 'flex' : 'none';
+    }
+}
     // =========================================================================
     // LÓGICA DE "ÚLTIMOS PEDIDOS"
     // =========================================================================
