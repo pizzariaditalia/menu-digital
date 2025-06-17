@@ -1,4 +1,4 @@
-// loyalty.js - VERSÃO FINAL COM AUTENTICAÇÃO POR TELEFONE E BUSCA POR UID
+// loyalty.js - VERSÃO FINAL COM LOGIN POR GOOGLE
 
 // =========================================================================
 // CONSTANTES E FUNÇÕES GLOBAIS DO MÓDULO
@@ -36,14 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loyaltyModal = document.getElementById('loyalty-modal');
     const closeLoyaltyModalButton = document.getElementById('close-loyalty-modal');
     const loyaltyResultsArea = document.getElementById('loyalty-results-area');
-    
-    // Elementos do Modal de Login
-    const phoneInputSection = document.getElementById('phone-input-section');
-    const codeInputSection = document.getElementById('code-input-section');
-    const loyaltyWhatsAppInput = document.getElementById('loyalty-whatsapp');
-    const sendCodeButton = document.getElementById('send-code-button');
-    const smsCodeInput = document.getElementById('sms-code');
-    const verifyCodeButton = document.getElementById('verify-code-button');
+    const googleLoginButton = document.getElementById('google-login-button'); // Nosso novo botão
 
     // Elementos de "Últimos Pedidos"
     const lastOrdersButton = document.getElementById('last-orders-button');
@@ -51,124 +44,92 @@ document.addEventListener('DOMContentLoaded', () => {
     const lastOrdersListDiv = document.getElementById('last-orders-list');
     const closeLastOrdersModalButton = lastOrdersModal?.querySelector('.close-button');
 
-    // Variável global para o processo de confirmação de SMS
-    window.confirmationResult = null;
 
     // =========================================================================
-    // LÓGICA DE AUTENTICAÇÃO POR TELEFONE
+    // LÓGICA DE AUTENTICAÇÃO COM GOOGLE
     // =========================================================================
 
-    // 1. Configura o reCAPTCHA Verifier do Firebase
-    function setupRecaptcha() {
-        if (!window.firebaseAuth) {
-            console.error("Firebase Auth não foi encontrado. Verifique a importação no index.html.");
-            return;
-        }
-        const auth = window.firebaseAuth.getAuth();
-        // Garante que não haja múltiplos verifiers
-        if (!window.recaptchaVerifier || window.recaptchaVerifier.auth.app.name !== auth.app.name) {
-             window.recaptchaVerifier = new window.firebaseAuth.RecaptchaVerifier(auth, 'recaptcha-container', {
-                'size': 'invisible',
-                'callback': (response) => console.log("reCAPTCHA verificado."),
-                'expired-callback': () => console.log("reCAPTCHA expirado.")
-            });
-        }
-    }
-
-    // 2. Envia o código SMS para o número fornecido
-    async function sendSmsCode() {
-        const phoneNumber = loyaltyWhatsAppInput.value.trim().replace(/\D/g, '');
-        if (!/^[0-9]{10,11}$/.test(phoneNumber)) {
-            alert("Por favor, insira um número de WhatsApp válido com DDD.");
+    async function signInWithGoogle() {
+        if (!window.firebaseAuth || !window.firebaseFirestore) {
+            console.error("Firebase Auth ou Firestore não inicializado.");
+            alert("Erro de configuração. Tente novamente mais tarde.");
             return;
         }
 
-        const formattedPhoneNumber = `+55${phoneNumber}`;
-        const appVerifier = window.recaptchaVerifier;
         const auth = window.firebaseAuth.getAuth();
-
-        sendCodeButton.disabled = true;
-        sendCodeButton.textContent = "Enviando...";
-
-        try {
-            window.confirmationResult = await window.firebaseAuth.signInWithPhoneNumber(auth, formattedPhoneNumber, appVerifier);
-            phoneInputSection.style.display = 'none';
-            codeInputSection.style.display = 'block';
-            smsCodeInput.focus();
-            alert(`Código de verificação enviado para ${formattedPhoneNumber}`);
-        } catch (error) {
-            console.error("Erro ao enviar SMS:", error);
-            alert("Não foi possível enviar o código. Verifique o número ou tente novamente. (O reCAPTCHA pode ter falhado).");
-            window.recaptchaVerifier.render().catch(err => console.error("Falha ao renderizar reCAPTCHA:", err));
-        } finally {
-            sendCodeButton.disabled = false;
-            sendCodeButton.textContent = "Enviar Código SMS";
-        }
-    }
-
-    // 3. Verifica o código SMS e efetua o login
-    async function verifySmsCode() {
-        const code = smsCodeInput.value.trim();
-        if (code.length !== 6) { alert("Por favor, insira o código de 6 dígitos."); return; }
-        if (!window.confirmationResult) { alert("Erro: Tente enviar o código novamente."); return; }
-
-        verifyCodeButton.disabled = true;
-        verifyCodeButton.textContent = "Verificando...";
+        const provider = new window.firebaseAuth.GoogleAuthProvider();
+        const { signInWithPopup } = window.firebaseAuth;
+        const { setDoc, doc } = window.firebaseFirestore;
 
         try {
-            const result = await window.confirmationResult.confirm(code);
+            // 1. Abre o Pop-up de Login do Google
+            const result = await signInWithPopup(auth, provider);
             const user = result.user;
-            console.log("Usuário autenticado com sucesso:", user.uid);
             
-            // --- LÓGICA CORRIGIDA ---
-            const userUID = user.uid; // Pega o UID do usuário logado
-            const customerData = await getCustomerFromFirestore(userUID); // Busca usando o UID
-            const whatsappNumber = user.phoneNumber.replace('+55', ''); // Pega o whats para outros usos
-            
-            updateGlobalCustomerState(customerData, whatsappNumber);
-            // --- FIM DA LÓGICA CORRIGIDA ---
-            
+            console.log("Usuário logado com Google:", user.uid, user.displayName);
+
+            // 2. Verifica se o cliente já existe no nosso banco de dados
+            const customerData = await getCustomerFromFirestore(user.uid);
+
+            if (customerData) {
+                // Se o cliente já existe, apenas atualiza o estado global
+                console.log("Cliente existente encontrado:", customerData);
+                updateGlobalCustomerState(customerData, user.email);
+            } else {
+                // 3. Se é o PRIMEIRO LOGIN, cria um novo registro para ele no Firestore
+                console.log("Primeiro login. Criando novo cliente no Firestore...");
+                const newCustomer = {
+                    firstName: user.displayName || 'Novo Cliente',
+                    email: user.email,
+                    points: 0,
+                    lastUpdatedAt: new Date(),
+                    whatsapp: user.phoneNumber || '' // Tenta pegar o telefone, se houver
+                };
+
+                // Salva o novo cliente no Firestore usando o UID como ID do documento
+                const customerDocRef = doc(window.db, "customer", user.uid);
+                await setDoc(customerDocRef, newCustomer);
+
+                updateGlobalCustomerState({ id: user.uid, ...newCustomer }, user.email);
+            }
+
+            // 4. Fecha a janela de login e avisa o usuário
             closeLoyaltyModal();
-            alert("Login realizado com sucesso!");
+            alert(`Bem-vindo, ${user.displayName}! Login realizado com sucesso.`);
 
         } catch (error) {
-            console.error("Erro ao verificar código:", error);
-            alert("Código inválido. Tente novamente.");
-        } finally {
-            verifyCodeButton.disabled = false;
-            verifyCodeButton.textContent = "Verificar e Entrar";
+            console.error("Erro durante o login com Google:", error);
+            alert("Não foi possível fazer o login com o Google. Por favor, tente novamente.");
         }
     }
+
 
     // =========================================================================
     // LÓGICA DE DADOS (FIRESTORE E ESTADO GLOBAL)
     // =========================================================================
 
-    // --- FUNÇÃO CORRIGIDA ---
-    async function getCustomerFromFirestore(userId) { // A função agora espera um 'userId' (que será o UID)
+    async function getCustomerFromFirestore(userId) {
         if (!window.db || !window.firebaseFirestore) return null;
         const { doc, getDoc } = window.firebaseFirestore;
-        // Usa o 'userId' para buscar o documento corretamente
-        const customerDocRef = doc(window.db, "customer", userId); 
+        const customerDocRef = doc(window.db, "customer", userId);
         const docSnap = await getDoc(customerDocRef);
         return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
     }
     
-    // Função central que atualiza o estado do cliente em toda a aplicação
-    function updateGlobalCustomerState(customerData, whatsapp) {
+    function updateGlobalCustomerState(customerData, identifier) {
         if (customerData) {
             window.currentCustomerDetails = customerData;
-            localStorage.setItem('activeCustomerWhatsapp', whatsapp);
+            localStorage.setItem('activeCustomerId', customerData.id);
             if (loyaltyResultsArea) {
                  loyaltyResultsArea.innerHTML = `<p>Olá, ${customerData.firstName}! Você tem <strong>${customerData.points || 0}</strong> pontos.</p>`;
             }
-            displayCustomerWelcomeInfo(customerData); // Mostra "Últimos Pedidos" se aplicável
+            displayCustomerWelcomeInfo(customerData);
             showWelcomePointsPopup(customerData.points);
         } else {
             window.currentCustomerDetails = null;
-            localStorage.removeItem('activeCustomerWhatsapp');
+            localStorage.removeItem('activeCustomerId');
             if (loyaltyResultsArea) {
-                loyaltyResultsArea.innerHTML = `<p>Bem-vindo! Este é seu primeiro acesso. Faça um pedido para começar a juntar pontos!</p>`;
+                loyaltyResultsArea.innerHTML = `<p>Bem-vindo! Faça login com sua conta Google para começar a juntar pontos!</p>`;
             }
             displayCustomerWelcomeInfo(null);
         }
@@ -187,14 +148,12 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => popup.classList.remove('show'), 5000);
     }
     
-    // Mostra o botão "Últimos Pedidos" se o cliente estiver "logado"
     function displayCustomerWelcomeInfo(customer) {
         if (lastOrdersButton) {
             lastOrdersButton.style.display = customer ? 'flex' : 'none';
         }
     }
     window.displayCustomerWelcomeInfo = displayCustomerWelcomeInfo;
-
 
     // =========================================================================
     // LÓGICA DE "ÚLTIMOS PEDIDOS"
@@ -203,18 +162,21 @@ document.addEventListener('DOMContentLoaded', () => {
     async function fetchLastOrders(customerId) {
         if (!window.db || !window.firebaseFirestore) return [];
         const { collection, query, where, orderBy, limit, getDocs } = window.firebaseFirestore;
-        const q = query(collection(window.db, "pedidos"), where("customer.whatsapp", "==", customerId), orderBy("createdAt", "desc"), limit(3));
+        // A consulta por 'whatsapp' pode precisar ser ajustada para 'email' ou 'customerId'
+        // dependendo de como os pedidos são salvos. Vamos manter assim por enquanto.
+        const q = query(collection(window.db, "pedidos"), where("customer.id", "==", customerId), orderBy("createdAt", "desc"), limit(3));
         try {
             const querySnapshot = await getDocs(q);
             return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) {
             console.error("Erro ao buscar últimos pedidos:", error);
-            alert("Não foi possível carregar os últimos pedidos. As regras de segurança podem não permitir esta ação.");
+            alert("Não foi possível carregar os últimos pedidos.");
             return [];
         }
     }
 
     function renderLastOrders(orders) {
+        // Esta função permanece a mesma de antes
         if (!lastOrdersListDiv) return;
         if (orders.length === 0) {
             lastOrdersListDiv.innerHTML = '<p class="empty-list-message">Nenhum pedido encontrado no seu histórico.</p>';
@@ -261,18 +223,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openLoyaltyModal() {
         if (!loyaltyModal) return;
-        phoneInputSection.style.display = 'block';
-        codeInputSection.style.display = 'none';
         loyaltyResultsArea.innerHTML = '';
-        smsCodeInput.value = '';
         loyaltyModal.classList.add('show');
         document.body.style.overflow = 'hidden';
-        setupRecaptcha();
-        setTimeout(() => {
-            if (window.recaptchaVerifier) {
-                window.recaptchaVerifier.render().catch(err => console.error("Falha ao renderizar reCAPTCHA:", err));
-            }
-        }, 500);
     }
     function closeLoyaltyModal() {
         if (loyaltyModal) loyaltyModal.classList.remove('show');
@@ -280,13 +233,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     async function openLastOrdersModal() {
         if (!lastOrdersModal || !window.currentCustomerDetails) {
-            alert("Você precisa fazer o login por telefone primeiro para ver seus pedidos.");
+            alert("Você precisa fazer o login primeiro para ver seus pedidos.");
             return;
         };
         lastOrdersModal.classList.add('show');
         document.body.style.overflow = 'hidden';
         lastOrdersListDiv.innerHTML = '<p>Buscando seu histórico de pedidos...</p>';
-        const orders = await fetchLastOrders(window.currentCustomerDetails.whatsapp);
+        const orders = await fetchLastOrders(window.currentCustomerDetails.id); // Busca por ID
         renderLastOrders(orders);
     }
     function closeLastOrdersModal() {
@@ -294,15 +247,20 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
     }
     
-    // --- FUNÇÃO CORRIGIDA ---
     async function loadCurrentCustomerOnPageLoad() {
         const auth = window.firebaseAuth?.getAuth();
-        if (auth?.currentUser) {
-            const userUID = auth.currentUser.uid;
-            const whatsappNumber = auth.currentUser.phoneNumber.replace('+55', '');
-            const customerData = await getCustomerFromFirestore(userUID);
-            updateGlobalCustomerState(customerData, whatsappNumber);
-        }
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                // Usuário está logado
+                const customerData = await getCustomerFromFirestore(user.uid);
+                if (customerData) {
+                    updateGlobalCustomerState(customerData, user.email);
+                }
+            } else {
+                // Usuário está deslogado
+                updateGlobalCustomerState(null, null);
+            }
+        });
     }
 
 
@@ -312,8 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (loyaltyButton) loyaltyButton.addEventListener('click', openLoyaltyModal);
     if (closeLoyaltyModalButton) closeLoyaltyModalButton.addEventListener('click', closeLoyaltyModal);
-    if (sendCodeButton) sendCodeButton.addEventListener('click', sendSmsCode);
-    if (verifyCodeButton) verifyCodeButton.addEventListener('click', verifySmsCode);
+    if (googleLoginButton) googleLoginButton.addEventListener('click', signInWithGoogle); // NOVO
     if (lastOrdersButton) lastOrdersButton.addEventListener('click', openLastOrdersModal);
     if (closeLastOrdersModalButton) closeLastOrdersModalButton.addEventListener('click', closeLastOrdersModal);
 
