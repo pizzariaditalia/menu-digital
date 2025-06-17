@@ -1,4 +1,4 @@
-// cart.js - VERSÃO COM CORREÇÃO DE DESCONTOS E BORDAS
+// cart.js - VERSÃO ATUALIZADA PARA LOGIN COM GOOGLE (UID)
 
 document.addEventListener('DOMContentLoaded', () => {
   let cart = [];
@@ -154,7 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const applyCoupon = async () => {
-    // *** INÍCIO DA CORREÇÃO: Buscando os elementos DENTRO da função ***
     const couponCodeInput = document.getElementById('coupon-code-input');
     const couponMessageDiv = document.getElementById('coupon-message');
     const applyCouponButton = document.getElementById('apply-coupon-button');
@@ -163,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error("Elementos do cupom não encontrados no DOM.");
       return;
     }
-    // *** FIM DA CORREÇÃO ***
 
     const hasPromotionalItemsInCart = cart.some(item => item.isPromotion);
     if (hasPromotionalItemsInCart) {
@@ -212,8 +210,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      if (coupon.oneTimeUsePerCustomer && window.currentCustomerDetails?.whatsapp) {
-        const customerId = window.currentCustomerDetails.whatsapp;
+      // *** LÓGICA ATUALIZADA ***
+      if (coupon.oneTimeUsePerCustomer && window.currentCustomerDetails?.id) {
+        const customerId = window.currentCustomerDetails.id; // Usa o UID do cliente logado
         if (Array.isArray(coupon.usedBy) && coupon.usedBy.includes(customerId)) {
           couponMessageDiv.textContent = "Você já utilizou este cupom de uso único.";
           couponMessageDiv.className = 'error';
@@ -328,7 +327,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const hasActiveDiscount = appliedLoyaltyDiscount || appliedCoupon;
 
       if (cartLoyaltySection) {
-        // Seletores de elementos de fidelidade (buscados aqui para garantir que existam)
         const loyaltyDiscountInfoDiv = document.getElementById('loyalty-discount-info');
         const applyLoyaltyDiscountButton = document.getElementById('apply-loyalty-discount-button');
         const removeLoyaltyDiscountButton = document.getElementById('remove-loyalty-discount-button');
@@ -377,7 +375,6 @@ document.addEventListener('DOMContentLoaded', () => {
           cartCouponSection.innerHTML = `<h4 style="font-size: 1.1em; margin-top:0; margin-bottom: 10px;">Aplicar Cupom de Desconto</h4><div id="coupon-input-area"><div class="coupon-input-wrapper"><input type="text" id="coupon-code-input" placeholder="Digite o código do cupom"><button id="apply-coupon-button">Aplicar</button></div><div id="coupon-message"></div></div><div id="applied-coupon-info" style="display: none;"><span id="applied-coupon-text"></span><button id="remove-coupon-button" class="button-link-style" style="font-size: 1em; color: var(--primary-red);">Remover</button></div>`;
           cartCouponSection.style.display = 'block';
 
-          // Adiciona os event listeners nos elementos recém-criados
           document.getElementById('apply-coupon-button')?.addEventListener('click', applyCoupon);
           document.getElementById('remove-coupon-button')?.addEventListener('click', removeCoupon);
 
@@ -437,18 +434,15 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const updateCartUI = () => {
-    // Adicionado um pequeno delay para garantir que o DOM seja atualizado antes de renderizar
     setTimeout(renderCart, 0);
   }
 
-  // Eventos principais dos modais
   if (viewCartButton) viewCartButton.addEventListener('click', window.openCartModal);
   if (closeCartModalButton) closeCartModalButton.addEventListener('click', closeCartModal);
   if (cartModal) cartModal.addEventListener('click', (event) => {
     if (event.target === cartModal) closeCartModal();
   });
 
-  // O listener do botão de fidelidade é adicionado dinamicamente dentro do renderCart
   document.body.addEventListener('click',
     function(event) {
       if (event.target && event.target.id === 'remove-loyalty-discount-button') {
