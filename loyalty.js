@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Seletores de Elementos do DOM ---
     const loyaltyButton = document.getElementById('loyalty-button');
-    console.log("Tentando encontrar o botão de fidelidade:", loyaltyButton);
     const loyaltyModal = document.getElementById('loyalty-modal');
     const closeLoyaltyModalButton = document.getElementById('close-loyalty-modal');
     const loyaltyResultsArea = document.getElementById('loyalty-results-area');
@@ -99,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(`Código de verificação enviado para ${formattedPhoneNumber}`);
         } catch (error) {
             console.error("Erro ao enviar SMS:", error);
-            alert("Não foi possível enviar o código. Verifique o número ou tente novamente. (O reCAPTCHA pode ter falhado).");
+            alert("Não foi possível enviar o código. Verifique o número ou tente novamente.");
             window.recaptchaVerifier.render().catch(err => console.error("Falha ao renderizar reCAPTCHA:", err));
         } finally {
             sendCodeButton.disabled = false;
@@ -186,7 +185,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mostra o botão "Últimos Pedidos" se o cliente estiver "logado"
     function displayCustomerWelcomeInfo(customer) {
         if (lastOrdersButton) {
-            // A lógica original volta a funcionar, pois agora temos um cliente autenticado
             lastOrdersButton.style.display = customer ? 'flex' : 'none';
         }
     }
@@ -206,8 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) {
             console.error("Erro ao buscar últimos pedidos:", error);
-            // Este erro agora é esperado se as regras de segurança não permitirem
-            alert("Não foi possível carregar os últimos pedidos. As regras de segurança podem não permitir esta ação.");
+            alert("Não foi possível carregar os últimos pedidos. As regras de segurança podem não permitir esta ação ou você não está autenticado.");
             return [];
         }
     }
@@ -225,10 +222,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const d = order.createdAt.toDate();
                 formattedDate = `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
             }
+            const displayOrderId = (order.orderId || order.id || 'N/A').substring(0, 8);
             return `
             <div class="order-history-card">
               <div class="order-history-header">
-                  <span class="order-id">Pedido #${(order.orderId || order.id).substring(0, 8)}</span>
+                  <span class="order-id">Pedido #${displayOrderId}</span>
                   <span class="order-status">${order.status || 'Status N/A'}</span>
               </div>
               <div class="order-history-body">
@@ -293,9 +291,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     async function loadCurrentCustomerOnPageLoad() {
-        // Esta função pode ser simplificada ou removida se o login for sempre exigido
-        // Por agora, vamos manter para consistência, mas o ideal é que o usuário se autentique a cada visita
-        // para garantir a segurança.
         const auth = window.firebaseAuth?.getAuth();
         if (auth?.currentUser) {
             const whatsappNumber = auth.currentUser.phoneNumber.replace('+55', '');
