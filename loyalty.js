@@ -249,13 +249,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (event.target === lastOrdersModal) closeLastOrdersModal();
   });
 
-  async function handleViewPoints() {
+  // Copie e cole esta função inteira, substituindo a antiga em loyalty.js
+
+async function handleViewPoints() {
     if (!loyaltyWhatsAppInput || !loyaltyResultsArea) return;
     const whatsappNumber = loyaltyWhatsAppInput.value.trim().replace(/\D/g, '');
 
     if (!/^[0-9]{10,11}$/.test(whatsappNumber)) {
-      loyaltyResultsArea.innerHTML = `<p style="color: var(--primary-red);">Número do WhatsApp inválido.</p>`;
-      return;
+        loyaltyResultsArea.innerHTML = `<p style="color: var(--primary-red);">Número do WhatsApp inválido.</p>`;
+        return;
     }
 
     viewPointsButton.disabled = true;
@@ -264,29 +266,51 @@ document.addEventListener('DOMContentLoaded', () => {
     viewPointsButton.disabled = false;
     viewPointsButton.textContent = "Ver Meus Pontos";
 
-    if (customer) {
-      loyaltyResultsArea.innerHTML = `
-      <div class="points-display-banner">
-      <p class="points-banner-text">Parabéns, você tem</p>
-      <span class="points-banner-value">${customer.points || 0}</span>
-      <span class="points-banner-label">PTS</span>
-      </div>
-      `;
-      localStorage.setItem('activeCustomerWhatsapp', whatsappNumber);
-      window.currentCustomerDetails = customer;
-      displayCustomerWelcomeInfo(customer);
-      if (typeof window.updateCartUI === 'function') window.updateCartUI();
-    } else {
-      loyaltyResultsArea.innerHTML = `
-      <p>Nenhum cadastro encontrado para este número.</p>
-      <p style="font-size:0.9em; margin-top:10px;">Faça seu primeiro pedido para se cadastrar!</p>
-      `;
-      localStorage.removeItem('activeCustomerWhatsapp');
-      window.currentCustomerDetails = null;
-      displayCustomerWelcomeInfo(null);
-    }
-  }
+    // --- Início da Correção ---
+    // Removemos a lógica de atualização daqui e centralizamos em uma nova função.
+    updateGlobalCustomerState(customer, whatsappNumber);
+    // --- Fim da Correção ---
+}
 
-  if (viewPointsButton) viewPointsButton.addEventListener('click', handleViewPoints);
-  loadCurrentCustomerOnPageLoad();
-});
+// NOVA FUNÇÃO: Adicione esta nova função em qualquer lugar dentro do arquivo loyalty.js
+// Ela será a responsável por atualizar todo o site com os dados do cliente.
+function updateGlobalCustomerState(customerData, whatsapp) {
+    if (customerData) {
+        // 1. Armazena os dados globalmente e no navegador
+        window.currentCustomerDetails = customerData;
+        localStorage.setItem('activeCustomerWhatsapp', whatsapp);
+
+        // 2. Mostra a mensagem de pontos no modal de fidelidade
+        if (loyaltyResultsArea) {
+             loyaltyResultsArea.innerHTML = `
+                <div class="points-display-banner">
+                    <p class="points-banner-text">Parabéns, ${customerData.firstName || ''}! Você tem</p>
+                    <span class="points-banner-value">${customerData.points || 0}</span>
+                    <span class="points-banner-label">PTS</span>
+                </div>
+            `;
+        }
+       
+        // 3. Atualiza a UI principal (botão de últimos pedidos e pop-up de boas-vindas)
+        displayCustomerWelcomeInfo(customerData);
+        showWelcomePointsPopup(customerData.points);
+
+    } else {
+        // Se não encontrou cliente, limpa tudo
+        window.currentCustomerDetails = null;
+        localStorage.removeItem('activeCustomerWhatsapp');
+        if (loyaltyResultsArea) {
+            loyaltyResultsArea.innerHTML = `
+                <p>Nenhum cadastro encontrado para este número.</p>
+                <p style="font-size:0.9em; margin-top:10px;">Faça seu primeiro pedido para se cadastrar!</p>
+            `;
+        }
+        displayCustomerWelcomeInfo(null);
+    }
+    
+    // 4. AVISA O CARRINHO PARA ATUALIZAR A UI (mostrar opções de desconto, etc)
+    // Esta é a parte crucial que estava faltando ser mais robusta.
+    if (typeof window.updateCartUI === 'function') {
+        window.updateCartUI();
+    }
+}
