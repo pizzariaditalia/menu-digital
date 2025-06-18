@@ -137,6 +137,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof window.updateCartUI === 'function') {
             window.updateCartUI();
         }
+
+        if (typeof window.checkSpinEligibility === 'function') {
+        window.checkSpinEligibility();
+        }
     }
 
     function showWelcomePointsPopup(points) {
