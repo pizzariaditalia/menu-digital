@@ -1534,3 +1534,29 @@ body {
   0%, 100% { background-color: #ffffff; }
   50% { background-color: transparent; }
 }
+
+/* ==========================================================================
+   22. ESTILOS PARA A ROLETA DE PRÊMIOS
+   ========================================================================== */
+
+#wheel-container {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 20px auto;
+}
+
+#wheel-pointer {
+    position: absolute;
+    top: -25px; /* Ajusta a posição vertical da seta */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px; /* Largura da imagem da seta */
+    height: 70px; /* Altura da imagem da seta */
+    z-index: 10;
+}
+
+#prize-wheel {
+    width: 100%;
+    height: 100%;
+}
