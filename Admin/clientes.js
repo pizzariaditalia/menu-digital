@@ -1,13 +1,13 @@
 // Arquivo: clientes.js
-// VERSÃO FINAL COM LÓGICA RETROCOMPATÍVEL PARA PEDIDOS ANTIGOS
+// VERSÃO FINAL COM CÁLCULO DE QUANTIDADE E DATA DO ÚLTIMO PEDIDO E EDIÇÃO CORRIGIDA
 
 let customersSectionInitialized = false;
 
 async function initializeCustomersSection() {
     if (customersSectionInitialized) return;
     customersSectionInitialized = true;
-    console.log("Módulo Clientes.js: Inicializando...");
 
+    // Seletores de Elementos do DOM
     const customersListContainer = document.getElementById('customers-list-container');
     const searchCustomerInput = document.getElementById('search-customer-input');
     const editCustomerModal = document.getElementById('edit-customer-modal');
@@ -16,6 +16,7 @@ async function initializeCustomersSection() {
 
     let allCustomers = [];
 
+    // --- Funções de Interação com o Firestore ---
     async function fetchAllCustomers() {
         if (!window.db || !window.firebaseFirestore) return [];
         const { collection, getDocs, orderBy, query } = window.firebaseFirestore;
@@ -54,6 +55,7 @@ async function initializeCustomersSection() {
         }
     }
 
+    // --- Funções de UI (Interface) ---
     function createCustomerCardHTML(customer) {
         const fullName = `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
         const address = customer.address || {};
@@ -98,7 +100,6 @@ async function initializeCustomersSection() {
 
     function renderCustomersList(customers, searchTerm = "") {
         if (!customersListContainer) return;
-
         const lowerCaseTerm = searchTerm.toLowerCase();
         const filteredCustomers = searchTerm
             ? customers.filter(c =>
@@ -107,12 +108,10 @@ async function initializeCustomersSection() {
                 (c.email && c.email.toLowerCase().includes(lowerCaseTerm))
             )
             : customers;
-
         if (filteredCustomers.length === 0) {
             customersListContainer.innerHTML = `<p class="empty-list-message">Nenhum cliente encontrado.</p>`;
             return;
         }
-
         customersListContainer.innerHTML = filteredCustomers.map(createCustomerCardHTML).join('');
         addCardEventListeners();
     }
@@ -185,17 +184,14 @@ async function initializeCustomersSection() {
             renderCustomersList(allCustomers, e.target.value);
         });
     }
-
     if (closeEditCustomerModalBtn) {
         closeEditCustomerModalBtn.addEventListener('click', closeEditCustomerModal);
     }
-
     if (editCustomerModal) {
         editCustomerModal.addEventListener('click', (e) => {
             if (e.target === editCustomerModal) closeEditCustomerModal();
         });
     }
-
     if (editCustomerForm) {
         editCustomerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -228,13 +224,11 @@ async function initializeCustomersSection() {
         const orderStats = new Map();
         for (const order of orders) {
             const customerIdentifier = order.customer?.id || order.customer?.whatsapp;
-            
             if (!customerIdentifier) continue;
 
             if (!orderStats.has(customerIdentifier)) {
                 orderStats.set(customerIdentifier, { count: 0, lastOrderDate: null });
             }
-
             const stats = orderStats.get(customerIdentifier);
             stats.count++;
             const orderDate = order.createdAt?.toDate();
