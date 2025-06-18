@@ -1,22 +1,18 @@
-// roulette.js - VERSÃO CORRIGIDA PARA PROBLEMA DE RENDERIZAÇÃO (clearRect)
+// roulette.js - VERSÃO COM MODO DE TESTE ATIVADO (SEMPRE MOSTRAR ROLETA)
 
 document.addEventListener('DOMContentLoaded', () => {
 
-// roulette.js - No topo do arquivo
-
-// --- CONFIGURAÇÃO DA ROLETA (VERSÃO COLORIDA) ---
-// Você pode alterar os prêmios e cores aqui!
-const prizes = [
-   // Usando o vermelho principal do seu site e um amarelo-dourado
-   {'fillStyle' : '#ea1d2c', 'text' : '5% OFF', 'textFillStyle': '#ffffff'},         // Fatia Vermelha com texto branco
-   {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'}, // Fatia Branca com texto escuro
-   {'fillStyle' : '#FFD700', 'text' : 'Borda Grátis', 'textFillStyle': '#3f3f3f'},  // Fatia Amarela com texto escuro
-   {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'}, // Fatia Branca
-   {'fillStyle' : '#ea1d2c', 'text' : '10% OFF', 'textFillStyle': '#ffffff'},        // Fatia Vermelha
-   {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'}, // Fatia Branca
-   {'fillStyle' : '#FFD700', 'text' : 'Refri Grátis', 'textFillStyle': '#3f3f3f'}, // Fatia Amarela
-   {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'}  // Fatia Branca
-];
+    // --- CONFIGURAÇÃO DA ROLETA ---
+    const prizes = [
+       {'fillStyle' : '#ea1d2c', 'text' : '5% OFF', 'textFillStyle': '#ffffff'},
+       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'},
+       {'fillStyle' : '#FFD700', 'text' : 'Borda Grátis', 'textFillStyle': '#3f3f3f'},
+       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'},
+       {'fillStyle' : '#ea1d2c', 'text' : '10% OFF', 'textFillStyle': '#ffffff'},
+       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'},
+       {'fillStyle' : '#FFD700', 'text' : 'Refri Grátis', 'textFillStyle': '#3f3f3f'},
+       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'}
+    ];
 
     // --- VARIÁVEIS GLOBAIS DO MÓDULO ---
     let theWheel = null;
@@ -29,13 +25,10 @@ const prizes = [
     // --- FUNÇÕES DA ROLETA ---
 
     function initializeWheel() {
-        // Se já existe uma roleta, para qualquer animação e a destrói para criar uma nova
         if (theWheel) {
             theWheel.stopAnimation(false);
             theWheel = null;
         }
-
-        // Garante que o elemento canvas existe antes de tentar criar a roleta
         const canvas = document.getElementById('prize-wheel');
         if (canvas) {
             theWheel = new Winwheel({
@@ -73,7 +66,6 @@ const prizes = [
     
     function startSpin() {
         if (isSpinning) return;
-
         if (theWheel) {
             isSpinning = true;
             theWheel.startAnimation();
@@ -85,10 +77,8 @@ const prizes = [
     async function updateLastSpinTime() {
         const customerId = window.currentCustomerDetails?.id;
         if (!customerId || !window.db || !window.firebaseFirestore) return;
-
         const { doc, updateDoc, serverTimestamp } = window.firebaseFirestore;
         const customerRef = doc(window.db, "customer", customerId);
-
         try {
             await updateDoc(customerRef, {
                 lastSpinTimestamp: serverTimestamp()
@@ -106,9 +96,7 @@ const prizes = [
     
     function openRouletteModal() {
         if (rouletteModal) {
-            rouletteModal.style.display = 'flex';
-            // **A CORREÇÃO ESTÁ AQUI**: A roleta é recriada toda vez que o modal abre,
-            // garantindo que o canvas já esteja visível e pronto.
+            rouletteModal.style.setProperty('display', 'flex', 'important');
             initializeWheel();
         }
     }
@@ -122,22 +110,41 @@ const prizes = [
     // --- LÓGICA PRINCIPAL DE VERIFICAÇÃO ---
     window.checkSpinEligibility = () => {
         const customer = window.currentCustomerDetails;
-        if (!customer) return;
-        
+
+        // Se o cliente não estiver logado, a roleta não aparece.
+        if (!customer) {
+            return;
+        }
+
+        // --- MODO DE TESTE ATIVADO ---
+        // A lógica de 7 dias foi desativada temporariamente.
+        // A roleta sempre aparecerá para um usuário logado.
+        console.log("Modo de Teste: Forçando a exibição da roleta.");
+        openRouletteModal();
+
+
+        /*
+        // --- CÓDIGO ORIGINAL (LÓGICA DOS 7 DIAS) ---
+        // Para voltar ao normal, apague a linha "openRouletteModal();" acima
+        // e remova o "/*" e o "*/" deste bloco de código abaixo.
+
         const lastSpin = customer.lastSpinTimestamp?.toDate();
 
         if (!lastSpin) {
+            console.log("Cliente nunca girou. Mostrando roleta.");
             openRouletteModal();
         } else {
             const sevenDaysInMillis = 7 * 24 * 60 * 60 * 1000;
             const timeSinceLastSpin = new Date().getTime() - lastSpin.getTime();
 
             if (timeSinceLastSpin > sevenDaysInMillis) {
+                console.log("Mais de 7 dias desde o último giro. Mostrando roleta.");
                 openRouletteModal();
             } else {
                 console.log("Cliente já girou a roleta nesta semana.");
             }
         }
+        */
     };
 
     // --- EVENT LISTENERS ---
