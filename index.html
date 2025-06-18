@@ -323,7 +323,26 @@
         </div>
     </div>
 </div>
+<div id="roulette-modal" class="modal" style="display:none; align-items:center; justify-content:center;">
+    <div class="modal-content" style="max-width: 420px; border-radius: 16px; animation: none;">
+        <button id="close-roulette-modal" class="close-button" style="top: 5px; right: 10px;">&times;</button>
+        
+        <div style="padding: 20px 25px;">
+            <h3 style="text-align:center; margin-top: 0;">Roleta de Prêmios!</h3>
+            <p style="text-align:center; font-size: 0.9em; margin-top: -10px;">Gire uma vez por semana e ganhe prêmios!</p>
+            
+            <div id="wheel-container" style="position: relative; width: 300px; height: 300px; margin: 10px auto;">
+                <img id="wheel-pointer" src="img/pointer.png" alt="Ponteiro">
+                <canvas id="prize-wheel" width="300" height="300"></canvas>
+            </div>
 
+            <div style="margin-top: 15px;">
+                <button id="spin-button" class="add-to-cart-button-modal">Girar a Roleta!</button>
+            </div>
+        </div>
+    </div>
+</div>
+  
 <script type="module">
     // Importando módulos do App, Firestore E AGORA O DE AUTENTICAÇÃO COM GOOGLE
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
