@@ -2,17 +2,21 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- CONFIGURAÇÃO DA ROLETA ---
-    const prizes = [
-       {'fillStyle' : '#fceceb', 'text' : '5% OFF'},
-       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo'},
-       {'fillStyle' : '#f9e0de', 'text' : 'Borda Grátis'},
-       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo'},
-       {'fillStyle' : '#fceceb', 'text' : '10% OFF'},
-       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo'},
-       {'fillStyle' : '#f9e0de', 'text' : 'Refri Grátis'},
-       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo'}
-    ];
+// roulette.js - No topo do arquivo
+
+// --- CONFIGURAÇÃO DA ROLETA (VERSÃO COLORIDA) ---
+// Você pode alterar os prêmios e cores aqui!
+const prizes = [
+   // Usando o vermelho principal do seu site e um amarelo-dourado
+   {'fillStyle' : '#ea1d2c', 'text' : '5% OFF', 'textFillStyle': '#ffffff'},         // Fatia Vermelha com texto branco
+   {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'}, // Fatia Branca com texto escuro
+   {'fillStyle' : '#FFD700', 'text' : 'Borda Grátis', 'textFillStyle': '#3f3f3f'},  // Fatia Amarela com texto escuro
+   {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'}, // Fatia Branca
+   {'fillStyle' : '#ea1d2c', 'text' : '10% OFF', 'textFillStyle': '#ffffff'},        // Fatia Vermelha
+   {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'}, // Fatia Branca
+   {'fillStyle' : '#FFD700', 'text' : 'Refri Grátis', 'textFillStyle': '#3f3f3f'}, // Fatia Amarela
+   {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'}  // Fatia Branca
+];
 
     // --- VARIÁVEIS GLOBAIS DO MÓDULO ---
     let theWheel = null;
