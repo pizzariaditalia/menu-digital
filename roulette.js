@@ -111,32 +111,25 @@ document.addEventListener('DOMContentLoaded', () => {
     window.checkSpinEligibility = () => {
         const customer = window.currentCustomerDetails;
 
-        // Se o cliente não estiver logado, a roleta não aparece.
         if (!customer) {
             return;
         }
 
         // --- MODO DE TESTE ATIVADO ---
-        // A lógica de 7 dias foi desativada temporariamente.
-        // A roleta sempre aparecerá para um usuário logado.
         console.log("Modo de Teste: Forçando a exibição da roleta.");
         openRouletteModal();
-
 
         /*
         // --- CÓDIGO ORIGINAL (LÓGICA DOS 7 DIAS) ---
         // Para voltar ao normal, apague a linha "openRouletteModal();" acima
         // e remova o "/*" e o "*/" deste bloco de código abaixo.
-
         const lastSpin = customer.lastSpinTimestamp?.toDate();
-
         if (!lastSpin) {
             console.log("Cliente nunca girou. Mostrando roleta.");
             openRouletteModal();
         } else {
             const sevenDaysInMillis = 7 * 24 * 60 * 60 * 1000;
             const timeSinceLastSpin = new Date().getTime() - lastSpin.getTime();
-
             if (timeSinceLastSpin > sevenDaysInMillis) {
                 console.log("Mais de 7 dias desde o último giro. Mostrando roleta.");
                 openRouletteModal();
