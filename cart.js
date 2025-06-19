@@ -1,9 +1,11 @@
-// cart.js - VERSÃO ATUALIZADA PARA LOGIN COM GOOGLE (UID)
+// cart.js - VERSÃO COMPLETA E FINAL COM PRÊMIO DA ROLETA
 
 document.addEventListener('DOMContentLoaded', () => {
   let cart = [];
   let appliedLoyaltyDiscount = null;
   let appliedCoupon = null;
+  //--- ROLETA: Armazena o prêmio ativo da roleta ---
+  let activeRoulettePrize = null;
 
   // --- SELETORES DE ELEMENTOS DO DOM (Apenas elementos estáticos) ---
   const cartIconWrapper = document.querySelector('.cart-icon-wrapper');
@@ -65,6 +67,9 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartUI();
   };
 
+  //--- ROLETA: Disponibiliza globalmente o prêmio ativo ---
+  window.getAppliedRoulettePrize = () => activeRoulettePrize ? JSON.parse(JSON.stringify(activeRoulettePrize)): null;
+  
   window.getCartItems = () => JSON.parse(JSON.stringify(cart));
   window.getCartTotalAmount = () => calculateCartTotals().totalPrice;
   window.getCartSubtotalAmount = () => calculateCartTotals().subtotal;
@@ -74,6 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
     cart = [];
     appliedLoyaltyDiscount = null;
     appliedCoupon = null;
+    //--- ROLETA: Limpa o prêmio da roleta junto com o carrinho ---
+    sessionStorage.removeItem('activeRoulettePrize');
+    activeRoulettePrize = null;
     updateCartUI();
   };
 
@@ -118,6 +126,11 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const applyLoyaltyDiscount = (discount) => {
+    //--- ROLETA: Impede usar pontos se já houver prêmio da roleta ---
+    if (activeRoulettePrize) {
+      alert("Apenas um tipo de desconto pode ser usado. O prêmio da roleta já está ativo.");
+      return;
+    }
     if (appliedCoupon) {
       alert("Apenas um tipo de desconto (fidelidade ou cupom) pode ser usado por pedido. Remova o cupom para aplicar os pontos.");
       return;
@@ -160,6 +173,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!couponCodeInput || !couponMessageDiv || !applyCouponButton) {
       console.error("Elementos do cupom não encontrados no DOM.");
+      return;
+    }
+
+    //--- ROLETA: Impede usar cupom se já houver prêmio da roleta ---
+    if (activeRoulettePrize) {
+      couponMessageDiv.textContent = "Apenas um tipo de desconto pode ser usado. O prêmio da roleta já está ativo.";
+      couponMessageDiv.className = 'error';
       return;
     }
 
@@ -210,9 +230,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // *** LÓGICA ATUALIZADA ***
       if (coupon.oneTimeUsePerCustomer && window.currentCustomerDetails?.id) {
-        const customerId = window.currentCustomerDetails.id; // Usa o UID do cliente logado
+        const customerId = window.currentCustomerDetails.id;
         if (Array.isArray(coupon.usedBy) && coupon.usedBy.includes(customerId)) {
           couponMessageDiv.textContent = "Você já utilizou este cupom de uso único.";
           couponMessageDiv.className = 'error';
@@ -241,11 +260,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  //--- ROLETA: Verifica se existe um prêmio na sessão e o carrega ---
+  const checkForRoulettePrize = () => {
+    const prizeJSON = sessionStorage.getItem('activeRoulettePrize');
+    if (prizeJSON) {
+        activeRoulettePrize = JSON.parse(prizeJSON);
+        // Garante que outros descontos sejam removidos
+        appliedLoyaltyDiscount = null;
+        appliedCoupon = null;
+    } else {
+        activeRoulettePrize = null;
+    }
+  };
+
   const calculateCartTotals = () => {
+    //--- ROLETA: Chama a verificação antes de qualquer cálculo ---
+    checkForRoulettePrize(); 
+    
     const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
     let discountAmount = 0;
-
-    if (appliedLoyaltyDiscount) {
+    
+    //--- ROLETA: Lógica para calcular o desconto da roleta ---
+    if (activeRoulettePrize) {
+      if (activeRoulettePrize.type === 'percent') {
+        discountAmount = subtotal * (activeRoulettePrize.value / 100);
+      } else if (activeRoulettePrize.type === 'free_item') {
+        const freeItemInCart = cart.find(item => item.name === activeRoulettePrize.value);
+        if (freeItemInCart) {
+          discountAmount = freeItemInCart.unitPrice; // Desconto no valor de uma unidade
+        }
+      }
+    }
+    // Lógica para outros descontos (só são aplicados se o da roleta não existir)
+    else if (appliedLoyaltyDiscount) {
       discountAmount = appliedLoyaltyDiscount.discountAmount;
     } else if (appliedCoupon) {
       if (appliedCoupon.type === 'percentage') {
@@ -324,69 +371,76 @@ document.addEventListener('DOMContentLoaded', () => {
       cartItemsList.querySelectorAll('.increase-button').forEach(b => b.addEventListener('click', (e) => increaseQuantity(parseInt(e.target.dataset.index))));
       cartItemsList.querySelectorAll('.decrease-button').forEach(b => b.addEventListener('click', (e) => decreaseQuantity(parseInt(e.target.dataset.index))));
 
-      const hasActiveDiscount = appliedLoyaltyDiscount || appliedCoupon;
+      //--- ROLETA: Condição para bloquear outras seções de desconto ---
+      const hasActiveDiscount = activeRoulettePrize || appliedLoyaltyDiscount || appliedCoupon;
 
-      if (cartLoyaltySection) {
-        const loyaltyDiscountInfoDiv = document.getElementById('loyalty-discount-info');
-        const applyLoyaltyDiscountButton = document.getElementById('apply-loyalty-discount-button');
-        const removeLoyaltyDiscountButton = document.getElementById('remove-loyalty-discount-button');
-        const loyaltyDiscountAppliedMessage = document.getElementById('loyalty-discount-applied-message');
-
-        if (hasActiveDiscount && !appliedLoyaltyDiscount) {
-          cartLoyaltySection.style.display = 'none';
-        } else if (window.currentCustomerDetails) {
-          const customerPoints = window.currentCustomerDetails.points || 0;
-          const bestDiscount = window.getApplicableDiscount ? window.getApplicableDiscount(customerPoints): null;
-          if (appliedLoyaltyDiscount) {
-            loyaltyDiscountInfoDiv.innerHTML = `<p>Desconto de <strong>${appliedLoyaltyDiscount.percentage * 100}%</strong> aplicado.</p>`;
-            applyLoyaltyDiscountButton.style.display = 'none';
-            removeLoyaltyDiscountButton.style.display = 'inline-block';
-            loyaltyDiscountAppliedMessage.textContent = `Você economizou ${formatPrice(appliedLoyaltyDiscount.discountAmount)}!`;
-            loyaltyDiscountAppliedMessage.style.display = 'block';
-            cartLoyaltySection.style.display = 'block';
-          } else if (bestDiscount && calculateEligibleItemsTotal() > 0) {
-            loyaltyDiscountInfoDiv.innerHTML = `<p>Você tem <strong>${customerPoints}</strong> pontos. ${bestDiscount.label}.</p>`;
-            applyLoyaltyDiscountButton.style.display = 'inline-block';
-            applyLoyaltyDiscountButton.onclick = () => applyLoyaltyDiscount(bestDiscount);
-            removeLoyaltyDiscountButton.style.display = 'none';
-            loyaltyDiscountAppliedMessage.style.display = 'none';
-            cartLoyaltySection.style.display = 'block';
-          } else {
-            cartLoyaltySection.style.display = 'none';
+      //--- ROLETA: Esconde seções de pontos e cupom se prêmio da roleta estiver ativo
+      if (activeRoulettePrize) {
+        if (cartLoyaltySection) cartLoyaltySection.style.display = 'none';
+        if (cartCouponSection) cartCouponSection.style.display = 'none';
+      } else {
+        if (cartLoyaltySection) {
+            const loyaltyDiscountInfoDiv = document.getElementById('loyalty-discount-info');
+            const applyLoyaltyDiscountButton = document.getElementById('apply-loyalty-discount-button');
+            const removeLoyaltyDiscountButton = document.getElementById('remove-loyalty-discount-button');
+            const loyaltyDiscountAppliedMessage = document.getElementById('loyalty-discount-applied-message');
+    
+            if (hasActiveDiscount && !appliedLoyaltyDiscount) {
+              cartLoyaltySection.style.display = 'none';
+            } else if (window.currentCustomerDetails) {
+              const customerPoints = window.currentCustomerDetails.points || 0;
+              const bestDiscount = window.getApplicableDiscount ? window.getApplicableDiscount(customerPoints): null;
+              if (appliedLoyaltyDiscount) {
+                loyaltyDiscountInfoDiv.innerHTML = `<p>Desconto de <strong>${appliedLoyaltyDiscount.percentage * 100}%</strong> aplicado.</p>`;
+                applyLoyaltyDiscountButton.style.display = 'none';
+                removeLoyaltyDiscountButton.style.display = 'inline-block';
+                loyaltyDiscountAppliedMessage.textContent = `Você economizou ${formatPrice(appliedLoyaltyDiscount.discountAmount)}!`;
+                loyaltyDiscountAppliedMessage.style.display = 'block';
+                cartLoyaltySection.style.display = 'block';
+              } else if (bestDiscount && calculateEligibleItemsTotal() > 0) {
+                loyaltyDiscountInfoDiv.innerHTML = `<p>Você tem <strong>${customerPoints}</strong> pontos. ${bestDiscount.label}.</p>`;
+                applyLoyaltyDiscountButton.style.display = 'inline-block';
+                applyLoyaltyDiscountButton.onclick = () => applyLoyaltyDiscount(bestDiscount);
+                removeLoyaltyDiscountButton.style.display = 'none';
+                loyaltyDiscountAppliedMessage.style.display = 'none';
+                cartLoyaltySection.style.display = 'block';
+              } else {
+                cartLoyaltySection.style.display = 'none';
+              }
+            } else {
+              cartLoyaltySection.style.display = 'none';
+            }
           }
-        } else {
-          cartLoyaltySection.style.display = 'none';
-        }
-      }
-
-      if (cartCouponSection) {
-        if (hasPromotionalItems) {
-          cartCouponSection.style.display = 'block';
-          cartCouponSection.innerHTML = `<div class="promo-items-message" style="padding: 10px; text-align: center; color: var(--medium-gray); background-color: #fef0f0; border-radius: 8px;">
-          <i class="fas fa-info-circle" style="color: var(--primary-red);"></i>
-          <span style="display: block; font-size: 0.9em; margin-top: 5px;">Cupons não são válidos para produtos em promoção.</span>
-          </div>`;
-          if (appliedCoupon) {
-            removeCoupon();
+    
+          if (cartCouponSection) {
+            if (hasPromotionalItems) {
+              cartCouponSection.style.display = 'block';
+              cartCouponSection.innerHTML = `<div class="promo-items-message" style="padding: 10px; text-align: center; color: var(--medium-gray); background-color: #fef0f0; border-radius: 8px;">
+              <i class="fas fa-info-circle" style="color: var(--primary-red);"></i>
+              <span style="display: block; font-size: 0.9em; margin-top: 5px;">Cupons não são válidos para produtos em promoção.</span>
+              </div>`;
+              if (appliedCoupon) {
+                removeCoupon();
+              }
+            } else if (hasActiveDiscount && !appliedCoupon) {
+              cartCouponSection.style.display = 'none';
+            } else {
+              cartCouponSection.innerHTML = `<h4 style="font-size: 1.1em; margin-top:0; margin-bottom: 10px;">Aplicar Cupom de Desconto</h4><div id="coupon-input-area"><div class="coupon-input-wrapper"><input type="text" id="coupon-code-input" placeholder="Digite o código do cupom"><button id="apply-coupon-button">Aplicar</button></div><div id="coupon-message"></div></div><div id="applied-coupon-info" style="display: none;"><span id="applied-coupon-text"></span><button id="remove-coupon-button" class="button-link-style" style="font-size: 1em; color: var(--primary-red);">Remover</button></div>`;
+              cartCouponSection.style.display = 'block';
+    
+              document.getElementById('apply-coupon-button')?.addEventListener('click', applyCoupon);
+              document.getElementById('remove-coupon-button')?.addEventListener('click', removeCoupon);
+    
+              if (appliedCoupon) {
+                document.getElementById('coupon-input-area').style.display = 'none';
+                document.getElementById('applied-coupon-info').style.display = 'flex';
+                document.getElementById('applied-coupon-text').textContent = `Cupom "${appliedCoupon.code}" aplicado!`;
+              } else {
+                document.getElementById('coupon-input-area').style.display = 'block';
+                document.getElementById('applied-coupon-info').style.display = 'none';
+              }
+            }
           }
-        } else if (hasActiveDiscount && !appliedCoupon) {
-          cartCouponSection.style.display = 'none';
-        } else {
-          cartCouponSection.innerHTML = `<h4 style="font-size: 1.1em; margin-top:0; margin-bottom: 10px;">Aplicar Cupom de Desconto</h4><div id="coupon-input-area"><div class="coupon-input-wrapper"><input type="text" id="coupon-code-input" placeholder="Digite o código do cupom"><button id="apply-coupon-button">Aplicar</button></div><div id="coupon-message"></div></div><div id="applied-coupon-info" style="display: none;"><span id="applied-coupon-text"></span><button id="remove-coupon-button" class="button-link-style" style="font-size: 1em; color: var(--primary-red);">Remover</button></div>`;
-          cartCouponSection.style.display = 'block';
-
-          document.getElementById('apply-coupon-button')?.addEventListener('click', applyCoupon);
-          document.getElementById('remove-coupon-button')?.addEventListener('click', removeCoupon);
-
-          if (appliedCoupon) {
-            document.getElementById('coupon-input-area').style.display = 'none';
-            document.getElementById('applied-coupon-info').style.display = 'flex';
-            document.getElementById('applied-coupon-text').textContent = `Cupom "${appliedCoupon.code}" aplicado!`;
-          } else {
-            document.getElementById('coupon-input-area').style.display = 'block';
-            document.getElementById('applied-coupon-info').style.display = 'none';
-          }
-        }
       }
     }
 
@@ -395,7 +449,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (discountAmount > 0) {
         cartDiscountAmountSpan.textContent = `- ${formatPrice(discountAmount)}`;
         const discountLabel = cartDiscountLine.querySelector('span:first-child');
-        if (appliedLoyaltyDiscount) {
+        //--- ROLETA: Atualiza o rótulo do desconto para mostrar o prêmio da roleta ---
+        if (activeRoulettePrize) {
+          discountLabel.textContent = `Prêmio Roleta:`;
+        } else if (appliedLoyaltyDiscount) {
           discountLabel.textContent = 'Desconto Fidelidade:';
         } else if (appliedCoupon) {
           discountLabel.textContent = 'Desconto (Cupom):';
