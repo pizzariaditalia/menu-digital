@@ -138,9 +138,10 @@ document.addEventListener('DOMContentLoaded', () => {
             window.updateCartUI();
         }
 
-        if (typeof window.checkSpinEligibility === 'function') {
-        window.checkSpinEligibility();
-        }
+        // *** CHAMADA PARA A ROLETA DESATIVADA PARA TESTE ***
+        // if (typeof window.checkSpinEligibility === 'function') {
+        //     window.checkSpinEligibility();
+        // }
     }
 
     function showWelcomePointsPopup(points) {
