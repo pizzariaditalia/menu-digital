@@ -1,17 +1,11 @@
-// roulette.js - MODO DE TESTE FORÇADO (SEMPRE MOSTRAR NO CARREGAMENTO)
-
-/*
-    AVISO: Este script vai forçar a roleta a abrir em todo carregamento de página.
-    Ele IGNORA o status de login e a regra dos 7 dias.
-    Use apenas para testes visuais da roleta.
-*/
+// roulette.js - VERSÃO DEFINITIVA (Modo de Teste Forçado)
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Variáveis da Roleta ---
+    // AVISO: Este script força a roleta a abrir 1 segundo após o carregamento da página.
+
     let theWheel = null;
     let isSpinning = false;
 
-    // --- Configuração de Prêmios ---
     const prizes = [
        {'fillStyle' : '#ea1d2c', 'text' : '5% OFF', 'textFillStyle': '#ffffff'},
        {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'},
@@ -23,14 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
        {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'}
     ];
 
-    // --- Funções da Roleta ---
     function initializeAndDrawWheel() {
         const canvas = document.getElementById('prize-wheel');
-        if (!canvas) {
-            console.error("Canvas da roleta não encontrado.");
-            return;
-        }
-
+        if (!canvas) { return; }
         if (theWheel) { theWheel.stopAnimation(false); theWheel = null; }
 
         theWheel = new Winwheel({
@@ -43,10 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 'type'     : 'spinToStop',
                 'duration' : 7,
                 'spins'    : 10,
-                'callbackFinished' : () => {
-                    alert('Roleta parou! (Lógica de prêmio desativada em modo de teste)');
-                    isSpinning = false;
-                },
+                'callbackFinished' : handlePrizeAwarded,
                 'callbackAfter' : () => { isSpinning = false; }
             }
         });
@@ -57,27 +43,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (theWheel) { isSpinning = true; theWheel.startAnimation(); }
     }
     
+    function handlePrizeAwarded(indicatedSegment) {
+        const prizeText = indicatedSegment.text;
+        alert(`Prêmio: ${prizeText}! (Lógica de salvar desativada em modo de teste)`);
+        closeRouletteModal();
+    }
+    
     function showRoulette() {
         const rouletteModal = document.getElementById('roulette-modal');
         if (rouletteModal) {
-            rouletteModal.style.setProperty('display', 'flex', 'important');
+            // *** A CORREÇÃO ESTÁ AQUI ***
+            // Usamos a classe .show para exibir o modal, que é o padrão do seu style.css
+            rouletteModal.classList.add('show');
             initializeAndDrawWheel();
         }
     }
 
     function closeRouletteModal() {
         const rouletteModal = document.getElementById('roulette-modal');
-        if (rouletteModal) rouletteModal.style.display = 'none';
+        if (rouletteModal) rouletteModal.classList.remove('show');
     }
 
-    // --- Listeners para os botões internos do modal ---
+    // Listeners para os botões internos do modal
     const spinButton = document.getElementById('spin-button');
     const closeRouletteModalBtn = document.getElementById('close-roulette-modal');
     if (spinButton) spinButton.addEventListener('click', startSpin);
     if (closeRouletteModalBtn) closeRouletteModalBtn.addEventListener('click', closeRouletteModal);
     
-    // --- Lógica Principal: Forçar abertura da roleta ao carregar a página ---
-    // Usamos um pequeno atraso para garantir que a página "respirou"
-    setTimeout(showRoulette, 1000); // Mostra a roleta 1 segundo após a página carregar
-
+    // Força a abertura da roleta ao carregar a página
+    setTimeout(showRoulette, 1000);
 });
