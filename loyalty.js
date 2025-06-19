@@ -1,55 +1,51 @@
-// loyalty.js - VERSÃO FINAL DE PRODUÇÃO COM CHAMADA PARA ROLETA
-
-const DISCOUNT_TIERS = [
-    { points: 20, percentage: 0.20, label: "Usar 20 pontos para 20% de desconto em pizzas" },
-    { points: 16, percentage: 0.15, label: "Usar 16 pontos para 15% de desconto em pizzas" },
-    { points: 12, percentage: 0.10, label: "Usar 12 pontos para 10% de desconto em pizzas" },
-    { points: 8,  percentage: 0.05, label: "Usar 8 pontos para 5% de desconto em pizzas" }
-];
-
-window.getApplicableDiscount = (customerPoints) => {
-    if (typeof customerPoints !== 'number' || customerPoints <= 0) return null;
-    for (const tier of DISCOUNT_TIERS) {
-        if (customerPoints >= tier.points) {
-            return {
-                pointsToUse: tier.points,
-                percentage: tier.percentage,
-                label: tier.label
-            };
-        }
-    }
-    return null;
-};
+// loyalty.js - VERSÃO SEM AS REGRAS DE DESCONTO (USA AS DO CART.JS)
 
 document.addEventListener('DOMContentLoaded', () => {
+    
     const loyaltyButton = document.getElementById('loyalty-button');
     const loyaltyModal = document.getElementById('loyalty-modal');
     const closeLoyaltyModalButton = document.getElementById('close-loyalty-modal');
     const googleLoginButton = document.getElementById('google-login-button');
     const loyaltyResultsArea = document.getElementById('loyalty-results-area');
     const lastOrdersButton = document.getElementById('last-orders-button');
-    
+    const lastOrdersModal = document.getElementById('last-orders-modal');
+    const lastOrdersListDiv = document.getElementById('last-orders-list');
+    const closeLastOrdersModalButton = lastOrdersModal?.querySelector('.close-button');
+
     async function signInWithGoogle() {
-        if (!window.firebaseAuth) { alert("Erro de configuração."); return; }
+        if (!window.firebaseAuth || !window.firebaseFirestore) {
+            alert("Erro de configuração.");
+            return;
+        }
         const auth = window.firebaseAuth.getAuth();
         const provider = new window.firebaseAuth.GoogleAuthProvider();
         const { signInWithPopup } = window.firebaseAuth;
         const { setDoc, doc } = window.firebaseFirestore;
+
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             const customerData = await getCustomerFromFirestore(user.uid);
+
             if (customerData) {
                 updateGlobalCustomerState(customerData);
             } else {
-                const newCustomer = { firstName: user.displayName || 'Novo Cliente', email: user.email, points: 0, lastUpdatedAt: new Date(), whatsapp: user.phoneNumber || '' };
+                const newCustomer = {
+                    firstName: user.displayName || 'Novo Cliente',
+                    email: user.email,
+                    points: 0,
+                    lastUpdatedAt: new Date(),
+                    whatsapp: user.phoneNumber || ''
+                };
                 const customerDocRef = doc(window.db, "customer", user.uid);
                 await setDoc(customerDocRef, newCustomer);
                 updateGlobalCustomerState({ id: user.uid, ...newCustomer });
             }
             closeLoyaltyModal();
             alert(`Bem-vindo, ${user.displayName}! Login realizado com sucesso.`);
-        } catch (error) { console.error("Erro com Google:", error); }
+        } catch (error) {
+            console.error("Erro com Google:", error);
+        }
     }
 
     async function signOutUser() {
@@ -59,7 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
             await auth.signOut();
             closeLoyaltyModal();
             alert("Você saiu da sua conta.");
-        } catch (error) { console.error("Erro ao fazer logout:", error); }
+        } catch (error) {
+            console.error("Erro ao fazer logout:", error);
+        }
     }
 
     async function getCustomerFromFirestore(userId) {
@@ -72,17 +70,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function updateGlobalCustomerState(customerData) {
         window.currentCustomerDetails = customerData || null;
-        renderLoyaltyModalContent(); // Atualiza o modal de pontos
+        
         displayCustomerWelcomeInfo(customerData);
         if (customerData) {
             showWelcomePointsPopup(customerData.points);
         }
+        renderLoyaltyModalContent();
         if (typeof window.updateCartUI === 'function') {
             window.updateCartUI();
-        }
-        // AVISA O SCRIPT DA ROLETA QUE O USUÁRIO FOI CARREGADO
-        if (typeof window.checkSpinEligibility === 'function') {
-            window.checkSpinEligibility();
         }
     }
 
@@ -102,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderLoyaltyModalContent() {
-        if (!loyaltyModal) return;
         const googleLoginSection = document.getElementById('google-login-section');
         const loyaltyResultsArea = document.getElementById('loyalty-results-area');
         if (!googleLoginSection || !loyaltyResultsArea) return;
@@ -110,12 +104,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.currentCustomerDetails) {
             googleLoginSection.style.display = 'none';
             loyaltyResultsArea.style.display = 'block';
-            let rulesHtml = DISCOUNT_TIERS.map(tier => `<li style="margin-bottom: 8px;"><strong>${tier.points} pontos</strong> = ${tier.percentage * 100}% de desconto em pizzas</li>`).join('');
+
+            // ESTA LINHA AGORA DEPENDE DA FUNÇÃO DEFINIDA NO CART.JS
+            let rulesHtml = typeof window.getApplicableDiscountTiers === 'function' 
+                ? window.getApplicableDiscountTiers().map(tier => `<li style="margin-bottom: 8px;"><strong>${tier.points} pontos</strong> = ${tier.percentage * 100}% de desconto em pizzas</li>`).join('')
+                : '<li>Regras não disponíveis.</li>';
+
             loyaltyResultsArea.innerHTML = `
                 <p style="margin-bottom: 20px;">Olá, <strong>${window.currentCustomerDetails.firstName}</strong>!</p>
-                <div class="points-display-banner">...</div>
-                <div class="loyalty-rules-section">...</div>
-                <button id="logout-button" class="button-link-style">Sair da conta</button>
+                <div class="points-display-banner">
+                    <p class="points-banner-text">Você tem</p>
+                    <span class="points-banner-value">${window.currentCustomerDetails.points || 0}</span>
+                    <p class="points-banner-label">pontos</p>
+                </div>
+                <div class="loyalty-rules-section" style="margin-top: 25px; text-align: left;">
+                    <h4 style="font-size: 1.1em; margin-bottom: 10px; color: var(--dark-gray);">Como Resgatar:</h4>
+                    <ul style="list-style: none; padding-left: 0; font-size: 0.9em; color: var(--medium-gray);">
+                        ${rulesHtml}
+                    </ul>
+                    <p style="font-size: 0.8em; color: #888; margin-top: 15px; text-align: center; font-style: italic;">
+                        O maior desconto disponível para seus pontos será oferecido no seu carrinho.
+                    </p>
+                </div>
+                <button id="logout-button" class="button-link-style" style="margin-top: 20px; color: var(--medium-gray);">Sair da conta</button>
             `;
         } else {
             googleLoginSection.style.display = 'block';
