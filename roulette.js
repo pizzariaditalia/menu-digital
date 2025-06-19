@@ -4,15 +4,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- CONFIGURAÇÃO DA ROLETA ---
     const prizes = [
-       {'fillStyle' : '#fceceb', 'text' : '5% OFF'},
-       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo'},
-       {'fillStyle' : '#f9e0de', 'text' : 'Borda Grátis'},
-       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo'},
-       {'fillStyle' : '#fceceb', 'text' : '10% OFF'},
-       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo'},
-       {'fillStyle' : '#f9e0de', 'text' : 'Refri Grátis'},
-       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo'}
+       {'fillStyle' : '#ea1d2c', 'text' : '5% OFF', 'textFillStyle': '#ffffff'},
+       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'},
+       {'fillStyle' : '#FFD700', 'text' : 'Borda Grátis', 'textFillStyle': '#3f3f3f'},
+       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'},
+       {'fillStyle' : '#ea1d2c', 'text' : '10% OFF', 'textFillStyle': '#ffffff'},
+       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'},
+       {'fillStyle' : '#FFD700', 'text' : 'Refri Grátis', 'textFillStyle': '#3f3f3f'},
+       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'}
     ];
+
 
     // --- VARIÁVEIS GLOBAIS DO MÓDULO ---
     let theWheel = null;
