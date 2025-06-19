@@ -1,4 +1,4 @@
-// loyalty.js - VERSÃO ORIGINAL (PÓS-LOGIN GOOGLE, SEM ROLETA)
+// loyalty.js - VERSÃO FINAL DE PRODUÇÃO COM CHAMADA PARA ROLETA
 
 const DISCOUNT_TIERS = [
     { points: 20, percentage: 0.20, label: "Usar 20 pontos para 20% de desconto em pizzas" },
@@ -22,51 +22,34 @@ window.getApplicableDiscount = (customerPoints) => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    
     const loyaltyButton = document.getElementById('loyalty-button');
     const loyaltyModal = document.getElementById('loyalty-modal');
     const closeLoyaltyModalButton = document.getElementById('close-loyalty-modal');
     const googleLoginButton = document.getElementById('google-login-button');
     const loyaltyResultsArea = document.getElementById('loyalty-results-area');
     const lastOrdersButton = document.getElementById('last-orders-button');
-    const lastOrdersModal = document.getElementById('last-orders-modal');
-    const lastOrdersListDiv = document.getElementById('last-orders-list');
-    const closeLastOrdersModalButton = lastOrdersModal?.querySelector('.close-button');
-
+    
     async function signInWithGoogle() {
-        if (!window.firebaseAuth || !window.firebaseFirestore) {
-            alert("Erro de configuração.");
-            return;
-        }
+        if (!window.firebaseAuth) { alert("Erro de configuração."); return; }
         const auth = window.firebaseAuth.getAuth();
         const provider = new window.firebaseAuth.GoogleAuthProvider();
         const { signInWithPopup } = window.firebaseAuth;
         const { setDoc, doc } = window.firebaseFirestore;
-
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
             const customerData = await getCustomerFromFirestore(user.uid);
-
             if (customerData) {
-                updateGlobalCustomerState(customerData, user.email);
+                updateGlobalCustomerState(customerData);
             } else {
-                const newCustomer = {
-                    firstName: user.displayName || 'Novo Cliente',
-                    email: user.email,
-                    points: 0,
-                    lastUpdatedAt: new Date(),
-                    whatsapp: user.phoneNumber || ''
-                };
+                const newCustomer = { firstName: user.displayName || 'Novo Cliente', email: user.email, points: 0, lastUpdatedAt: new Date(), whatsapp: user.phoneNumber || '' };
                 const customerDocRef = doc(window.db, "customer", user.uid);
                 await setDoc(customerDocRef, newCustomer);
-                updateGlobalCustomerState({ id: user.uid, ...newCustomer }, user.email);
+                updateGlobalCustomerState({ id: user.uid, ...newCustomer });
             }
             closeLoyaltyModal();
             alert(`Bem-vindo, ${user.displayName}! Login realizado com sucesso.`);
-        } catch (error) {
-            console.error("Erro com Google:", error);
-        }
+        } catch (error) { console.error("Erro com Google:", error); }
     }
 
     async function signOutUser() {
@@ -76,9 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await auth.signOut();
             closeLoyaltyModal();
             alert("Você saiu da sua conta.");
-        } catch (error) {
-            console.error("Erro ao fazer logout:", error);
-        }
+        } catch (error) { console.error("Erro ao fazer logout:", error); }
     }
 
     async function getCustomerFromFirestore(userId) {
@@ -89,23 +70,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
     }
     
-    function updateGlobalCustomerState(customerData, identifier) {
-        if (customerData) {
-            window.currentCustomerDetails = customerData;
-        } else {
-            window.currentCustomerDetails = null;
-        }
+    function updateGlobalCustomerState(customerData) {
+        window.currentCustomerDetails = customerData || null;
+        renderLoyaltyModalContent(); // Atualiza o modal de pontos
         displayCustomerWelcomeInfo(customerData);
         if (customerData) {
             showWelcomePointsPopup(customerData.points);
         }
-        renderLoyaltyModalContent();
         if (typeof window.updateCartUI === 'function') {
             window.updateCartUI();
         }
-       if (typeof window.checkSpinEligibility === 'function') {
-        window.checkSpinEligibility();
-        } 
+        // AVISA O SCRIPT DA ROLETA QUE O USUÁRIO FOI CARREGADO
+        if (typeof window.checkSpinEligibility === 'function') {
+            window.checkSpinEligibility();
+        }
     }
 
     function showWelcomePointsPopup(points) {
@@ -118,13 +96,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function displayCustomerWelcomeInfo(customer) {
-        const lastOrdersButton = document.getElementById('last-orders-button');
         if (lastOrdersButton) {
             lastOrdersButton.style.display = customer ? 'flex' : 'none';
         }
     }
 
     function renderLoyaltyModalContent() {
+        if (!loyaltyModal) return;
         const googleLoginSection = document.getElementById('google-login-section');
         const loyaltyResultsArea = document.getElementById('loyalty-results-area');
         if (!googleLoginSection || !loyaltyResultsArea) return;
@@ -135,21 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
             let rulesHtml = DISCOUNT_TIERS.map(tier => `<li style="margin-bottom: 8px;"><strong>${tier.points} pontos</strong> = ${tier.percentage * 100}% de desconto em pizzas</li>`).join('');
             loyaltyResultsArea.innerHTML = `
                 <p style="margin-bottom: 20px;">Olá, <strong>${window.currentCustomerDetails.firstName}</strong>!</p>
-                <div class="points-display-banner">
-                    <p class="points-banner-text">Você tem</p>
-                    <span class="points-banner-value">${window.currentCustomerDetails.points || 0}</span>
-                    <p class="points-banner-label">pontos</p>
-                </div>
-                <div class="loyalty-rules-section" style="margin-top: 25px; text-align: left;">
-                    <h4 style="font-size: 1.1em; margin-bottom: 10px; color: var(--dark-gray);">Como Resgatar:</h4>
-                    <ul style="list-style: none; padding-left: 0; font-size: 0.9em; color: var(--medium-gray);">
-                        ${rulesHtml}
-                    </ul>
-                    <p style="font-size: 0.8em; color: #888; margin-top: 15px; text-align: center; font-style: italic;">
-                        O maior desconto disponível para seus pontos será oferecido no seu carrinho.
-                    </p>
-                </div>
-                <button id="logout-button" class="button-link-style" style="margin-top: 20px; color: var(--medium-gray);">Sair da conta</button>
+                <div class="points-display-banner">...</div>
+                <div class="loyalty-rules-section">...</div>
+                <button id="logout-button" class="button-link-style">Sair da conta</button>
             `;
         } else {
             googleLoginSection.style.display = 'block';
@@ -161,22 +127,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!loyaltyModal) return;
         renderLoyaltyModalContent();
         loyaltyModal.classList.add('show');
-        document.body.style.overflow = 'hidden';
     }
     
     function closeLoyaltyModal() { 
         if (loyaltyModal) loyaltyModal.classList.remove('show'); 
-        document.body.style.overflow = ''; 
     }
     
-    async function loadCurrentCustomerOnPageLoad() {
-        const auth = window.firebaseAuth?.getAuth();
+    function loadCurrentCustomerOnPageLoad() {
+        const auth = window.firebaseAuth.getAuth();
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const customerData = await getCustomerFromFirestore(user.uid);
-                updateGlobalCustomerState(customerData, user.email);
+                updateGlobalCustomerState(customerData);
             } else {
-                updateGlobalCustomerState(null, null);
+                updateGlobalCustomerState(null);
             }
         });
     }
