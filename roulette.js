@@ -1,38 +1,77 @@
-// roulette.js - VERSÃO FINAL DE PRODUÇÃO
+// roulette.js - VERSÃO COM CORREÇÃO FINAL DE VISIBILIDADE (display: important)
 
 document.addEventListener('DOMContentLoaded', () => {
-    let theWheel = null;
-    let isSpinning = false;
 
+    // --- CONFIGURAÇÃO DA ROLETA ---
     const prizes = [
-       {'fillStyle' : '#ea1d2c', 'text' : '5% OFF', 'textFillStyle': '#ffffff'},
-       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'},
-       {'fillStyle' : '#FFD700', 'text' : 'Borda Grátis', 'textFillStyle': '#3f3f3f'},
-       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'},
-       {'fillStyle' : '#ea1d2c', 'text' : '10% OFF', 'textFillStyle': '#ffffff'},
-       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'},
-       {'fillStyle' : '#FFD700', 'text' : 'Refri Grátis', 'textFillStyle': '#3f3f3f'},
-       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo', 'textFillStyle': '#3f3f3f'}
+       {'fillStyle' : '#fceceb', 'text' : '5% OFF'},
+       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo'},
+       {'fillStyle' : '#f9e0de', 'text' : 'Borda Grátis'},
+       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo'},
+       {'fillStyle' : '#fceceb', 'text' : '10% OFF'},
+       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo'},
+       {'fillStyle' : '#f9e0de', 'text' : 'Refri Grátis'},
+       {'fillStyle' : '#ffffff', 'text' : 'Tente de Novo'}
     ];
 
-    function initializeAndDrawWheel() {
+    // --- VARIÁVEIS GLOBAIS DO MÓDULO ---
+    let theWheel = null;
+    let isSpinning = false;
+    
+    const spinButton = document.getElementById('spin-button');
+    const rouletteModal = document.getElementById('roulette-modal');
+    const closeRouletteModalBtn = document.getElementById('close-roulette-modal');
+
+    // --- FUNÇÕES DA ROLETA ---
+
+    function initializeWheel() {
+        if (theWheel) {
+            theWheel.stopAnimation(false);
+            theWheel = null;
+        }
         const canvas = document.getElementById('prize-wheel');
-        if (!canvas) { return; }
-        if (theWheel) { theWheel.stopAnimation(false); theWheel = null; }
-
-        theWheel = new Winwheel({
-            'canvasId'    : 'prize-wheel', 'numSegments' : prizes.length,
-            'outerRadius' : 145, 'textFontSize': 16, 'segments'    : prizes,
-            'animation'   : {
-                'type'     : 'spinToStop', 'duration' : 7, 'spins'    : 10,
-                'callbackFinished' : handlePrizeAwarded, 'callbackAfter' : () => { isSpinning = false; }
-            }
-        });
+        if (canvas) {
+            theWheel = new Winwheel({
+                'canvasId': 'prize-wheel',
+                'numSegments'  : prizes.length,
+                'outerRadius'  : 145,
+                'textFontSize' : 16,
+                'textFillStyle': '#3f3f3f',
+                'segments'     : prizes,
+                'animation' : {
+                    'type'     : 'spinToStop',
+                    'duration' : 7,
+                    'spins'    : 10,
+                    'callbackFinished' : handlePrizeAwarded,
+                    'callbackAfter' : () => { isSpinning = false; }
+                }
+            });
+        } else {
+            console.error("Elemento <canvas id='prize-wheel'> não foi encontrado no DOM.");
+        }
     }
+    
+    function handlePrizeAwarded(indicatedSegment) {
+        const prizeText = indicatedSegment.text;
+        
+        if (prizeText !== 'Tente de Novo') {
+            alert(`Parabéns! Você ganhou: ${prizeText}!`);
+        } else {
+            alert('Não foi dessa vez! Tente novamente na próxima semana.');
+        }
 
+        updateLastSpinTime();
+        closeRouletteModal();
+    }
+    
     function startSpin() {
         if (isSpinning) return;
-        if (theWheel) { isSpinning = true; theWheel.startAnimation(); }
+        if (theWheel) {
+            isSpinning = true;
+            theWheel.startAnimation();
+        } else {
+            alert("Erro ao iniciar a roleta. Por favor, feche e abra novamente.");
+        }
     }
     
     async function updateLastSpinTime() {
@@ -41,50 +80,58 @@ document.addEventListener('DOMContentLoaded', () => {
         const { doc, updateDoc, serverTimestamp } = window.firebaseFirestore;
         const customerRef = doc(window.db, "customer", customerId);
         try {
-            await updateDoc(customerRef, { lastSpinTimestamp: serverTimestamp() });
-            if (window.currentCustomerDetails) { window.currentCustomerDetails.lastSpinTimestamp = new Date(); }
-        } catch (error) { console.error("Erro ao salvar data do giro:", error); }
+            await updateDoc(customerRef, {
+                lastSpinTimestamp: serverTimestamp()
+            });
+            console.log("Data do giro da roleta salva para o cliente:", customerId);
+            if(window.currentCustomerDetails) {
+                 window.currentCustomerDetails.lastSpinTimestamp = new Date(); 
+            }
+        } catch (error) {
+            console.error("Erro ao salvar a data do giro:", error);
+        }
     }
 
-    function handlePrizeAwarded(indicatedSegment) {
-        const prizeText = indicatedSegment.text;
-        if (prizeText !== 'Tente de Novo') { alert(`Parabéns! Você ganhou: ${prizeText}!`);
-        } else { alert('Não foi dessa vez! Tente novamente na próxima semana.'); }
-        updateLastSpinTime();
-        closeRouletteModal();
-    }
-
-    function showRouletteModal() {
-        const rouletteModal = document.getElementById('roulette-modal');
+    // --- FUNÇÕES DE CONTROLE DO MODAL ---
+    
+    function openRouletteModal() {
         if (rouletteModal) {
-            rouletteModal.classList.add('show');
-            initializeAndDrawWheel();
+            // *** LINHA CORRIGIDA PARA FORÇAR A EXIBIÇÃO ***
+            rouletteModal.style.setProperty('display', 'flex', 'important');
+            initializeWheel();
         }
     }
 
     function closeRouletteModal() {
-        const rouletteModal = document.getElementById('roulette-modal');
-        if (rouletteModal) rouletteModal.classList.remove('show');
+        if (rouletteModal) {
+            rouletteModal.style.display = 'none';
+        }
     }
-
+    
+    // --- LÓGICA PRINCIPAL DE VERIFICAÇÃO ---
     window.checkSpinEligibility = () => {
         const customer = window.currentCustomerDetails;
         if (!customer) return;
-
+        
         const lastSpin = customer.lastSpinTimestamp?.toDate();
+
         if (!lastSpin) {
-            showRouletteModal();
+            console.log("Cliente nunca girou. Mostrando roleta.");
+            openRouletteModal();
         } else {
             const sevenDaysInMillis = 7 * 24 * 60 * 60 * 1000;
             const timeSinceLastSpin = new Date().getTime() - lastSpin.getTime();
+
             if (timeSinceLastSpin > sevenDaysInMillis) {
-                showRouletteModal();
+                console.log("Mais de 7 dias desde o último giro. Mostrando roleta.");
+                openRouletteModal();
+            } else {
+                console.log("Cliente já girou a roleta nesta semana.");
             }
         }
     };
 
-    const spinButton = document.getElementById('spin-button');
-    const closeRouletteModalBtn = document.getElementById('close-roulette-modal');
+    // --- EVENT LISTENERS ---
     if (spinButton) spinButton.addEventListener('click', startSpin);
     if (closeRouletteModalBtn) closeRouletteModalBtn.addEventListener('click', closeRouletteModal);
 });
