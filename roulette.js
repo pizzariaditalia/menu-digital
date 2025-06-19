@@ -1,8 +1,6 @@
-// roulette.js - VERSÃO DEFINITIVA (Modo de Teste Forçado)
+// roulette.js - VERSÃO DE PRODUÇÃO FINAL
 
 document.addEventListener('DOMContentLoaded', () => {
-    // AVISO: Este script força a roleta a abrir 1 segundo após o carregamento da página.
-
     let theWheel = null;
     let isSpinning = false;
 
@@ -19,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initializeAndDrawWheel() {
         const canvas = document.getElementById('prize-wheel');
-        if (!canvas) { return; }
+        if (!canvas) return;
         if (theWheel) { theWheel.stopAnimation(false); theWheel = null; }
 
         theWheel = new Winwheel({
@@ -40,20 +38,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function startSpin() {
         if (isSpinning) return;
-        if (theWheel) { isSpinning = true; theWheel.startAnimation(); }
+        if (theWheel) {
+            isSpinning = true;
+            theWheel.startAnimation();
+        }
     }
     
+    async function updateLastSpinTime() {
+        const customerId = window.currentCustomerDetails?.id;
+        if (!customerId || !window.db || !window.firebaseFirestore) return;
+        const { doc, updateDoc, serverTimestamp } = window.firebaseFirestore;
+        const customerRef = doc(window.db, "customer", customerId);
+        try {
+            await updateDoc(customerRef, { lastSpinTimestamp: serverTimestamp() });
+            if (window.currentCustomerDetails) {
+                window.currentCustomerDetails.lastSpinTimestamp = new Date();
+            }
+        } catch (error) {
+            console.error("Erro ao salvar a data do giro:", error);
+        }
+    }
+
     function handlePrizeAwarded(indicatedSegment) {
         const prizeText = indicatedSegment.text;
-        alert(`Prêmio: ${prizeText}! (Lógica de salvar desativada em modo de teste)`);
+        if (prizeText !== 'Tente de Novo') {
+            alert(`Parabéns! Você ganhou: ${prizeText}!`);
+            // Aqui podemos adicionar lógica futura para salvar o prêmio
+        } else {
+            alert('Não foi dessa vez! Tente novamente na próxima semana.');
+        }
+        updateLastSpinTime();
         closeRouletteModal();
     }
-    
-    function showRoulette() {
+
+    function showRouletteModal() {
         const rouletteModal = document.getElementById('roulette-modal');
         if (rouletteModal) {
-            // *** A CORREÇÃO ESTÁ AQUI ***
-            // Usamos a classe .show para exibir o modal, que é o padrão do seu style.css
             rouletteModal.classList.add('show');
             initializeAndDrawWheel();
         }
@@ -64,12 +84,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (rouletteModal) rouletteModal.classList.remove('show');
     }
 
-    // Listeners para os botões internos do modal
+    window.checkSpinEligibility = () => {
+        const customer = window.currentCustomerDetails;
+        if (!customer) return;
+
+        const lastSpin = customer.lastSpinTimestamp?.toDate();
+
+        if (!lastSpin) {
+            console.log("Elegível para girar (nunca girou).");
+            showRouletteModal();
+        } else {
+            const sevenDaysInMillis = 7 * 24 * 60 * 60 * 1000;
+            const timeSinceLastSpin = new Date().getTime() - lastSpin.getTime();
+            if (timeSinceLastSpin > sevenDaysInMillis) {
+                console.log("Elegível para girar (mais de 7 dias).");
+                showRouletteModal();
+            } else {
+                console.log("Não elegível para girar (menos de 7 dias).");
+            }
+        }
+    };
+
     const spinButton = document.getElementById('spin-button');
     const closeRouletteModalBtn = document.getElementById('close-roulette-modal');
     if (spinButton) spinButton.addEventListener('click', startSpin);
     if (closeRouletteModalBtn) closeRouletteModalBtn.addEventListener('click', closeRouletteModal);
-    
-    // Força a abertura da roleta ao carregar a página
-    setTimeout(showRoulette, 1000);
 });
