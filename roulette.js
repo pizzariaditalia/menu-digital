@@ -53,17 +53,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function handlePrizeAwarded(indicatedSegment) {
-        const prizeText = indicatedSegment.text;
-        
-        if (prizeText !== 'Tente de Novo') {
-            alert(`Parabéns! Você ganhou: ${prizeText}!`);
-        } else {
-            alert('Não foi dessa vez! Tente novamente na próxima semana.');
-        }
+    const prizeText = indicatedSegment.text;
+    let prizeObject = null;
 
-        updateLastSpinTime();
-        closeRouletteModal();
+    // Converte o texto do prêmio em um objeto estruturado
+    switch (prizeText) {
+        case '10% OFF':
+            prizeObject = { type: 'percent', value: 10, description: '10% de Desconto (Roleta)' };
+            break;
+        case '5% OFF':
+            prizeObject = { type: 'percent', value: 5, description: '5% de Desconto (Roleta)' };
+            break;
+        case 'Refri Grátis':
+            // IMPORTANTE: O 'value' deve ser o NOME EXATO do produto como está no seu menu.js
+            prizeObject = { type: 'free_item', value: 'Coca-Cola 2L', description: 'Refrigerante Grátis (Roleta)' };
+            break;
+        case 'Borda Grátis':
+            // IMPORTANTE: O 'value' deve ser o NOME EXATO da borda como está no seu menu.js
+            prizeObject = { type: 'free_extra', value: 'Catupiry', description: 'Borda Grátis (Roleta)' };
+            break;
     }
+
+    if (prizeObject) {
+        // Salva o prêmio na sessão do navegador
+        sessionStorage.setItem('activeRoulettePrize', JSON.stringify(prizeObject));
+        alert(`Parabéns! Você ganhou: ${prizeObject.description}! O prêmio será aplicado no seu carrinho.`);
+    } else {
+        alert('Não foi dessa vez! Tente novamente na próxima semana.');
+    }
+
+    updateLastSpinTime();
+    closeRouletteModal();
+
+    // Opcional: Abre o carrinho automaticamente para o cliente ver o prêmio
+    if (prizeObject && typeof window.openCartModal === 'function') {
+        window.openCartModal();
+    }
+}
     
     function startSpin() {
         if (isSpinning) return;
