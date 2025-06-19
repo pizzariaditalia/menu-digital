@@ -1,6 +1,6 @@
-// loyalty.js - VERSÃO COM CONTROLE CENTRALIZADO DO MODAL
+// loyalty.js - VERSÃO CORRIGIDA E COMPLETA
 
-// ... (todo o início do arquivo, constantes e funções globais, permanece o mesmo) ...
+// ... (O início do arquivo, constantes e funções globais, permanece o mesmo) ...
 const DISCOUNT_TIERS = [
     { points: 20, percentage: 0.20, label: "Usar 20 pontos para 20% de desconto em pizzas" },
     { points: 16, percentage: 0.15, label: "Usar 16 pontos para 15% de desconto em pizzas" },
@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const lastOrdersListDiv = document.getElementById('last-orders-list');
     const closeLastOrdersModalButton = lastOrdersModal?.querySelector('.close-button');
 
-    // ... (as funções signInWithGoogle, signOutUser, getCustomerFromFirestore, etc., permanecem as mesmas) ...
     async function signInWithGoogle() {
         if (!window.firebaseAuth || !window.firebaseFirestore) { console.error("Firebase Auth ou Firestore não inicializado."); alert("Erro de configuração. Tente novamente mais tarde."); return; }
         const auth = window.firebaseAuth.getAuth();
@@ -67,7 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (customerData) { showWelcomePointsPopup(customerData.points); }
         renderLoyaltyModalContent();
         if (typeof window.updateCartUI === 'function') { window.updateCartUI(); }
-        // Chamada da roleta foi movida para openLoyaltyModal e openRouletteModal
+
+        // Chama a verificação da roleta após o estado do usuário ser definido
+        if (typeof window.checkSpinEligibility === 'function') {
+            window.checkSpinEligibility();
+        }
     }
     function showWelcomePointsPopup(points) {
         const popup = document.getElementById('welcome-points-popup');
@@ -89,14 +92,36 @@ document.addEventListener('DOMContentLoaded', () => {
         try { const querySnapshot = await getDocs(q); return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         } catch (error) { console.error("Erro ao buscar últimos pedidos:", error); alert("Não foi possível carregar os últimos pedidos."); return []; }
     }
+    
+    // *** FUNÇÃO CORRIGIDA - SEM ABREVIAÇÕES ***
     function renderLastOrders(orders) {
         if (!lastOrdersListDiv) return;
-        if (orders.length === 0) { lastOrdersListDiv.innerHTML = '<p class="empty-list-message">Nenhum pedido encontrado no seu histórico.</p>'; return; }
+        if (orders.length === 0) {
+            lastOrdersListDiv.innerHTML = '<p class="empty-list-message">Nenhum pedido encontrado no seu histórico.</p>';
+            return;
+        }
         const formatPrice = (price) => typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '';
         lastOrdersListDiv.innerHTML = orders.map(order => {
             let formattedDate = 'Data indisponível';
-            if (order.createdAt?.toDate) { const d = order.createdAt.toDate(); formattedDate = `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`; }
-            return `<div class="order-history-card">...</div>`; // HTML do card omitido para abreviar
+            if (order.createdAt?.toDate) {
+                const d = order.createdAt.toDate();
+                formattedDate = `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+            }
+            return `
+            <div class="order-history-card">
+              <div class="order-history-header">
+                  <span class="order-id">Pedido #${(order.orderId || order.id).substring(0, 8)}</span>
+                  <span class="order-status">${order.status || 'Status N/A'}</span>
+              </div>
+              <div class="order-history-body">
+                <p class="order-date">${formattedDate}</p>
+                <ul>${order.items.map(item => `<li>${item.quantity}x ${item.name}</li>`).join('')}</ul>
+              </div>
+              <div class="order-history-footer">
+                <span class="order-total">Total: ${formatPrice(order.totals.grandTotal)}</span>
+                <button class="btn-reorder" data-order-id="${order.id}">Pedir Novamente</button>
+              </div>
+            </div>`;
         }).join('');
         lastOrdersListDiv.querySelectorAll('.btn-reorder').forEach(button => {
             button.addEventListener('click', (event) => {
@@ -114,47 +139,47 @@ document.addEventListener('DOMContentLoaded', () => {
             googleLoginSection.style.display = 'none';
             loyaltyResultsArea.style.display = 'block';
             let rulesHtml = DISCOUNT_TIERS.map(tier => `<li style="margin-bottom: 8px;"><strong>${tier.points} pontos</strong> = ${tier.percentage * 100}% de desconto em pizzas</li>`).join('');
-            loyaltyResultsArea.innerHTML = `<p>...</p>`; // Conteúdo omitido
+            loyaltyResultsArea.innerHTML = `
+                <p style="margin-bottom: 20px;">Olá, <strong>${window.currentCustomerDetails.firstName}</strong>!</p>
+                <div class="points-display-banner">
+                    <p class="points-banner-text">Você tem</p>
+                    <span class="points-banner-value">${window.currentCustomerDetails.points || 0}</span>
+                    <p class="points-banner-label">pontos</p>
+                </div>
+                <div class="loyalty-rules-section" style="margin-top: 25px; text-align: left;">
+                    <h4 style="font-size: 1.1em; margin-bottom: 10px; color: var(--dark-gray);">Como Resgatar:</h4>
+                    <ul style="list-style: none; padding-left: 0; font-size: 0.9em; color: var(--medium-gray);">
+                        ${rulesHtml}
+                    </ul>
+                    <p style="font-size: 0.8em; color: #888; margin-top: 15px; text-align: center; font-style: italic;">
+                        O maior desconto disponível para seus pontos será oferecido no seu carrinho.
+                    </p>
+                </div>
+                <button id="logout-button" class="button-link-style" style="margin-top: 20px; color: var(--medium-gray);">Sair da conta</button>
+            `;
         } else {
             googleLoginSection.style.display = 'block';
             loyaltyResultsArea.style.display = 'none';
         }
     }
-
-    // *** FUNÇÃO ATUALIZADA ***
+    
     function openLoyaltyModal() {
         if (!loyaltyModal) return;
-
-        // Primeiro, abre o modal de fidelidade normal
         renderLoyaltyModalContent();
         loyaltyModal.classList.add('show');
         document.body.style.overflow = 'hidden';
-
-        // Em seguida, verifica se a roleta deve ser mostrada
-        checkAndShowRoulette();
     }
     
     function closeLoyaltyModal() { if (loyaltyModal) loyaltyModal.classList.remove('show'); document.body.style.overflow = ''; }
-    async function openLastOrdersModal() { /* ... código sem alteração ... */ }
-    function closeLastOrdersModal() { if (lastOrdersModal) lastOrdersModal.classList.remove('show'); document.body.style.overflow = ''; }
-
-    // NOVA FUNÇÃO para verificar a elegibilidade da roleta
-    function checkAndShowRoulette() {
-        const customer = window.currentCustomerDetails;
-        if (!customer) return; // Só mostra para clientes logados
-
-        const lastSpin = customer.lastSpinTimestamp?.toDate();
-        if (!lastSpin) {
-            // Nunca girou, mostra a roleta
-            const rouletteModal = document.getElementById('roulette-modal');
-            if (rouletteModal) {
-                rouletteModal.style.setProperty('display', 'flex', 'important');
-                if (typeof window.setupRouletteDrawing === 'function') {
-                    window.setupRouletteDrawing();
-                }
-            }
-        }
+    async function openLastOrdersModal() {
+        if (!lastOrdersModal || !window.currentCustomerDetails) { alert("Você precisa fazer o login primeiro para ver seus pedidos."); return; }
+        lastOrdersModal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        lastOrdersListDiv.innerHTML = '<p>Buscando seu histórico de pedidos...</p>';
+        const orders = await fetchLastOrders(window.currentCustomerDetails.id);
+        renderLastOrders(orders);
     }
+    function closeLastOrdersModal() { if (lastOrdersModal) lastOrdersModal.classList.remove('show'); document.body.style.overflow = ''; }
     
     async function loadCurrentCustomerOnPageLoad() {
         const auth = window.firebaseAuth?.getAuth();
@@ -168,7 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Event Listeners
     if (loyaltyButton) loyaltyButton.addEventListener('click', openLoyaltyModal);
     if (closeLoyaltyModalButton) closeLoyaltyModalButton.addEventListener('click', closeLoyaltyModal);
     if (googleLoginButton) googleLoginButton.addEventListener('click', signInWithGoogle);
