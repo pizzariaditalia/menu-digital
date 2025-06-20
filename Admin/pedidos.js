@@ -1,4 +1,4 @@
-// pedidos.js - VERSÃO SIMPLIFICADA SEM BOTÕES DE BUSCA E FILTRO
+// pedidos.js - VERSÃO COM EXIBIÇÃO DETALHADA DE DESCONTOS
 
 // --- Variáveis de estado do módulo ---
 let ordersSectionInitialized = false;
@@ -6,7 +6,6 @@ let unsubscribeFromOrders = null;
 let allOrders = [];
 let allDeliveryPeople = [];
 let activeTypeFilter = 'todos';
-// As variáveis currentSearchTerm e currentViewMode foram removidas.
 
 function handleSendWppToDeliveryPerson(orderId) {
   const order = allOrders.find(o => o.id === orderId);
@@ -70,7 +69,23 @@ function openOrderDetailsModal(order) {
     delivery.complement ? `<strong>Complemento:</strong> ${delivery.complement}`: null,
     delivery.reference ? `<strong>Referência:</strong> ${delivery.reference}`: null].filter(Boolean).join('<br>');
   modalBodyHTML += `<h4 class="modal-section-title"><i class="fas fa-map-marker-alt"></i> Endereço de Entrega</h4><div class="detail-item full-width"><span>${addressParts || 'Não informado'}</span></div>`;
-  let paymentDetailsHTML = `<div class="detail-item"><strong>Subtotal</strong><span>${formatPrice(totals.subtotal)}</span></div><div class="detail-item"><strong>Taxa de Entrega</strong><span>${formatPrice(totals.deliveryFee)}</span></div>${totals.discount > 0 ? `<div class="detail-item"><strong>Desconto</strong><span class="text-success">- ${formatPrice(totals.discount)}</span></div>`: ''}<div class="detail-item total full-width" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 5px;"><strong>Total a Pagar</strong><span>${formatPrice(totals.grandTotal)}</span></div><div class="detail-item full-width"><strong>Forma de Pagamento</strong><span>${payment.method || 'Não informada'}</span></div>`;
+  
+  // --- ALTERAÇÃO AQUI: LÓGICA DETALHADA PARA EXIBIR O DESCONTO ---
+  let discountHTML = '';
+  if (totals.discount > 0) {
+      let discountLabel = 'Desconto'; // Etiqueta padrão
+      if (order.roulettePrize) {
+          discountLabel = `Prêmio Roleta (${order.roulettePrize.description})`;
+      } else if (order.coupon) {
+          discountLabel = `Cupom (${order.coupon.code})`;
+      } else if (order.loyalty && order.loyalty.pointsUsed > 0) {
+          discountLabel = `Fidelidade (${order.loyalty.pointsUsed} pts)`;
+      }
+      discountHTML = `<div class="detail-item"><strong>${discountLabel}</strong><span class="text-success">- ${formatPrice(totals.discount)}</span></div>`;
+  }
+  // --- FIM DA ALTERAÇÃO ---
+
+  let paymentDetailsHTML = `<div class="detail-item"><strong>Subtotal</strong><span>${formatPrice(totals.subtotal)}</span></div><div class="detail-item"><strong>Taxa de Entrega</strong><span>${formatPrice(totals.deliveryFee)}</span></div>${discountHTML}<div class="detail-item total full-width" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 5px;"><strong>Total a Pagar</strong><span>${formatPrice(totals.grandTotal)}</span></div><div class="detail-item full-width"><strong>Forma de Pagamento</strong><span>${payment.method || 'Não informada'}</span></div>`;
   if (payment.method === 'Dinheiro' && payment.changeFor) {
     paymentDetailsHTML += `<div class="detail-item full-width"><strong>Troco para</strong><span>${formatPrice(payment.changeFor)}</span></div>`;
   }
@@ -134,7 +149,7 @@ function renderOrders() {
     filteredOrders = filteredOrders.filter(o => o.status === 'Saiu para Entrega');
   }
   
-  ordersListContainer.className = `orders-list-container card-view`; // Sempre usa a visualização de card
+  ordersListContainer.className = `orders-list-container card-view`; 
   
   if (filteredOrders.length === 0) {
     ordersListContainer.innerHTML = `<div class="empty-orders-state"><i class="fas fa-receipt empty-state-icon"></i><p class="empty-state-message">Nenhum pedido encontrado com os filtros atuais.</p><button class="btn btn-primary btn-lg empty-state-new-order-btn"><i class="fas fa-plus-circle"></i> Novo pedido</button></div>`;
@@ -376,3 +391,5 @@ async function initializeOrdersSection() {
 }
 
 window.initializeOrdersSection = initializeOrdersSection;
+}
+Isso que tenho do painel
