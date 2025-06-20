@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>D'Italia Pizzaria - Login Admin</title>
-  <link rel="manifest" href="manifest-admin.json">
   <link rel="stylesheet" href="styleadmin.css">
   <link rel="stylesheet" href="styleadmin-2.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -75,15 +74,7 @@
   </div>
 
   <script type="module" src="auth.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw-admin.js')
-          .then((reg) => console.log('Service Worker do Admin registrado com sucesso!', reg.scope))
-          .catch((err) => console.log('Falha ao registrar Service Worker do Admin: ', err));
-      });
-    }
-  </script>
+  
 
 </body>
 </html>
