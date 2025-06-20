@@ -1,4 +1,4 @@
-// productModal.js - VERSÃO COM FILTRO NA SELEÇÃO DE METADES
+// productModal.js - VERSÃO COM CORREÇÃO DA CHAMADA addToCart
 
 document.addEventListener('DOMContentLoaded', () => {
     const productModal = document.getElementById('product-modal');
@@ -73,7 +73,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         for (const cat in window.menuData) {
             if (cat.includes('pizzas-') && window.menuData[cat] && Array.isArray(window.menuData[cat].items)) {
-                // Filtra apenas os itens visíveis
                 const visiblePizzas = window.menuData[cat].items.filter(item => item.isVisible !== false);
                 
                 visiblePizzas.forEach(pizza => {
@@ -259,11 +258,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 itemToAdd.name += ` com ${itemToAdd.stuffedCrust.name}`;
             }
             
+            // --- CORREÇÃO APLICADA AQUI ---
             if (window.addToCart) {
-                window.addToCart(itemToAdd);
+                window.addToCart(itemToAdd); // A função agora é chamada corretamente com "window."
                 closeProductModal();
             } else {
                 console.error("Função 'addToCart' não encontrada.");
+                alert("Erro ao adicionar ao carrinho. Tente recarregar a página.");
             }
         });
     }
