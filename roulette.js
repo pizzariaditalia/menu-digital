@@ -52,7 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    function handlePrizeAwarded(indicatedSegment) {
+    // ... dentro do seu roulette.js
+
+function handlePrizeAwarded(indicatedSegment) {
     const prizeText = indicatedSegment.text;
     let prizeObject = null;
 
@@ -64,13 +66,23 @@ document.addEventListener('DOMContentLoaded', () => {
         case '5% OFF':
             prizeObject = { type: 'percent', value: 5, description: '5% de Desconto (Roleta)' };
             break;
+        
+        // --- CORREÇÃO AQUI ---
+        // Use o nome exato do produto como está no seu menu.js
         case 'Refri Grátis':
-            // IMPORTANTE: O 'value' deve ser o NOME EXATO do produto como está no seu menu.js
             prizeObject = { type: 'free_item', value: 'Coca-Cola 2L', description: 'Refrigerante Grátis (Roleta)' };
             break;
+
+        // --- CORREÇÃO AQUI ---
+        // Use o nome exato da borda como está no seu banco de dados
         case 'Borda Grátis':
-            // IMPORTANTE: O 'value' deve ser o NOME EXATO da borda como está no seu menu.js
+            // Este prêmio é mais complexo de implementar, pois depende de uma pizza ser adicionada.
+            // Por enquanto, vamos focar em registrar que o cliente ganhou.
             prizeObject = { type: 'free_extra', value: 'Catupiry', description: 'Borda Grátis (Roleta)' };
+            break;
+        
+        case 'Tente de Novo':
+             // Nenhuma ação necessária
             break;
     }
 
@@ -85,8 +97,8 @@ document.addEventListener('DOMContentLoaded', () => {
     updateLastSpinTime();
     closeRouletteModal();
 
-    // Opcional: Abre o carrinho automaticamente para o cliente ver o prêmio
-    if (prizeObject && typeof window.openCartModal === 'function') {
+    // Abre o carrinho para o cliente ver o prêmio (se houver um e a função existir)
+    if (prizeObject && prizeObject.type !== 'free_extra' && typeof window.openCartModal === 'function') {
         window.openCartModal();
     }
 }
