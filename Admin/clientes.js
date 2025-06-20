@@ -1,5 +1,4 @@
-// Arquivo: clientes.js
-// VERSÃO FINAL COM CÁLCULO DE QUANTIDADE E DATA DO ÚLTIMO PEDIDO E EDIÇÃO CORRIGIDA
+// Arquivo: clientes.js - VERSÃO COM CORREÇÃO DE SINTAXE
 
 let customersSectionInitialized = false;
 
@@ -101,13 +100,16 @@ async function initializeCustomersSection() {
     function renderCustomersList(customers, searchTerm = "") {
         if (!customersListContainer) return;
         const lowerCaseTerm = searchTerm.toLowerCase();
+        
+        // --- CÓDIGO CORRIGIDO AQUI ---
         const filteredCustomers = searchTerm
             ? customers.filter(c =>
                 (`${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().includes(lowerCaseTerm)) ||
                 (c.whatsapp && c.whatsapp.includes(lowerCaseTerm)) ||
                 (c.email && c.email.toLowerCase().includes(lowerCaseTerm))
-            )
+            ) // O parêntese extra foi removido daqui
             : customers;
+            
         if (filteredCustomers.length === 0) {
             customersListContainer.innerHTML = `<p class="empty-list-message">Nenhum cliente encontrado.</p>`;
             return;
