@@ -1,13 +1,11 @@
-// cart.js - VERSÃO COMPLETA E FINAL COM PRÊMIO DA ROLETA
+// cart.js - VERSÃO FINAL COM TODOS OS PRÊMIOS DA ROLETA (INCLUINDO BORDA GRÁTIS)
 
 document.addEventListener('DOMContentLoaded', () => {
   let cart = [];
   let appliedLoyaltyDiscount = null;
   let appliedCoupon = null;
-  //--- ROLETA: Armazena o prêmio ativo da roleta ---
   let activeRoulettePrize = null;
 
-  // --- SELETORES DE ELEMENTOS DO DOM (Apenas elementos estáticos) ---
   const cartIconWrapper = document.querySelector('.cart-icon-wrapper');
   const cartModal = document.getElementById('cart-modal');
   const closeCartModalButton = cartModal?.querySelector('.close-button');
@@ -67,9 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartUI();
   };
 
-  //--- ROLETA: Disponibiliza globalmente o prêmio ativo ---
   window.getAppliedRoulettePrize = () => activeRoulettePrize ? JSON.parse(JSON.stringify(activeRoulettePrize)): null;
-  
   window.getCartItems = () => JSON.parse(JSON.stringify(cart));
   window.getCartTotalAmount = () => calculateCartTotals().totalPrice;
   window.getCartSubtotalAmount = () => calculateCartTotals().subtotal;
@@ -79,7 +75,6 @@ document.addEventListener('DOMContentLoaded', () => {
     cart = [];
     appliedLoyaltyDiscount = null;
     appliedCoupon = null;
-    //--- ROLETA: Limpa o prêmio da roleta junto com o carrinho ---
     sessionStorage.removeItem('activeRoulettePrize');
     activeRoulettePrize = null;
     updateCartUI();
@@ -126,7 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const applyLoyaltyDiscount = (discount) => {
-    //--- ROLETA: Impede usar pontos se já houver prêmio da roleta ---
     if (activeRoulettePrize) {
       alert("Apenas um tipo de desconto pode ser usado. O prêmio da roleta já está ativo.");
       return;
@@ -175,8 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error("Elementos do cupom não encontrados no DOM.");
       return;
     }
-
-    //--- ROLETA: Impede usar cupom se já houver prêmio da roleta ---
     if (activeRoulettePrize) {
       couponMessageDiv.textContent = "Apenas um tipo de desconto pode ser usado. O prêmio da roleta já está ativo.";
       couponMessageDiv.className = 'error';
@@ -220,7 +212,6 @@ document.addEventListener('DOMContentLoaded', () => {
         id: couponSnap.id,
         ...couponSnap.data()
       };
-
       const {
         subtotal
       } = calculateCartTotals();
@@ -260,12 +251,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  //--- ROLETA: Verifica se existe um prêmio na sessão e o carrega ---
   const checkForRoulettePrize = () => {
     const prizeJSON = sessionStorage.getItem('activeRoulettePrize');
     if (prizeJSON) {
         activeRoulettePrize = JSON.parse(prizeJSON);
-        // Garante que outros descontos sejam removidos
         appliedLoyaltyDiscount = null;
         appliedCoupon = null;
     } else {
@@ -274,24 +263,32 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const calculateCartTotals = () => {
-    //--- ROLETA: Chama a verificação antes de qualquer cálculo ---
     checkForRoulettePrize(); 
     
     const subtotal = cart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
     let discountAmount = 0;
     
-    //--- ROLETA: Lógica para calcular o desconto da roleta ---
     if (activeRoulettePrize) {
       if (activeRoulettePrize.type === 'percent') {
         discountAmount = subtotal * (activeRoulettePrize.value / 100);
       } else if (activeRoulettePrize.type === 'free_item') {
         const freeItemInCart = cart.find(item => item.name === activeRoulettePrize.value);
         if (freeItemInCart) {
-          discountAmount = freeItemInCart.unitPrice; // Desconto no valor de uma unidade
+          discountAmount = freeItemInCart.unitPrice;
         }
+      } else if (activeRoulettePrize.type === 'free_extra') {
+          // --- NOVA LÓGICA PARA BORDA GRÁTIS ---
+          let crustDiscountApplied = false;
+          for (const item of cart) {
+              // Aplica o desconto na primeira pizza com borda encontrada
+              if (item.stuffedCrust && item.stuffedCrust.price > 0 && !crustDiscountApplied) {
+                  discountAmount += item.stuffedCrust.price;
+                  crustDiscountApplied = true; // Garante que o desconto seja aplicado apenas uma vez
+                  break; // Para o loop assim que o desconto for aplicado
+              }
+          }
       }
     }
-    // Lógica para outros descontos (só são aplicados se o da roleta não existir)
     else if (appliedLoyaltyDiscount) {
       discountAmount = appliedLoyaltyDiscount.discountAmount;
     } else if (appliedCoupon) {
@@ -371,15 +368,13 @@ document.addEventListener('DOMContentLoaded', () => {
       cartItemsList.querySelectorAll('.increase-button').forEach(b => b.addEventListener('click', (e) => increaseQuantity(parseInt(e.target.dataset.index))));
       cartItemsList.querySelectorAll('.decrease-button').forEach(b => b.addEventListener('click', (e) => decreaseQuantity(parseInt(e.target.dataset.index))));
 
-      //--- ROLETA: Condição para bloquear outras seções de desconto ---
       const hasActiveDiscount = activeRoulettePrize || appliedLoyaltyDiscount || appliedCoupon;
-
-      //--- ROLETA: Esconde seções de pontos e cupom se prêmio da roleta estiver ativo
+      
       if (activeRoulettePrize) {
         if (cartLoyaltySection) cartLoyaltySection.style.display = 'none';
         if (cartCouponSection) cartCouponSection.style.display = 'none';
       } else {
-        if (cartLoyaltySection) {
+          if (cartLoyaltySection) {
             const loyaltyDiscountInfoDiv = document.getElementById('loyalty-discount-info');
             const applyLoyaltyDiscountButton = document.getElementById('apply-loyalty-discount-button');
             const removeLoyaltyDiscountButton = document.getElementById('remove-loyalty-discount-button');
@@ -449,7 +444,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (discountAmount > 0) {
         cartDiscountAmountSpan.textContent = `- ${formatPrice(discountAmount)}`;
         const discountLabel = cartDiscountLine.querySelector('span:first-child');
-        //--- ROLETA: Atualiza o rótulo do desconto para mostrar o prêmio da roleta ---
         if (activeRoulettePrize) {
           discountLabel.textContent = `Prêmio Roleta:`;
         } else if (appliedLoyaltyDiscount) {
