@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ditalia-pizzaria-cache-v25';
+const CACHE_NAME = 'ditalia-pizzaria-cache-v26';
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
