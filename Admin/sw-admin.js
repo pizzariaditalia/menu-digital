@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ditalia-admin-cache-v1';
+const CACHE_NAME = 'ditalia-admin-cache-v2';
 const URLS_TO_CACHE = [
   './paineladmin.html',
   './styleadmin.css',
