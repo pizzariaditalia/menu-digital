@@ -101,7 +101,7 @@ async function initializeCustomersSection() {
         if (!customersListContainer) return;
         const lowerCaseTerm = searchTerm.toLowerCase();
         
-        // --- CÓDIGO CORRIGIDO AQUI ---
+        // --- CÓDIGO CORRIGIDO ---
         const filteredCustomers = searchTerm
             ? customers.filter(c =>
                 (`${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().includes(lowerCaseTerm)) ||
