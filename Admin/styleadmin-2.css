@@ -1237,6 +1237,13 @@
 }
 
 /* Destaques para o Top 3 */
-.top5-list-item.rank-1 .rank { color: #b8860b; font-weight: 900; }
-.top5-list-item.rank-2 .rank { color: #71797E; font-weight: 900; }
-.top5-list-item.rank-3 .rank { color: #8C7853; font-weight: 900; }
+
+.top5-list-item.rank-1 .rank { 
+   color: #b8860b; font-weight: 900;
+}
+.top5-list-item.rank-2 .rank {
+   color: #71797E; font-weight: 900;
+}
+.top5-list-item.rank-3 .rank {
+   color: #8C7853; font-weight: 900;
+}
