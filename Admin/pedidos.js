@@ -391,4 +391,3 @@ async function initializeOrdersSection() {
 }
 
 window.initializeOrdersSection = initializeOrdersSection;
-}
