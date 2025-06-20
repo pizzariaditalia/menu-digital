@@ -1,4 +1,4 @@
-// checkout.js - VERSÃO FINAL COM LÓGICA DE ENTREGA GRÁTIS E LOGIN GOOGLE
+// checkout.js - VERSÃO COMPLETA E FINAL COM PRÊMIO DA ROLETA
 
 async function saveOrderToFirestore(orderData) {
     if (!window.db || !window.firebaseFirestore) {
@@ -142,16 +142,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : String(price);
     }
 
-    // *** FUNÇÃO ATUALIZADA PARA LIDAR COM ENTREGA GRÁTIS ***
     function updateCheckoutTotalDisplay() {
         const cartSubtotal = typeof window.getCartSubtotalAmount === 'function' ? window.getCartSubtotalAmount() : 0;
+        //--- ROLETA: Obtém o prêmio da roleta
+        const roulettePrize = window.getAppliedRoulettePrize ? window.getAppliedRoulettePrize() : null;
         const loyaltyDiscount = window.getAppliedLoyaltyDiscountInfo ? window.getAppliedLoyaltyDiscountInfo() : null;
         const couponDiscount = window.getAppliedCouponInfo ? window.getAppliedCouponInfo() : null;
         
         let totalDiscountAmount = 0;
         let effectiveDeliveryFee = currentDeliveryFee;
 
-        // Lógica para mostrar a taxa de entrega na UI
         if (checkoutDeliveryFeeAmountSpan && checkoutDeliveryFeeLine) {
             const selectedNeighborhood = checkoutNeighborhoodSelect.value;
             if (selectedNeighborhood && deliveryFeesData.hasOwnProperty(selectedNeighborhood)) {
@@ -168,8 +168,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Lógica para calcular descontos
-        if (loyaltyDiscount) {
+        //--- ROLETA: Prioriza o prêmio da roleta sobre outros descontos ---
+        if (roulettePrize) {
+            if (roulettePrize.type === 'percent') {
+                totalDiscountAmount = cartSubtotal * (roulettePrize.value / 100);
+            } else if (roulettePrize.type === 'free_item') {
+                const freeItem = window.getCartItems().find(item => item.name === roulettePrize.value);
+                totalDiscountAmount = freeItem ? freeItem.unitPrice : 0;
+            }
+            checkoutAppliedDiscountInfoDiv.innerHTML = `Prêmio da Roleta: - ${formatPriceLocal(totalDiscountAmount)}`;
+            checkoutAppliedDiscountInfoDiv.style.display = 'block';
+        }
+        else if (loyaltyDiscount) {
             totalDiscountAmount = loyaltyDiscount.discountAmount;
             checkoutAppliedDiscountInfoDiv.innerHTML = `Desconto Fidelidade: - ${formatPriceLocal(totalDiscountAmount)}`;
             checkoutAppliedDiscountInfoDiv.style.display = 'block';
@@ -177,12 +187,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (couponDiscount) {
             if (couponDiscount.type === 'free_delivery') {
                 totalDiscountAmount = currentDeliveryFee;
-                effectiveDeliveryFee = 0; // A taxa a ser somada no final é zero
+                effectiveDeliveryFee = 0; 
                 checkoutAppliedDiscountInfoDiv.innerHTML = `Desconto (Entrega Grátis): - ${formatPriceLocal(totalDiscountAmount)}`;
             } else if (couponDiscount.type === 'percentage') {
                 totalDiscountAmount = cartSubtotal * (couponDiscount.value / 100);
                 checkoutAppliedDiscountInfoDiv.innerHTML = `Desconto (${couponDiscount.code}): - ${formatPriceLocal(totalDiscountAmount)}`;
-            } else { // Cupom de valor fixo
+            } else { 
                 totalDiscountAmount = couponDiscount.value;
                 checkoutAppliedDiscountInfoDiv.innerHTML = `Desconto (${couponDiscount.code}): - ${formatPriceLocal(totalDiscountAmount)}`;
             }
@@ -196,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
             checkoutAppliedDiscountInfoDiv.style.display = 'none';
         }
         
-        // Calcula o total final
         const grandTotal = cartSubtotal - totalDiscountAmount + effectiveDeliveryFee;
 
         if (checkoutGrandTotalSpan) {
@@ -265,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-        updateCheckoutTotalDisplay(); // Chama a função aqui para inicializar os totais
+        updateCheckoutTotalDisplay();
         if (document.getElementById('checkout-neighborhood').value) {
            document.getElementById('checkout-neighborhood').dispatchEvent(new Event('change', { bubbles: true }));
         }
@@ -308,6 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
             points: window.currentCustomerDetails?.points || 0,
         };
         
+        //--- ROLETA: Obtém o prêmio da roleta para incluir no pedido ---
+        const roulettePrize = window.getAppliedRoulettePrize ? window.getAppliedRoulettePrize() : null;
         const loyaltyDiscount = window.getAppliedLoyaltyDiscountInfo ? window.getAppliedLoyaltyDiscountInfo() : null;
         const couponDiscount = window.getAppliedCouponInfo ? window.getAppliedCouponInfo() : null;
 
@@ -322,10 +333,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         let totalDiscountAmount = 0;
-        if (loyaltyDiscount) {
+        //--- ROLETA: Lógica de cálculo do desconto final priorizando a roleta ---
+        if (roulettePrize) {
+            if (roulettePrize.type === 'percent') {
+                totalDiscountAmount = cartSubtotal * (roulettePrize.value / 100);
+            } else if (roulettePrize.type === 'free_item') {
+                const freeItem = window.getCartItems().find(item => item.name === roulettePrize.value);
+                totalDiscountAmount = freeItem ? freeItem.unitPrice : 0;
+            }
+        }
+        else if (loyaltyDiscount) {
             totalDiscountAmount = loyaltyDiscount.discountAmount;
         } else if (couponDiscount) {
-            if (couponDiscount.type === 'free_delivery') {
+             if (couponDiscount.type === 'free_delivery') {
                 totalDiscountAmount = currentDeliveryFee;
             } else if (couponDiscount.type === 'percentage') {
                 totalDiscountAmount = cartSubtotal * (couponDiscount.value / 100);
@@ -354,7 +374,9 @@ document.addEventListener('DOMContentLoaded', () => {
             items: window.getCartItems(),
             totals: { subtotal: cartSubtotal, discount: totalDiscountAmount, deliveryFee: currentDeliveryFee, grandTotal: finalGrandTotal },
             loyalty: { pointsUsed, pointsEarned, finalPointsBalance: customerData.points },
-            coupon: couponDiscount 
+            coupon: couponDiscount,
+            //--- ROLETA: Adiciona o prêmio ao objeto do pedido para registro ---
+            roulettePrize: roulettePrize
         };
 
         try {
@@ -406,7 +428,10 @@ document.addEventListener('DOMContentLoaded', () => {
             orderText += `\n-----------------------------------\n` +
                 `Subtotal: ${formatPriceLocal(orderData.totals.subtotal)}\n`;
             
-            if(orderData.totals.discount > 0) {
+            //--- ROLETA: Adiciona o prêmio da roleta na mensagem do WhatsApp ---
+            if (orderData.roulettePrize) {
+                orderText += `Prêmio Roleta (${orderData.roulettePrize.description}): -${formatPriceLocal(orderData.totals.discount)}\n`;
+            } else if(orderData.totals.discount > 0) {
                 let discountLabel = loyaltyDiscount ? 'Desconto Fidelidade:' : `Desconto (${couponDiscount?.code || 'Entrega Grátis'}):`;
                 orderText += `${discountLabel} -${formatPriceLocal(orderData.totals.discount)}\n`;
             }
