@@ -1,7 +1,7 @@
 {
   "name": "D'Italia Admin",
   "short_name": "Admin D'Italia",
-  "start_url": "paineladmin.html",
+  "start_url": "login.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3f3f3f",
