@@ -1,4 +1,4 @@
-// checkout.js - VERSÃO COMPLETA E FINAL COM PRÊMIO DA ROLETA
+// checkout.js - VERSÃO FINAL COM TODOS OS PRÊMIOS DA ROLETA
 
 async function saveOrderToFirestore(orderData) {
     if (!window.db || !window.firebaseFirestore) {
@@ -33,15 +33,11 @@ async function saveCustomerProfile(customerData) {
     try {
         const { doc, setDoc, serverTimestamp } = window.firebaseFirestore;
         const db = window.db;
-
         const customerId = window.currentCustomerDetails?.id || customerData.whatsapp;
-        
         const customerDocRef = doc(db, "customer", customerId);
         const dataToSave = { ...customerData, lastUpdatedAt: serverTimestamp() };
-        
         await setDoc(customerDocRef, dataToSave, { merge: true });
         console.log(`Perfil do cliente ${customerId} salvo/atualizado com sucesso!`);
-
     } catch (error) {
         console.error("Erro ao salvar o perfil do cliente no Firestore:", error);
     }
@@ -141,10 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function formatPriceLocal(price) {
         return typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : String(price);
     }
-
+    
     function updateCheckoutTotalDisplay() {
         const cartSubtotal = typeof window.getCartSubtotalAmount === 'function' ? window.getCartSubtotalAmount() : 0;
-        //--- ROLETA: Obtém o prêmio da roleta
         const roulettePrize = window.getAppliedRoulettePrize ? window.getAppliedRoulettePrize() : null;
         const loyaltyDiscount = window.getAppliedLoyaltyDiscountInfo ? window.getAppliedLoyaltyDiscountInfo() : null;
         const couponDiscount = window.getAppliedCouponInfo ? window.getAppliedCouponInfo() : null;
@@ -168,15 +163,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        //--- ROLETA: Prioriza o prêmio da roleta sobre outros descontos ---
         if (roulettePrize) {
             if (roulettePrize.type === 'percent') {
                 totalDiscountAmount = cartSubtotal * (roulettePrize.value / 100);
             } else if (roulettePrize.type === 'free_item') {
                 const freeItem = window.getCartItems().find(item => item.name === roulettePrize.value);
                 totalDiscountAmount = freeItem ? freeItem.unitPrice : 0;
+            } else if (roulettePrize.type === 'free_extra') {
+                let crustDiscountApplied = false;
+                for (const item of window.getCartItems()) {
+                    if (item.stuffedCrust && item.stuffedCrust.price > 0 && !crustDiscountApplied) {
+                        totalDiscountAmount += item.stuffedCrust.price;
+                        crustDiscountApplied = true;
+                        break;
+                    }
+                }
             }
-            checkoutAppliedDiscountInfoDiv.innerHTML = `Prêmio da Roleta: - ${formatPriceLocal(totalDiscountAmount)}`;
+            checkoutAppliedDiscountInfoDiv.innerHTML = `Prêmio Roleta (${roulettePrize.description}): - ${formatPriceLocal(totalDiscountAmount)}`;
             checkoutAppliedDiscountInfoDiv.style.display = 'block';
         }
         else if (loyaltyDiscount) {
@@ -274,14 +277,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-        updateCheckoutTotalDisplay();
+        updateCheckoutTotalDisplay(); 
         if (document.getElementById('checkout-neighborhood').value) {
            document.getElementById('checkout-neighborhood').dispatchEvent(new Event('change', { bubbles: true }));
         }
         checkoutModal.classList.add('show');
         document.body.style.overflow = 'hidden';
     };
-
+    
     async function handleSubmitOrder(event) {
         if (event) event.preventDefault();
         
@@ -317,7 +320,6 @@ document.addEventListener('DOMContentLoaded', () => {
             points: window.currentCustomerDetails?.points || 0,
         };
         
-        //--- ROLETA: Obtém o prêmio da roleta para incluir no pedido ---
         const roulettePrize = window.getAppliedRoulettePrize ? window.getAppliedRoulettePrize() : null;
         const loyaltyDiscount = window.getAppliedLoyaltyDiscountInfo ? window.getAppliedLoyaltyDiscountInfo() : null;
         const couponDiscount = window.getAppliedCouponInfo ? window.getAppliedCouponInfo() : null;
@@ -333,13 +335,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         let totalDiscountAmount = 0;
-        //--- ROLETA: Lógica de cálculo do desconto final priorizando a roleta ---
+
         if (roulettePrize) {
             if (roulettePrize.type === 'percent') {
                 totalDiscountAmount = cartSubtotal * (roulettePrize.value / 100);
             } else if (roulettePrize.type === 'free_item') {
                 const freeItem = window.getCartItems().find(item => item.name === roulettePrize.value);
                 totalDiscountAmount = freeItem ? freeItem.unitPrice : 0;
+            } else if (roulettePrize.type === 'free_extra') {
+                let crustDiscountApplied = false;
+                for (const item of window.getCartItems()) {
+                    if (item.stuffedCrust && item.stuffedCrust.price > 0 && !crustDiscountApplied) {
+                        totalDiscountAmount += item.stuffedCrust.price;
+                        crustDiscountApplied = true;
+                        break;
+                    }
+                }
             }
         }
         else if (loyaltyDiscount) {
@@ -375,7 +386,6 @@ document.addEventListener('DOMContentLoaded', () => {
             totals: { subtotal: cartSubtotal, discount: totalDiscountAmount, deliveryFee: currentDeliveryFee, grandTotal: finalGrandTotal },
             loyalty: { pointsUsed, pointsEarned, finalPointsBalance: customerData.points },
             coupon: couponDiscount,
-            //--- ROLETA: Adiciona o prêmio ao objeto do pedido para registro ---
             roulettePrize: roulettePrize
         };
 
@@ -428,7 +438,6 @@ document.addEventListener('DOMContentLoaded', () => {
             orderText += `\n-----------------------------------\n` +
                 `Subtotal: ${formatPriceLocal(orderData.totals.subtotal)}\n`;
             
-            //--- ROLETA: Adiciona o prêmio da roleta na mensagem do WhatsApp ---
             if (orderData.roulettePrize) {
                 orderText += `Prêmio Roleta (${orderData.roulettePrize.description}): -${formatPriceLocal(orderData.totals.discount)}\n`;
             } else if(orderData.totals.discount > 0) {
