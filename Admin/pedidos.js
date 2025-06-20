@@ -1,4 +1,4 @@
-// pedidos.js - VERSÃO REVISADA E CORRIGIDA
+// pedidos.js - VERSÃO COM EXIBIÇÃO DETALHADA DE DESCONTOS
 
 // --- Variáveis de estado do módulo ---
 let ordersSectionInitialized = false;
@@ -70,9 +70,10 @@ function openOrderDetailsModal(order) {
     delivery.reference ? `<strong>Referência:</strong> ${delivery.reference}`: null].filter(Boolean).join('<br>');
   modalBodyHTML += `<h4 class="modal-section-title"><i class="fas fa-map-marker-alt"></i> Endereço de Entrega</h4><div class="detail-item full-width"><span>${addressParts || 'Não informado'}</span></div>`;
   
+  // --- ALTERAÇÃO AQUI: LÓGICA DETALHADA PARA EXIBIR O DESCONTO ---
   let discountHTML = '';
   if (totals.discount > 0) {
-      let discountLabel = 'Desconto';
+      let discountLabel = 'Desconto'; // Etiqueta padrão
       if (order.roulettePrize) {
           discountLabel = `Prêmio Roleta (${order.roulettePrize.description})`;
       } else if (order.coupon) {
@@ -82,6 +83,7 @@ function openOrderDetailsModal(order) {
       }
       discountHTML = `<div class="detail-item"><strong>${discountLabel}</strong><span class="text-success">- ${formatPrice(totals.discount)}</span></div>`;
   }
+  // --- FIM DA ALTERAÇÃO ---
 
   let paymentDetailsHTML = `<div class="detail-item"><strong>Subtotal</strong><span>${formatPrice(totals.subtotal)}</span></div><div class="detail-item"><strong>Taxa de Entrega</strong><span>${formatPrice(totals.deliveryFee)}</span></div>${discountHTML}<div class="detail-item total full-width" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 5px;"><strong>Total a Pagar</strong><span>${formatPrice(totals.grandTotal)}</span></div><div class="detail-item full-width"><strong>Forma de Pagamento</strong><span>${payment.method || 'Não informada'}</span></div>`;
   if (payment.method === 'Dinheiro' && payment.changeFor) {
@@ -147,7 +149,7 @@ function renderOrders() {
     filteredOrders = filteredOrders.filter(o => o.status === 'Saiu para Entrega');
   }
   
-  ordersListContainer.className = `orders-list-container card-view`;
+  ordersListContainer.className = `orders-list-container card-view`; 
   
   if (filteredOrders.length === 0) {
     ordersListContainer.innerHTML = `<div class="empty-orders-state"><i class="fas fa-receipt empty-state-icon"></i><p class="empty-state-message">Nenhum pedido encontrado com os filtros atuais.</p><button class="btn btn-primary btn-lg empty-state-new-order-btn"><i class="fas fa-plus-circle"></i> Novo pedido</button></div>`;
@@ -163,7 +165,8 @@ function renderOrders() {
 
 function getOrderCardHTML(order) {
   const orderTimestamp = order.createdAt?.toDate ? order.createdAt.toDate(): new Date();
-  let typeIcon, typeText;
+  let typeIcon,
+  typeText;
   const orderType = getOrderType(order);
   if (orderType === 'Delivery') {
     typeIcon = '<i class="fas fa-motorcycle"></i>'; typeText = 'Delivery';
@@ -189,6 +192,12 @@ function getOrderCardHTML(order) {
   })}</div></div><div class="card-body"><div class="customer-name">${order.customer.firstName} ${order.customer.lastName}</div><div class="order-tags"><span class="tag tag-status">${order.status}</span>${paymentTagHTML}</div></div><div class="card-footer"><div class="order-value">R$ ${(order.totals.grandTotal || 0).toFixed(2).replace('.', ',')}</div>${actionHtml}</div></div>`;
 }
 
+function getOrderListHTML(order) {
+  const orderType = getOrderType(order);
+  let actionHtml = getOrderActionHTML(order);
+  return `<div class="order-list-item" data-order-id="${order.id}"><div class="list-item-id">#${order.id.substring(0, 6)}</div><div class="list-item-customer"><span class="name">${order.customer.firstName} ${order.customer.lastName}</span><span class="type">${orderType}</span></div><div class="list-item-status"><span class="tag tag-status">${order.status}</span></div><div class="list-item-value">R$ ${(order.totals.grandTotal || 0).toFixed(2).replace('.', ',')}</div><div class="list-item-actions">${actionHtml}</div></div>`;
+}
+
 function getOrderActionHTML(order) {
   if (['Recebido', 'Aguardando Pagamento', 'Aguardando Comprovante'].includes(order.status)) {
     return `<div class="card-actions"><button class="btn btn-sm btn-danger refuse-order-btn" data-order-id="${order.id}"><i class="fas fa-times"></i> Recusar</button><button class="btn btn-sm btn-success accept-order-btn" data-order-id="${order.id}"><i class="fas fa-check"></i> Aceitar</button></div>`;
@@ -201,9 +210,7 @@ function getOrderActionHTML(order) {
 }
 
 function listenForRealTimeOrders() {
-  if (unsubscribeFromOrders) {
-      return; 
-  }
+  if (unsubscribeFromOrders) unsubscribeFromOrders();
   const {
     collection,
     query,
@@ -287,6 +294,23 @@ function addOrderCardEventListeners() {
   }));
 }
 
+function showDeliverySummary() {
+  const deliveryOrders = allOrders.filter(o => o.status === 'Saiu para Entrega');
+  const modal = document.getElementById('delivery-summary-modal');
+  const modalBody = document.getElementById('delivery-summary-body');
+  if (deliveryOrders.length === 0) {
+    modalBody.innerHTML = '<p class="empty-list-message">Nenhum pedido a caminho no momento.</p>';
+  } else {
+    modalBody.innerHTML = deliveryOrders.map(order => {
+      const delivery = order.delivery || {};
+      const customer = order.customer || {};
+      const address = [delivery.street, delivery.number, delivery.neighborhood].filter(Boolean).join(', ');
+      return `<div class="delivery-route-item"><div class="route-customer">#${order.id.substring(0, 6)} - ${customer.firstName} ${customer.lastName}</div><div class="route-address"><strong>Endereço:</strong> ${address}<br>${delivery.reference ? `<strong>Ref:</strong> ${delivery.reference}`: ''}</div></div>`;
+    }).join('');
+  }
+  modal.classList.add('show');
+}
+
 async function fetchDeliveryPeople() {
   if (!window.db || !window.firebaseFirestore) return;
   const {
@@ -309,12 +333,14 @@ async function fetchDeliveryPeople() {
 
 async function initializeOrdersSection() {
     if (ordersSectionInitialized) {
-        renderOrders();
         return;
     }
     ordersSectionInitialized = true;
     
     console.log("Módulo Pedidos.js: Configurando pela primeira vez...");
+
+    await fetchDeliveryPeople();
+    listenForRealTimeOrders();
 
     const typeFilterTabs = document.querySelectorAll('.order-summary-bar .summary-item');
     const statusFilterTabs = document.querySelectorAll('.order-status-filters .filter-tab');
@@ -362,9 +388,7 @@ async function initializeOrdersSection() {
             if (e.target === orderDetailsModal) closeOrderDetailsModal();
         });
     }
-
-    await fetchDeliveryPeople();
-    listenForRealTimeOrders();
 }
 
 window.initializeOrdersSection = initializeOrdersSection;
+}
