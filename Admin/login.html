@@ -75,6 +75,15 @@
   </div>
 
   <script type="module" src="auth.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw-admin.js')
+          .then((reg) => console.log('Service Worker do Admin registrado com sucesso!', reg.scope))
+          .catch((err) => console.log('Falha ao registrar Service Worker do Admin: ', err));
+      });
+    }
+  </script>
 
 </body>
 </html>
