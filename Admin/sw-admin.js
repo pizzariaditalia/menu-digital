@@ -1,5 +1,7 @@
 const CACHE_NAME = 'ditalia-admin-cache-v2';
 const URLS_TO_CACHE = [
+  './login.html',
+  './auth.js',
   './paineladmin.html',
   './styleadmin.css',
   './styleadmin-2.css',
