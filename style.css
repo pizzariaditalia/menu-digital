@@ -1777,3 +1777,23 @@ body {
 .btn-apply-coupon:hover {
     background-color: #c71926;
 }
+
+/* Estilos para a notificação de sucesso do cupom */
+.notification-area {
+    position: fixed; /* Ou absolute, dependendo do seu layout */
+    top: 20px; /* Ajuste a distância do topo */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4CAF50; /* Verde */
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    z-index: 1000; /* Garante que fique acima de outros elementos */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    font-weight: bold;
+}
+
+.notification-area p {
+    margin: 0;
+}
