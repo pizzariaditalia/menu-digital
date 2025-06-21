@@ -1651,3 +1651,95 @@ body {
     transform: translateY(1px);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
+
+/* ==========================================================================
+   24. MELHORIAS DE RESPONSIVIDADE GERAL
+   Adicione este bloco inteiro no final do seu arquivo style.css
+   ========================================================================== */
+
+/* Garante que o padding e a borda não aumentem o tamanho dos elementos, 
+   facilitando a criação de layouts responsivos. */
+* {
+    box-sizing: border-box;
+}
+
+/* --- Ajustes para Telas PEQUENAS (Ex: iPhone 5/SE) --- */
+@media (max-width: 380px) {
+    
+    /* Reduz o padding do conteúdo principal para dar mais espaço */
+    .main-content {
+        padding: var(--space-md);
+        padding-bottom: 100px;
+    }
+
+    /* Diminui um pouco o texto dos botões de ação no cabeçalho */
+    .action-buttons .icon-button {
+        padding: 6px 10px;
+        font-size: 0.8em; /* 12.8px */
+    }
+
+    /* Reduz o padding dos itens de menu */
+    .menu-item {
+        padding: var(--space-sm);
+        gap: var(--space-sm);
+    }
+    
+    .menu-item .item-image {
+        width: 70px;
+        height: 70px;
+    }
+
+    /* Ajusta a barra do carrinho para não espremer os itens */
+    .cart-bar {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    .view-cart-button {
+        font-size: 0.8em;
+    }
+    
+    .cart-total {
+        font-size: 1em; /* 16px */
+    }
+
+    /* Ajusta o padding dos modais para não ficarem colados na borda */
+    .modal .modal-content .modal-scrollable-content {
+        padding: var(--space-md);
+        padding-top: calc(var(--space-md) + var(--space-xxl) + var(--space-sm));
+    }
+}
+
+
+/* --- Ajustes para Telas de TABLET (a partir de 768px) --- */
+/* Esta regra já existe no seu CSS, mas vamos garantir que o conteúdo do modal
+   fique bem ajustado também. */
+@media (min-width: 768px) {
+    .app-container {
+        border-radius: 12px;
+        margin: var(--space-lg) auto;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        min-height: calc(100vh - (2 * var(--space-lg)));
+    }
+
+    .modal .modal-content {
+        border-radius: 12px;
+        width: auto;
+        max-width: 500px; /* Um bom tamanho padrão para modais em telas maiores */
+        animation: fadeInModal 0.3s ease, scaleUpModal 0.3s ease-out;
+    }
+    
+    #checkout-modal .modal-content {
+        max-width: 600px;
+    }
+}
+
+/* --- Ajustes para todos os Modais para evitar overflow em telas curtas --- */
+.modal .modal-content {
+    max-height: 95vh; /* Garante que o modal nunca seja maior que a tela */
+}
+
+.modal .modal-content .modal-scrollable-content {
+    /* Esta regra é crucial para que o conteúdo dentro do modal possa rolar
+       caso seja maior que a altura disponível */
+    overflow-y: auto;
+}
