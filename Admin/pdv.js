@@ -645,6 +645,8 @@ function updatePaymentStatusUI() {
   statusSpan.className = 'pdv-payment-status ' + statusClass;
 }
 
+// Substitua a função inteira em pdv.js por esta versão
+
 function handleSendWppToDelivery() {
   const deliveryPersonSelect = document.getElementById('pdv-delivery-person');
   const selectedDeliveryPersonId = deliveryPersonSelect.value;
@@ -661,21 +663,41 @@ function handleSendWppToDelivery() {
   if (!deliveryPerson) {
     window.showToast("Erro: Entregador não encontrado.", "error"); return;
   }
+
+  // --- LÓGICA ATUALIZADA AQUI ---
   const customerName = `${currentPdvOrder.customer.firstName} ${currentPdvOrder.customer.lastName}`;
-  const address = `${currentPdvOrder.customer.address.street}, ${currentPdvOrder.customer.address.number} - ${currentPdvOrder.customer.address.neighborhood}`;
+  const addressString = `${currentPdvOrder.customer.address.street}, ${currentPdvOrder.customer.address.number} - ${currentPdvOrder.customer.address.neighborhood}`;
   const paymentMethod = document.getElementById('pdv-payment-method').value || "Não definido";
   const grandTotal = (currentPdvOrder.totals?.grandTotal || 0).toFixed(2).replace('.', ',');
-  let message = `*Nova Entrega D'Italia Pizzaria*\n\n*Cliente:* ${customerName}\n*Endereço:* ${address}\n`;
+
+  // NOVO: Cria o link do WhatsApp do cliente
+  const customerWhatsapp = currentPdvOrder.customer.whatsapp.replace(/\D/g, '');
+  const customerWhatsappLink = `https://wa.me/55${customerWhatsapp}`;
+
+  // NOVO: Cria o link do Google Maps para o endereço
+  const fullAddressForMap = `${currentPdvOrder.customer.address.street}, ${currentPdvOrder.customer.address.number}, ${currentPdvOrder.customer.address.neighborhood}, Caçapava, SP`;
+  const googleMapsLink = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddressForMap)}`;
+  
+  let message = `*Nova Entrega D'Italia Pizzaria*\n\n` +
+      `*Cliente:* ${customerName}\n` +
+      `*Contato:* ${customerWhatsappLink}\n\n` + // Link do WhatsApp adicionado
+      `*Endereço:* ${addressString}\n` +
+      `*Ver no Mapa:* ${googleMapsLink}\n`; // Link do Google Maps adicionado
+
   if (currentPdvOrder.customer.address.complement) message += `*Complemento:* ${currentPdvOrder.customer.address.complement}\n`;
   if (currentPdvOrder.customer.address.reference) message += `*Referência:* ${currentPdvOrder.customer.address.reference}\n`;
+  
   message += `\n*Valor a Receber:* R$ ${grandTotal}\n*Forma de Pagamento:* ${paymentMethod}\n`;
+  
   if (paymentMethod === 'Dinheiro') {
     const changeValue = parseFloat(document.getElementById('pdv-change-for').value);
     if (changeValue > 0) message += `*Levar troco para:* R$ ${changeValue.toFixed(2).replace('.', ',')}\n`;
   }
+  
   message += `\nLembre-se de levar a maquininha de cartão se necessário. Boa entrega!`;
-  const whatsappUrl = `https://wa.me/55${deliveryPerson.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-  window.open(whatsappUrl, '_blank');
+  
+  const deliveryPersonWhatsappUrl = `https://wa.me/55${deliveryPerson.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+  window.open(deliveryPersonWhatsappUrl, '_blank');
 }
 
 async function handleSaveOrder() {
