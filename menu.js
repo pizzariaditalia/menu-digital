@@ -1,4 +1,4 @@
-// menu.js - VERSÃO COM SPLASH SCREEN E ANIMAÇÃO DE TEXTO SINCRONIZADA
+// menu.js - VERSÃO FINAL COMPLETA (COM CATEGORIAS DINÂMICAS E ORDEM FIXA)
 
 // --- CONSTANTES DE COLEÇÕES DO FIRESTORE ---
 const FIRESTORE_MENU_COLLECTION_SITE = "menus";
@@ -15,17 +15,15 @@ var appSettings = {};
 var promoData = [];
 var activeCoupons = [];
 var stuffedCrustData = [];
-var categoryOrder = [];
 
 // ======================================================================
 // LÓGICA DA ANIMAÇÃO DE TEXTO (RETORNA UMA PROMISE)
 // ======================================================================
 function startTypingAnimation() {
-  // A função agora retorna uma Promise
   return new Promise((resolve) => {
     const textElement = document.getElementById('splash-text');
     if (!textElement) {
-      resolve(); // Resolve imediatamente se o elemento não existir
+      resolve();
       return;
     }
 
@@ -36,14 +34,11 @@ function startTypingAnimation() {
       if (i < textToType.length) {
         textElement.innerHTML += textToType.charAt(i);
         i++;
-        setTimeout(type, 200); // Velocidade da digitação
+        setTimeout(type, 200);
       } else {
-        // Animação terminou, então resolvemos a promessa
         resolve();
       }
     }
-
-    // Inicia a animação após um pequeno delay
     setTimeout(type, 500);
   });
 }
@@ -56,7 +51,6 @@ function applyCustomAppearance(appearanceSettings) {
   const bannerImage = document.querySelector('.banner-image');
   const logoImage = document.querySelector('.restaurant-logo');
 
-  // Aplica as cores como variáveis CSS
   if (appearanceSettings.primaryColor) {
     root.style.setProperty('--primary-red', appearanceSettings.primaryColor);
   }
@@ -64,7 +58,6 @@ function applyCustomAppearance(appearanceSettings) {
     root.style.setProperty('--light-gray', appearanceSettings.backgroundColor);
   }
 
-  // Atualiza as imagens, garantindo que o caminho seja relativo à raiz do site
   if (appearanceSettings.logoUrl && logoImage) {
     logoImage.src = appearanceSettings.logoUrl.replace('../', '');
   }
@@ -72,7 +65,6 @@ function applyCustomAppearance(appearanceSettings) {
     bannerImage.src = appearanceSettings.bannerUrl.replace('../', '');
   }
 }
-
 
 /**
 * @description Função principal que carrega todos os dados necessários do Firestore.
@@ -118,13 +110,16 @@ async function loadDataFromFirestore() {
         operatingHours: {}
       };
       window.promoData = promotionsSnap.docs.map(doc => ({
-        id: doc.id, ...doc.data()
+        id: doc.id,
+        ...doc.data()
       }));
       window.stuffedCrustData = crustsSnap.docs.map(doc => ({
-        id: doc.id, ...doc.data()
+        id: doc.id,
+        ...doc.data()
       }));
       window.activeCoupons = couponsSnap.docs.map(doc => ({
-        id: doc.id, ...doc.data()
+        id: doc.id,
+        ...doc.data()
       }));
     });
 
@@ -137,17 +132,96 @@ async function loadDataFromFirestore() {
   }
 }
 
+// ======================================================================
+// FUNÇÃO PARA GERAR A INTERFACE DAS CATEGORIAS (COM ORDEM FIXA)
+// ======================================================================
+/**
+* @description (VERSÃO 3.0 - CORRIGIDA) Cria dinamicamente as abas de navegação e os contêineres de conteúdo,
+* forçando uma ordem pré-definida e inserindo novas categorias automaticamente no lugar certo.
+*/
+function generateCategoryUI() {
+  const tabsContainer = document.querySelector('.tabs');
+  const contentContainer = document.querySelector('.menu-content-inner');
+
+  if (!tabsContainer || !contentContainer || !window.menuData) {
+    console.error("Não foi possível gerar a UI das categorias.");
+    return;
+  }
+
+  // 1. Defina a ordem preferida. Note que "Bebidas" está aqui para referência, mas será tratada separadamente para sempre ficar por último.
+  const preferredOrder = [
+    'pizzas-tradicionais',
+    'pizzas-especiais',
+    'pizzas-doces',
+    'calzones-salgados',
+    'calzones-doces',
+    'bebidas' // Chave da categoria que deve ficar por último
+  ];
+
+  tabsContainer.innerHTML = '';
+  contentContainer.innerHTML = '';
+
+  // 2. Pega todas as categorias que vieram do Firebase
+  const allKeysFromFirebase = Object.keys(window.menuData);
+
+  // 3. LÓGICA DE ORDENAÇÃO CORRIGIDA E MAIS ROBUSTA
+  allKeysFromFirebase.sort((a, b) => {
+    const keyBebidas = 'bebidas';
+
+    // Regra 1: "Bebidas" sempre vai para o final
+    if (a === keyBebidas) return 1;
+    if (b === keyBebidas) return -1;
+
+    // Pega a posição de cada item na lista de preferência
+    const indexA = preferredOrder.indexOf(a);
+    const indexB = preferredOrder.indexOf(b);
+
+    // Regra 2: Se ambos estão na lista, ordena pela posição na lista
+    if (indexA !== -1 && indexB !== -1) {
+      return indexA - indexB;
+    }
+
+    // Regra 3: Se apenas um está na lista, ele vem primeiro
+    if (indexA !== -1) return -1;
+    if (indexB !== -1) return 1;
+
+    // Regra 4: Se nenhum está na lista (são "novas categorias"), ordena em ordem alfabética
+    return a.localeCompare(b);
+  });
+
+  // 4. Cria os elementos HTML na ordem final e correta
+  allKeysFromFirebase.forEach(key => {
+    const category = window.menuData[key];
+    if (category && category.name && Array.isArray(category.items)) {
+      // Cria o botão da aba
+      const tabButton = document.createElement('button');
+      tabButton.className = 'tab-button';
+      tabButton.dataset.category = key;
+      tabButton.textContent = category.name;
+      tabsContainer.appendChild(tabButton);
+
+      // Cria o div para o conteúdo da categoria
+      const categoryContentDiv = document.createElement('div');
+      categoryContentDiv.id = `${key}-content`;
+      categoryContentDiv.className = 'category-content';
+      contentContainer.appendChild(categoryContentDiv);
+    }
+  });
+}
+
+
+// ======================================================================
+// FUNÇÃO DE LÓGICA DO SITE ATUALIZADA E COMPLETA
+// ======================================================================
 /**
 * @description Inicializa toda a lógica da interface do site após o carregamento dos dados.
 */
 function initializeSiteLogic() {
-  // A LÓGICA DE ESCONDER A SPLASH SCREEN FOI MOVIDA PARA O FINAL DO ARQUIVO
-  // PARA GARANTIR A SINCRONIZAÇÃO CORRETA.
-
-  // Aplica a aparência customizada assim que as configurações estiverem disponíveis
   if (window.appSettings && window.appSettings.appearance) {
     applyCustomAppearance(window.appSettings.appearance);
   }
+
+  generateCategoryUI();
 
   const tabs = document.querySelectorAll('.tab-button');
   const restaurantStatusDiv = document.querySelector('.status');
@@ -159,10 +233,9 @@ function initializeSiteLogic() {
     "Sexta-feira",
     "Sábado"];
 
-  categoryOrder = Array.from(tabs).map(tab => tab.dataset.category);
-
   const formatPrice = (price) => price && typeof price === 'number' ? price.toLocaleString('pt-BR', {
-    style: 'currency', currency: 'BRL'
+    style: 'currency',
+    currency: 'BRL'
   }): String(price);
 
   const minOrderLine = document.getElementById('min-order-line');
@@ -186,13 +259,12 @@ function initializeSiteLogic() {
 
     const categoryData = window.menuData ? window.menuData[categoryName]: undefined;
     const items = categoryData ? categoryData.items: [];
-
-    // Filtra apenas os itens visíveis
     const visibleItems = items.filter(item => item.isVisible !== false);
 
     if (visibleItems && visibleItems.length > 0) {
       contentDiv.innerHTML = visibleItems.map(item => createMenuItemHTML( {
-        ...item, category: item.category || categoryName
+        ...item,
+        category: item.category || categoryName
       })).join('');
     } else {
       contentDiv.innerHTML = '<p style="text-align:center; color: #777; padding: 20px;">Nenhum item nesta categoria.</p>';
@@ -200,7 +272,7 @@ function initializeSiteLogic() {
     attachAddToCartButtonListeners();
   };
 
-  function showCategory(categoryKey) {
+  window.showCategory = function(categoryKey) {
     const allContent = document.querySelectorAll('.category-content');
     allContent.forEach(content => {
       content.style.display = 'none';
@@ -219,7 +291,6 @@ function initializeSiteLogic() {
       activeTab.classList.add('active');
     }
   };
-  window.showCategory = showCategory;
 
   function updateRestaurantStatus() {
     const statusAlert = document.getElementById('store-status-alert');
@@ -315,7 +386,15 @@ function initializeSiteLogic() {
       } else {
         if (window.addToCart) {
           window.addToCart({
-            id: item.id, name: item.name, image: item.image, price: item.price, quantity: 1, selectedSize: 'único', notes: '', unitPrice: item.price, category: item.category
+            id: item.id,
+            name: item.name,
+            image: item.image,
+            price: item.price,
+            quantity: 1,
+            selectedSize: 'único',
+            notes: '',
+            unitPrice: item.price,
+            category: item.category
           });
         }
       }
@@ -381,7 +460,11 @@ function initializeSiteLogic() {
 
           if (originalItem && promotion && typeof window.openProductModal === 'function') {
             window.openProductModal({
-              ...originalItem, price: promotion.newPrice, originalPrice: promotion.originalPrice, category: originalItem.category, isPromotion: true
+              ...originalItem,
+              price: promotion.newPrice,
+              originalPrice: promotion.originalPrice,
+              category: originalItem.category,
+              isPromotion: true
             });
           }
         });
@@ -445,17 +528,22 @@ function initializeSiteLogic() {
   }
 
   // --- EXECUÇÃO DA LÓGICA DE UI ---
+  // Adiciona os listeners para as novas abas dinâmicas
   if (tabs.length > 0) {
     tabs.forEach(tab => {
       tab.addEventListener('click', () => showCategory(tab.dataset.category));
     });
   }
 
+  // Renderiza o conteúdo e exibe a primeira categoria
   if (window.menuData && window.appSettings) {
     renderPromotions();
-    categoryOrder.forEach(cat => renderCategory(cat));
-    if (categoryOrder.length > 0) {
-      showCategory(categoryOrder[0]);
+    const categoryKeys = Object.keys(window.menuData); // Pega as chaves novamente
+    categoryKeys.forEach(cat => renderCategory(cat));
+    if (categoryKeys.length > 0) {
+      // Usa a primeira chave da lista final ordenada (se disponível) ou a primeira chave dos dados
+      const finalOrder = document.querySelector('.tab-button')?.dataset.category || categoryKeys[0];
+      showCategory(finalOrder);
     }
     updateRestaurantStatus();
     setInterval(updateRestaurantStatus, 60000);
@@ -473,20 +561,17 @@ function initializeSiteLogic() {
 document.addEventListener('DOMContentLoaded', () => {
   const splashScreen = document.getElementById('splash-screen');
 
-  // Inicia as duas tarefas ao mesmo tempo
   const typingAnimationPromise = startTypingAnimation();
   const dataLoadingPromise = loadDataFromFirestore();
 
-  // Promise.all espera que AMBAS as tarefas terminem
   Promise.all([typingAnimationPromise, dataLoadingPromise]).then(() => {
     console.log("Animação e carregamento de dados concluídos. Escondendo splash screen.");
 
-    // Adiciona um pequeno delay final para uma transição suave
     setTimeout(() => {
       if (splashScreen) {
         splashScreen.classList.add('hidden');
       }
     },
-      250); // Apenas um quarto de segundo
+      250);
   });
 });
