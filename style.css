@@ -1305,12 +1305,6 @@ body {
 }
 
 /* ==========================================================================
-   style.css - Folha de Estilo Principal
-   ========================================================================== */
-
-/* ... (todo o seu CSS existente até a seção 20) ... */
-
-/* ==========================================================================
    20. ANIMAÇÃO DE SUCESSO DO PEDIDO (VERSÃO COM "PULO")
    ========================================================================== */
 
@@ -1463,7 +1457,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: var(--primary-red); /* Usa a cor principal do seu site */
+  background-color: #ea1d2c; /* Usa a cor principal do seu site */
   z-index: 9999; /* Garante que fique acima de tudo */
   display: flex;
   flex-direction: column;
