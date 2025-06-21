@@ -647,6 +647,8 @@ function updatePaymentStatusUI() {
 
 // Substitua a função inteira em pdv.js por esta versão
 
+// Substitua a função inteira em pdv.js por esta versão
+
 function handleSendWppToDelivery() {
   const deliveryPersonSelect = document.getElementById('pdv-delivery-person');
   const selectedDeliveryPersonId = deliveryPersonSelect.value;
@@ -664,25 +666,22 @@ function handleSendWppToDelivery() {
     window.showToast("Erro: Entregador não encontrado.", "error"); return;
   }
 
-  // --- LÓGICA ATUALIZADA AQUI ---
   const customerName = `${currentPdvOrder.customer.firstName} ${currentPdvOrder.customer.lastName}`;
   const addressString = `${currentPdvOrder.customer.address.street}, ${currentPdvOrder.customer.address.number} - ${currentPdvOrder.customer.address.neighborhood}`;
   const paymentMethod = document.getElementById('pdv-payment-method').value || "Não definido";
   const grandTotal = (currentPdvOrder.totals?.grandTotal || 0).toFixed(2).replace('.', ',');
-
-  // NOVO: Cria o link do WhatsApp do cliente
   const customerWhatsapp = currentPdvOrder.customer.whatsapp.replace(/\D/g, '');
   const customerWhatsappLink = `https://wa.me/55${customerWhatsapp}`;
 
-  // NOVO: Cria o link do Google Maps para o endereço
+  // CORREÇÃO APLICADA AQUI
   const fullAddressForMap = `${currentPdvOrder.customer.address.street}, ${currentPdvOrder.customer.address.number}, ${currentPdvOrder.customer.address.neighborhood}, Caçapava, SP`;
-  const googleMapsLink = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddressForMap)}`;
+  const googleMapsLink = `https://maps.google.com/?q=${encodeURIComponent(fullAddressForMap)}`;
   
   let message = `*Nova Entrega D'Italia Pizzaria*\n\n` +
       `*Cliente:* ${customerName}\n` +
-      `*Contato:* ${customerWhatsappLink}\n\n` + // Link do WhatsApp adicionado
+      `*Contato:* ${customerWhatsappLink}\n\n` +
       `*Endereço:* ${addressString}\n` +
-      `*Ver no Mapa:* ${googleMapsLink}\n`; // Link do Google Maps adicionado
+      `*Ver no Mapa:* ${googleMapsLink}\n`;
 
   if (currentPdvOrder.customer.address.complement) message += `*Complemento:* ${currentPdvOrder.customer.address.complement}\n`;
   if (currentPdvOrder.customer.address.reference) message += `*Referência:* ${currentPdvOrder.customer.address.reference}\n`;
