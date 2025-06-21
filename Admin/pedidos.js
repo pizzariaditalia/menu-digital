@@ -10,6 +10,8 @@ let activeTypeFilter = 'todos';
 // ======================================================================
 // FUNÇÃO ATUALIZADA
 // ======================================================================
+// Substitua a função inteira em pedidos.js por esta versão
+
 function handleSendWppToDeliveryPerson(orderId) {
   const order = allOrders.find(o => o.id === orderId);
   const deliveryPersonSelect = document.getElementById('modal-delivery-person-select');
@@ -25,26 +27,22 @@ function handleSendWppToDeliveryPerson(orderId) {
     window.showToast("Erro: Dados do entregador não encontrados.", "error"); return;
   }
 
-  // --- LÓGICA ATUALIZADA AQUI ---
   const customerName = `${order.customer.firstName} ${order.customer.lastName}`;
   const addressString = order.delivery.address || `${order.delivery.street}, ${order.delivery.number} - ${order.delivery.neighborhood}`;
   const paymentMethod = order.payment.method || "Não definido";
   const grandTotal = (order.totals?.grandTotal || 0).toFixed(2).replace('.', ',');
-
-  // NOVO: Cria o link do WhatsApp do cliente
   const customerWhatsapp = order.customer.whatsapp.replace(/\D/g, '');
   const customerWhatsappLink = `https://wa.me/55${customerWhatsapp}`;
 
-  // NOVO: Cria o link do Google Maps para o endereço
-  // Adicionamos "Caçapava, SP" para dar mais precisão ao mapa
+  // CORREÇÃO APLICADA AQUI
   const fullAddressForMap = `${order.delivery.street}, ${order.delivery.number}, ${order.delivery.neighborhood}, Caçapava, SP`;
-  const googleMapsLink = `https://www.google.com/maps/dir/?api=1&destination=$${encodeURIComponent(fullAddressForMap)}`;
+  const googleMapsLink = `https://maps.google.com/?q=${encodeURIComponent(fullAddressForMap)}`;
 
   let message = `*Nova Entrega D'Italia Pizzaria*\n\n` +
       `*Cliente:* ${customerName}\n` +
-      `*Contato:* ${customerWhatsappLink}\n\n` + // Link do WhatsApp adicionado
+      `*Contato:* ${customerWhatsappLink}\n\n` +
       `*Endereço:* ${addressString}\n` +
-      `*Ver no Mapa:* ${googleMapsLink}\n`; // Link do Google Maps adicionado
+      `*Ver no Mapa:* ${googleMapsLink}\n`;
 
   if (order.delivery.complement) message += `*Complemento:* ${order.delivery.complement}\n`;
   if (order.delivery.reference) message += `*Referência:* ${order.delivery.reference}\n`;
