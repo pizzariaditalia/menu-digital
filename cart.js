@@ -162,10 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartUI();
   };
 
-
-  // ======================================================================
-  // NOVA FUNÇÃO (LÓGICA PRINCIPAL DE VALIDAÇÃO DE CUPOM)
-  // ======================================================================
   async function validateAndApplyCoupon(code) {
     const couponMessageDiv = document.getElementById('coupon-message');
 
@@ -220,13 +216,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return { success: false, message: "Erro ao verificar o cupom. Tente novamente." };
     }
   }
-  // Exponha a nova função para ser acessível por outros scripts, como o menu.js
   window.validateAndApplyCoupon = validateAndApplyCoupon;
 
-
-  // ======================================================================
-  // FUNÇÃO ANTIGA ATUALIZADA (APENAS PARA O FORMULÁRIO MANUAL)
-  // ======================================================================
   const applyCoupon = async () => {
     const couponCodeInput = document.getElementById('coupon-code-input');
     const couponMessageDiv = document.getElementById('coupon-message');
@@ -250,7 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
     applyCouponButton.disabled = false;
     applyCouponButton.textContent = 'Aplicar';
   };
-
 
   const checkForRoulettePrize = () => {
     const prizeJSON = sessionStorage.getItem('activeRoulettePrize');
@@ -292,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (appliedCoupon) {
       if (appliedCoupon.type === 'percentage') {
         discountAmount = subtotal * (appliedCoupon.value / 100);
-      } else {
+      } else { // 'fixed' e 'free_delivery' (tratado no checkout)
         discountAmount = appliedCoupon.value;
       }
     }
