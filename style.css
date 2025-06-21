@@ -1743,3 +1743,37 @@ body {
        caso seja maior que a altura disponível */
     overflow-y: auto;
 }
+
+/* ==========================================================================
+   25. ESTILOS PARA O NOVO MODAL DE CUPONS
+   ========================================================================== */
+
+.coupon-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.coupon-info {
+    flex-grow: 1;
+}
+
+.coupon-actions {
+    flex-shrink: 0;
+}
+
+.btn-apply-coupon {
+    background-color: var(--primary-red);
+    color: var(--white);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-apply-coupon:hover {
+    background-color: #c71926;
+}
