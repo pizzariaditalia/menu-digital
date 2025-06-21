@@ -181,30 +181,38 @@ async function initializeCardapioSection() {
         openModal(addCategoryModal);
     }
 
-    function addCategoryEventListeners() {
-        categoryListContainer.querySelectorAll('.category-item').forEach(header => {
-            header.addEventListener('click', (e) => {
-                e.stopPropagation(); // Impede a propagação para evitar múltiplos eventos
-                const categoryKey = header.dataset.categoryKey;
-                const categoryName = header.querySelector('.category-name').textContent;
-                
-                if (e.target.closest('.add-item-btn')) {
-                    openItemEditorModal(categoryKey);
-                } else if (e.target.closest('.edit-category-btn')) {
-                    openCategoryEditorModal(categoryKey);
-                } else if (e.target.closest('.delete-category-btn')) {
-                    deleteCategory(categoryKey, categoryName);
-                } else if (e.target.closest('.expand-category-btn') || e.target.closest('.category-info-clickable')) {
-                    const itemsContainer = document.getElementById(`items-${categoryKey}`);
-                    const expandBtnIcon = header.querySelector('.expand-category-btn i');
-                    const isVisible = itemsContainer.style.display === 'block';
-                    itemsContainer.style.display = isVisible ? 'none' : 'block';
-                    if(expandBtnIcon) { expandBtnIcon.classList.toggle('fa-chevron-down', isVisible); expandBtnIcon.classList.toggle('fa-chevron-up', !isVisible); }
-                    if (!isVisible) { loadItemsIntoCategory(key, itemsContainer); }
+    // Substitua esta função inteira em cardapio.js
+function addCategoryEventListeners() {
+    categoryListContainer.querySelectorAll('.category-item').forEach(header => {
+        // Envolve a área de clique principal para evitar conflitos
+        const clickableArea = header.querySelector('.category-info-clickable'); 
+
+        header.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const categoryKey = header.dataset.categoryKey;
+            const categoryName = header.querySelector('.category-name').textContent;
+            
+            if (e.target.closest('.add-item-btn')) {
+                openItemEditorModal(categoryKey);
+            } else if (e.target.closest('.edit-category-btn')) {
+                openCategoryEditorModal(categoryKey);
+            } else if (e.target.closest('.delete-category-btn')) {
+                deleteCategory(categoryKey, categoryName);
+            } else { // Se o clique não foi em um botão de ação, expande/recolhe
+                const itemsContainer = document.getElementById(`items-${categoryKey}`);
+                const expandBtnIcon = header.querySelector('.expand-category-btn i');
+                const isVisible = itemsContainer.style.display === 'block';
+                itemsContainer.style.display = isVisible ? 'none' : 'block';
+                if(expandBtnIcon) { expandBtnIcon.classList.toggle('fa-chevron-down', isVisible); expandBtnIcon.classList.toggle('fa-chevron-up', !isVisible); }
+                if (!isVisible) {
+                    // --- CORREÇÃO APLICADA AQUI ---
+                    // Usando 'categoryKey' em vez de 'key'
+                    loadItemsIntoCategory(categoryKey, itemsContainer); 
                 }
-            });
+            }
         });
-    }
+    });
+}
 
     async function deleteCategory(categoryKey, categoryName) {
         const itemCount = window.menuData[categoryKey].items.length;
