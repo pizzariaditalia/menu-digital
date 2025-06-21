@@ -1,5 +1,5 @@
 // Arquivo: cardapio.js
-// VERSÃO COM CONTROLE DE VISIBILIDADE DE ITENS
+// VERSÃO COM GESTÃO COMPLETA DE CATEGORIAS (EDITAR E EXCLUIR)
 
 let cardapioSectionInitialized = false;
 
@@ -20,6 +20,7 @@ async function initializeCardapioSection() {
         if (typeof mainStuffedCrustLogic === 'function') {
             mainStuffedCrustLogic();
         }
+        renderCategories(); // Garante que as categorias sejam re-renderizadas ao visitar a aba
         return;
     }
     cardapioSectionInitialized = true;
@@ -60,7 +61,6 @@ async function initializeCardapioSection() {
         }
     }
 
-    // --- LÓGICA DE CATEGORIAS E ITENS ---
     function getCategoryIcon(categoryKey) {
         const key = categoryKey.toLowerCase();
         if (key.includes('pizza')) return 'fa-pizza-slice';
@@ -75,12 +75,29 @@ async function initializeCardapioSection() {
         const categoryName = window.menuData[categoryKey]?.name || categoryKey.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
         const itemCount = Array.isArray(categoryData.items) ? categoryData.items.length : 0;
         const iconClass = getCategoryIcon(categoryKey);
-        return `<div class="category-item" data-category-key="${categoryKey}"><div class="category-info"><i class="fas ${iconClass} category-icon"></i><div class="category-name-wrapper"><span class="category-name">${categoryName}</span><span class="item-count">${itemCount} itens</span></div></div><div class="category-actions"><button class="btn btn-sm btn-primary-outline add-item-btn" title="Adicionar item nesta categoria"><i class="fas fa-plus"></i></button><button class="btn btn-icon expand-category-btn" title="Ver itens"><i class="fas fa-chevron-down"></i></button></div></div><div class="pizza-items-in-category" id="items-${categoryKey}" style="display: none;"></div>`;
+        
+        return `
+        <div class="category-item" data-category-key="${categoryKey}">
+            <div class="category-info-clickable">
+                <i class="fas ${iconClass} category-icon"></i>
+                <div class="category-name-wrapper">
+                    <span class="category-name">${categoryName}</span>
+                    <span class="item-count">${itemCount} itens</span>
+                </div>
+            </div>
+            <div class="category-actions">
+                <button class="btn btn-sm btn-primary-outline add-item-btn" title="Adicionar item nesta categoria"><i class="fas fa-plus"></i></button>
+                <button class="btn btn-icon edit-category-btn" title="Editar categoria"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-icon delete-category-btn btn-danger-outline" title="Excluir categoria"><i class="fas fa-trash-alt"></i></button>
+                <button class="btn btn-icon expand-category-btn" title="Ver itens"><i class="fas fa-chevron-down"></i></button>
+            </div>
+        </div>
+        <div class="pizza-items-in-category" id="items-${categoryKey}" style="display: none;"></div>`;
     }
 
     function createAdminPizzaItemHTML(item, categoryKey) {
         const imagePathForAdmin = `../${(item.image || 'img/placeholder.png').replace('../', '')}`;
-        const isVisible = item.isVisible !== false; // Padrão é visível
+        const isVisible = item.isVisible !== false;
         const visibilityIcon = isVisible ? 'fa-eye' : 'fa-eye-slash';
         const hiddenClass = isVisible ? '' : 'item-hidden';
 
@@ -93,9 +110,7 @@ async function initializeCardapioSection() {
                     <p class="price"><strong>${formatPriceAdmin(item.price)}</strong></p>
                 </div>
                 <div class="actions">
-                    <button class="btn btn-icon toggle-visibility-btn" title="Alternar visibilidade">
-                        <i class="fas ${visibilityIcon}"></i>
-                    </button>
+                    <button class="btn btn-icon toggle-visibility-btn" title="Alternar visibilidade"><i class="fas ${visibilityIcon}"></i></button>
                     <button class="btn btn-sm edit-item-btn" title="Editar Item"><i class="fas fa-edit"></i></button>
                     <button class="btn btn-sm delete-item-btn btn-danger-outline" title="Excluir Item"><i class="fas fa-trash-alt"></i></button>
                 </div>
@@ -146,20 +161,59 @@ async function initializeCardapioSection() {
         }
         openModal(itemEditorModal);
     }
+    
+    function openCategoryEditorModal(categoryKey = null) {
+        const modalTitle = addCategoryModal.querySelector('h3');
+        const keyInput = document.getElementById('new-category-key');
+        const nameInput = document.getElementById('new-category-name');
+        addCategoryForm.reset();
+
+        if (categoryKey) {
+            const categoryData = window.menuData[categoryKey];
+            modalTitle.innerHTML = '<i class="fas fa-edit"></i> Editar Categoria';
+            keyInput.value = categoryKey;
+            keyInput.readOnly = true;
+            nameInput.value = categoryData.name;
+        } else {
+            modalTitle.innerHTML = '<i class="fas fa-folder-plus"></i> Adicionar Nova Categoria';
+            keyInput.readOnly = false;
+        }
+        openModal(addCategoryModal);
+    }
 
     function addCategoryEventListeners() {
         categoryListContainer.querySelectorAll('.category-item').forEach(header => {
             header.addEventListener('click', (e) => {
-                if (e.target.closest('.add-item-btn')) { const categoryKey = header.dataset.categoryKey; openItemEditorModal(categoryKey); return; }
-                const key = header.dataset.categoryKey;
-                const itemsContainer = document.getElementById(`items-${key}`);
-                const expandBtnIcon = header.querySelector('.expand-category-btn i');
-                const isVisible = itemsContainer.style.display === 'block';
-                itemsContainer.style.display = isVisible ? 'none' : 'block';
-                if(expandBtnIcon) { expandBtnIcon.classList.toggle('fa-chevron-down', isVisible); expandBtnIcon.classList.toggle('fa-chevron-up', !isVisible); }
-                if (!isVisible) { loadItemsIntoCategory(key, itemsContainer); }
+                e.stopPropagation(); // Impede a propagação para evitar múltiplos eventos
+                const categoryKey = header.dataset.categoryKey;
+                const categoryName = header.querySelector('.category-name').textContent;
+                
+                if (e.target.closest('.add-item-btn')) {
+                    openItemEditorModal(categoryKey);
+                } else if (e.target.closest('.edit-category-btn')) {
+                    openCategoryEditorModal(categoryKey);
+                } else if (e.target.closest('.delete-category-btn')) {
+                    deleteCategory(categoryKey, categoryName);
+                } else if (e.target.closest('.expand-category-btn') || e.target.closest('.category-info-clickable')) {
+                    const itemsContainer = document.getElementById(`items-${categoryKey}`);
+                    const expandBtnIcon = header.querySelector('.expand-category-btn i');
+                    const isVisible = itemsContainer.style.display === 'block';
+                    itemsContainer.style.display = isVisible ? 'none' : 'block';
+                    if(expandBtnIcon) { expandBtnIcon.classList.toggle('fa-chevron-down', isVisible); expandBtnIcon.classList.toggle('fa-chevron-up', !isVisible); }
+                    if (!isVisible) { loadItemsIntoCategory(key, itemsContainer); }
+                }
             });
         });
+    }
+
+    async function deleteCategory(categoryKey, categoryName) {
+        const itemCount = window.menuData[categoryKey].items.length;
+        if (confirm(`Tem certeza que deseja apagar a categoria "${categoryName}"? Todos os ${itemCount} itens dentro dela também serão apagados.`)) {
+            delete window.menuData[categoryKey];
+            await saveMenuToFirestore();
+            renderCategories();
+            window.showToast("Categoria excluída com sucesso!");
+        }
     }
 
     function addItemActionListeners(container) {
@@ -205,7 +259,6 @@ async function initializeCardapioSection() {
         });
     }
     
-    // --- FUNÇÕES PARA GERENCIAR BORDAS ---
     async function fetchStuffedCrusts() {
         if (!window.db || !window.firebaseFirestore) return [];
         const { collection, getDocs, query } = window.firebaseFirestore;
@@ -303,21 +356,39 @@ async function initializeCardapioSection() {
         });
     }
     
-    // --- LÓGICA DOS EVENTOS E FORMULÁRIOS ---
+    async function mainStuffedCrustLogic() {
+        if(stuffedCrustListContainer) stuffedCrustListContainer.innerHTML = "<p>Carregando bordas...</p>";
+        const crusts = await fetchStuffedCrusts();
+        renderStuffedCrustsAdmin(crusts);
+    }
+
     if (addCategoryForm) { addCategoryForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const keyInput = document.getElementById('new-category-key');
             const nameInput = document.getElementById('new-category-name');
             const newKey = keyInput.value.trim().toLowerCase().replace(/\s+/g, '-');
             const newName = nameInput.value.trim();
-            if (window.menuData[newKey]) { window.showToast('Erro: A "Chave da Categoria" já existe.', "error"); return; }
-            if (!newKey || !newName) { window.showToast('Preencha a chave e o nome da categoria.', "warning"); return; }
-            window.menuData[newKey] = { name: newName, items: [] };
+
+            if (!newKey || !newName) {
+                window.showToast('Preencha a chave e o nome da categoria.', "warning"); return;
+            }
+
+            if (keyInput.readOnly) {
+                window.menuData[newKey].name = newName;
+                window.showToast("Categoria atualizada com sucesso!");
+            } else {
+                if (window.menuData[newKey]) {
+                    window.showToast('Erro: A "Chave da Categoria" já existe.', "error"); return;
+                }
+                window.menuData[newKey] = { name: newName, items: [] };
+                window.showToast("Categoria criada com sucesso!");
+            }
+            
             await saveMenuToFirestore();
             addCategoryForm.reset();
+            keyInput.readOnly = false;
             closeModal(addCategoryModal);
             renderCategories();
-            window.showToast("Categoria criada com sucesso!");
     });}
 
     if (itemEditorForm) {
@@ -340,12 +411,11 @@ async function initializeCardapioSection() {
             if (isNaN(updatedItemData.price)) { window.showToast("Por favor, insira um preço válido.", "error"); return; }
             
             if (isNewItem) {
-                updatedItemData.isVisible = true; // Novos itens são visíveis por padrão
+                updatedItemData.isVisible = true;
                 window.menuData[categoryKey].items.push(updatedItemData);
             } else {
                 const itemIndex = window.menuData[categoryKey].items.findIndex(i => i.id == itemId);
                 if (itemIndex > -1) {
-                    // Mantém o estado de visibilidade existente ao editar, se ele já existir
                     const existingItem = window.menuData[categoryKey].items[itemIndex];
                     updatedItemData.isVisible = existingItem.isVisible !== false;
                     window.menuData[categoryKey].items[itemIndex] = updatedItemData;
@@ -393,15 +463,12 @@ async function initializeCardapioSection() {
         });
     }
     
-    if (addCategoryButton) addCategoryButton.addEventListener('click', () => openModal(addCategoryModal));
-    closeAddCategoryModalBtns.forEach(btn => btn.addEventListener('click', () => closeModal(addCategoryModal)));
+    if (addCategoryButton) addCategoryButton.addEventListener('click', () => openCategoryEditorModal());
+    closeAddCategoryModalBtns.forEach(btn => btn.addEventListener('click', () => {
+        closeModal(addCategoryModal);
+        document.getElementById('new-category-key').readOnly = false;
+    }));
     closeItemEditorModalBtns.forEach(btn => btn.addEventListener('click', () => closeModal(itemEditorModal)));
-
-    async function mainStuffedCrustLogic() {
-        if(stuffedCrustListContainer) stuffedCrustListContainer.innerHTML = "<p>Carregando bordas...</p>";
-        const crusts = await fetchStuffedCrusts();
-        renderStuffedCrustsAdmin(crusts);
-    }
 
     renderCategories();
     mainStuffedCrustLogic();
