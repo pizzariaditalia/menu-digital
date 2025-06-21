@@ -1,4 +1,4 @@
-// pedidos.js - VERSÃO SIMPLIFICADA SEM BOTÕES DE BUSCA E FILTRO
+// pedidos.js - VERSÃO COM MENSAGEM PARA MOTOBOY APRIMORADA
 
 // --- Variáveis de estado do módulo ---
 let ordersSectionInitialized = false;
@@ -6,8 +6,10 @@ let unsubscribeFromOrders = null;
 let allOrders = [];
 let allDeliveryPeople = [];
 let activeTypeFilter = 'todos';
-// As variáveis currentSearchTerm e currentViewMode foram removidas.
 
+// ======================================================================
+// FUNÇÃO ATUALIZADA
+// ======================================================================
 function handleSendWppToDeliveryPerson(orderId) {
   const order = allOrders.find(o => o.id === orderId);
   const deliveryPersonSelect = document.getElementById('modal-delivery-person-select');
@@ -22,24 +24,47 @@ function handleSendWppToDeliveryPerson(orderId) {
   if (!deliveryPerson) {
     window.showToast("Erro: Dados do entregador não encontrados.", "error"); return;
   }
+
+  // --- LÓGICA ATUALIZADA AQUI ---
   const customerName = `${order.customer.firstName} ${order.customer.lastName}`;
-  const address = order.delivery.address || `${order.delivery.street}, ${order.delivery.number} - ${order.delivery.neighborhood}`;
+  const addressString = order.delivery.address || `${order.delivery.street}, ${order.delivery.number} - ${order.delivery.neighborhood}`;
   const paymentMethod = order.payment.method || "Não definido";
   const grandTotal = (order.totals?.grandTotal || 0).toFixed(2).replace('.', ',');
-  let message = `*Nova Entrega D'Italia Pizzaria*\n\n` + `*Cliente:* ${customerName}\n` + `*Endereço:* ${address}\n`;
+
+  // NOVO: Cria o link do WhatsApp do cliente
+  const customerWhatsapp = order.customer.whatsapp.replace(/\D/g, '');
+  const customerWhatsappLink = `https://wa.me/55${customerWhatsapp}`;
+
+  // NOVO: Cria o link do Google Maps para o endereço
+  // Adicionamos "Caçapava, SP" para dar mais precisão ao mapa
+  const fullAddressForMap = `${order.delivery.street}, ${order.delivery.number}, ${order.delivery.neighborhood}, Caçapava, SP`;
+  const googleMapsLink = `https://www.google.com/maps/dir/?api=1&destination=$${encodeURIComponent(fullAddressForMap)}`;
+
+  let message = `*Nova Entrega D'Italia Pizzaria*\n\n` +
+      `*Cliente:* ${customerName}\n` +
+      `*Contato:* ${customerWhatsappLink}\n\n` + // Link do WhatsApp adicionado
+      `*Endereço:* ${addressString}\n` +
+      `*Ver no Mapa:* ${googleMapsLink}\n`; // Link do Google Maps adicionado
+
   if (order.delivery.complement) message += `*Complemento:* ${order.delivery.complement}\n`;
   if (order.delivery.reference) message += `*Referência:* ${order.delivery.reference}\n`;
-  message += `\n*Valor a Receber:* R$ ${grandTotal}\n` + `*Forma de Pagamento:* ${paymentMethod}\n`;
+
+  message += `\n*Valor a Receber:* R$ ${grandTotal}\n` +
+      `*Forma de Pagamento:* ${paymentMethod}\n`;
+
   if (paymentMethod === 'Dinheiro') {
     const changeValue = parseFloat(order.payment.changeFor);
     if (changeValue > 0) {
       message += `*Levar troco para:* R$ ${changeValue.toFixed(2).replace('.', ',')}\n`;
     }
   }
+
   message += `\nLembre-se de levar a maquininha de cartão se necessário. Boa entrega!`;
-  const whatsappUrl = `https://wa.me/55${deliveryPerson.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-  window.open(whatsappUrl, '_blank');
+  
+  const deliveryPersonWhatsappUrl = `https://wa.me/55${deliveryPerson.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+  window.open(deliveryPersonWhatsappUrl, '_blank');
 }
+
 
 function openOrderDetailsModal(order) {
   const orderDetailsModal = document.getElementById('order-details-modal');
@@ -134,7 +159,7 @@ function renderOrders() {
     filteredOrders = filteredOrders.filter(o => o.status === 'Saiu para Entrega');
   }
   
-  ordersListContainer.className = `orders-list-container card-view`; // Sempre usa a visualização de card
+  ordersListContainer.className = `orders-list-container card-view`;
   
   if (filteredOrders.length === 0) {
     ordersListContainer.innerHTML = `<div class="empty-orders-state"><i class="fas fa-receipt empty-state-icon"></i><p class="empty-state-message">Nenhum pedido encontrado com os filtros atuais.</p><button class="btn btn-primary btn-lg empty-state-new-order-btn"><i class="fas fa-plus-circle"></i> Novo pedido</button></div>`;
@@ -150,8 +175,7 @@ function renderOrders() {
 
 function getOrderCardHTML(order) {
   const orderTimestamp = order.createdAt?.toDate ? order.createdAt.toDate(): new Date();
-  let typeIcon,
-  typeText;
+  let typeIcon, typeText;
   const orderType = getOrderType(order);
   if (orderType === 'Delivery') {
     typeIcon = '<i class="fas fa-motorcycle"></i>'; typeText = 'Delivery';
