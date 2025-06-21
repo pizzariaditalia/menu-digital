@@ -133,7 +133,7 @@ async function loadDataFromFirestore() {
 }
 
 // ======================================================================
-// FUNÇÃO PARA GERAR A INTERFACE DAS CATEGORIAS (COM ORDEM FIXA)
+// FUNÇÃO PARA GERAR A INTERFACE DAS CATEGORIAS (COM ORDEM FIXA - V3)
 // ======================================================================
 /**
 * @description (VERSÃO 3.0 - CORRIGIDA) Cria dinamicamente as abas de navegação e os contêineres de conteúdo,
@@ -148,59 +148,47 @@ function generateCategoryUI() {
     return;
   }
 
-  // 1. Defina a ordem preferida. Note que "Bebidas" está aqui para referência, mas será tratada separadamente para sempre ficar por último.
   const preferredOrder = [
     'pizzas-tradicionais',
     'pizzas-especiais',
     'pizzas-doces',
     'calzones-salgados',
     'calzones-doces',
-    'bebidas' // Chave da categoria que deve ficar por último
+    'bebidas'
   ];
 
   tabsContainer.innerHTML = '';
   contentContainer.innerHTML = '';
 
-  // 2. Pega todas as categorias que vieram do Firebase
   const allKeysFromFirebase = Object.keys(window.menuData);
 
-  // 3. LÓGICA DE ORDENAÇÃO CORRIGIDA E MAIS ROBUSTA
   allKeysFromFirebase.sort((a, b) => {
     const keyBebidas = 'bebidas';
 
-    // Regra 1: "Bebidas" sempre vai para o final
     if (a === keyBebidas) return 1;
     if (b === keyBebidas) return -1;
 
-    // Pega a posição de cada item na lista de preferência
     const indexA = preferredOrder.indexOf(a);
     const indexB = preferredOrder.indexOf(b);
 
-    // Regra 2: Se ambos estão na lista, ordena pela posição na lista
     if (indexA !== -1 && indexB !== -1) {
       return indexA - indexB;
     }
-
-    // Regra 3: Se apenas um está na lista, ele vem primeiro
     if (indexA !== -1) return -1;
     if (indexB !== -1) return 1;
 
-    // Regra 4: Se nenhum está na lista (são "novas categorias"), ordena em ordem alfabética
     return a.localeCompare(b);
   });
 
-  // 4. Cria os elementos HTML na ordem final e correta
   allKeysFromFirebase.forEach(key => {
     const category = window.menuData[key];
     if (category && category.name && Array.isArray(category.items)) {
-      // Cria o botão da aba
       const tabButton = document.createElement('button');
       tabButton.className = 'tab-button';
       tabButton.dataset.category = key;
       tabButton.textContent = category.name;
       tabsContainer.appendChild(tabButton);
 
-      // Cria o div para o conteúdo da categoria
       const categoryContentDiv = document.createElement('div');
       categoryContentDiv.id = `${key}-content`;
       categoryContentDiv.className = 'category-content';
@@ -381,7 +369,7 @@ function initializeSiteLogic() {
         ...item,
         category: category
       };
-      if (itemForInteraction.category.includes('pizzas-') || (item.name && item.name.toLowerCase().includes('pizza'))) {
+      if (itemForInteraction.category.includes('pizzas-') || (item.name && item.name.toLowerCase().includes('pizza')) || itemForInteraction.category.includes('calzones-')) {
         if (window.openProductModal) window.openProductModal(itemForInteraction);
       } else {
         if (window.addToCart) {
@@ -509,7 +497,8 @@ function initializeSiteLogic() {
 
   function renderCouponsInModal() {
     const listContainer = document.getElementById('coupons-list');
-    if (!listContainer) return;
+    const couponsModal = document.getElementById('coupons-modal');
+    if (!listContainer || !couponsModal) return;
 
     if (!window.activeCoupons || window.activeCoupons.length === 0) {
       listContainer.innerHTML = '<p>Nenhum cupom de desconto disponível no momento.</p>';
@@ -519,31 +508,46 @@ function initializeSiteLogic() {
     listContainer.innerHTML = window.activeCoupons.map(coupon => {
       return `
       <div class="coupon-card">
+      <div class="coupon-info">
       <div class="coupon-header">${coupon.description}</div>
-      <div class="coupon-code">Código de desconto: <strong>${coupon.code}</strong></div>
-      <div class="coupon-expiry">Use no checkout para validar seu desconto.</div>
+      <div class="coupon-code">Código: <strong>${coupon.code}</strong></div>
+      </div>
+      <div class="coupon-actions">
+      <button class="btn-apply-coupon" data-coupon-code="${coupon.code}">Aplicar</button>
+      </div>
       </div>
       `;
     }).join('');
+
+    listContainer.querySelectorAll('.btn-apply-coupon').forEach(button => {
+      button.addEventListener('click', async (event) => {
+        const code = event.target.dataset.couponCode;
+        const result = await window.validateAndApplyCoupon(code);
+
+        if (result.success) {
+          alert('Cupom aplicado com sucesso!');
+          couponsModal.classList.remove('show');
+          window.openCartModal();
+        } else {
+          alert(`Não foi possível aplicar o cupom: ${result.message}`);
+        }
+      });
+    });
   }
 
   // --- EXECUÇÃO DA LÓGICA DE UI ---
-  // Adiciona os listeners para as novas abas dinâmicas
   if (tabs.length > 0) {
     tabs.forEach(tab => {
       tab.addEventListener('click', () => showCategory(tab.dataset.category));
     });
   }
 
-  // Renderiza o conteúdo e exibe a primeira categoria
   if (window.menuData && window.appSettings) {
     renderPromotions();
-    const categoryKeys = Object.keys(window.menuData); // Pega as chaves novamente
-    categoryKeys.forEach(cat => renderCategory(cat));
-    if (categoryKeys.length > 0) {
-      // Usa a primeira chave da lista final ordenada (se disponível) ou a primeira chave dos dados
-      const finalOrder = document.querySelector('.tab-button')?.dataset.category || categoryKeys[0];
-      showCategory(finalOrder);
+    const allRenderedCategories = Array.from(tabs).map(tab => tab.dataset.category);
+    allRenderedCategories.forEach(cat => renderCategory(cat));
+    if (allRenderedCategories.length > 0) {
+      showCategory(allRenderedCategories[0]);
     }
     updateRestaurantStatus();
     setInterval(updateRestaurantStatus, 60000);
