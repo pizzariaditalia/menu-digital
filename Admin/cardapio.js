@@ -1,12 +1,10 @@
 // Arquivo: cardapio.js
-// VERSÃO COM CORREÇÃO DE ORDEM DE INICIALIZAÇÃO
+// VERSÃO 3.0 - COM CORREÇÃO FINAL DE ESCOPO E INICIALIZAÇÃO
 
 let cardapioSectionInitialized = false;
 
-// --- CONSTANTE GLOBAL DO MÓDULO ---
 const STUFFED_CRUSTS_COLLECTION = "stuffed_crusts";
 
-// --- SELETORES DE ELEMENTOS GLOBAIS AO MÓDULO ---
 let categoryListContainer, addCategoryButton, addCategoryModal, addCategoryForm, closeAddCategoryModalBtns,
     itemEditorModal, itemEditorForm, itemEditorTitle, closeItemEditorModalBtns;
 
@@ -14,6 +12,9 @@ let stuffedCrustForm, stuffedCrustFormTitle, stuffedCrustNameInput, stuffedCrust
     stuffedCrustTypeSelect,
     stuffedCrustIdHidden, cancelEditStuffedCrustBtn, stuffedCrustListContainer;
 
+// --- FUNÇÃO DE AJUDA GLOBALIZADA ---
+// Mover a função para fora garante que ela sempre estará disponível.
+const formatPriceAdmin = (price) => (typeof price === 'number') ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
 
 async function initializeCardapioSection() {
     if (cardapioSectionInitialized) {
@@ -26,10 +27,6 @@ async function initializeCardapioSection() {
     cardapioSectionInitialized = true;
     console.log("Módulo Cardapio.js: Inicializando PELA PRIMEIRA VEZ...");
 
-    // --- CORREÇÃO: Movida a declaração da função para o topo do escopo ---
-    const formatPriceAdmin = (price) => (typeof price === 'number') ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
-
-    // --- ATRIBUIÇÃO DAS VARIÁVEIS DE ELEMENTOS DO DOM ---
     categoryListContainer = document.getElementById('category-list-container');
     addCategoryButton = document.getElementById('add-category-button');
     addCategoryModal = document.getElementById('add-category-modal');
@@ -39,7 +36,6 @@ async function initializeCardapioSection() {
     itemEditorForm = document.getElementById('item-editor-form');
     itemEditorTitle = document.getElementById('item-editor-title');
     closeItemEditorModalBtns = document.querySelectorAll('.close-modal-btn[data-modal-id="item-editor-modal"]');
-
     stuffedCrustForm = document.getElementById('stuffed-crust-form');
     stuffedCrustFormTitle = document.getElementById('stuffed-crust-form-title');
     stuffedCrustNameInput = document.getElementById('stuffed-crust-name');
@@ -49,6 +45,7 @@ async function initializeCardapioSection() {
     cancelEditStuffedCrustBtn = document.getElementById('cancel-edit-stuffed-crust-btn');
     stuffedCrustListContainer = document.getElementById('stuffed-crust-list-container');
 
+    // As funções que dependem das variáveis acima permanecem aqui.
     async function saveMenuToFirestore() {
         if (!window.db || !window.firebaseFirestore) { window.showToast("Erro: Conexão com Firestore não encontrada.", "error"); return; }
         const { doc, setDoc } = window.firebaseFirestore;
@@ -87,7 +84,7 @@ async function initializeCardapioSection() {
                 </div>
             </div>
             <div class="category-actions">
-                <button class="btn btn-sm btn-primary-outline add-item-btn" title="Adicionar item nesta categoria"><i class="fas fa-plus"></i></button>
+                <button class="btn btn-sm btn-primary-outline add-item-btn" title="Adicionar item"><i class="fas fa-plus"></i></button>
                 <button class="btn btn-icon edit-category-btn" title="Editar categoria"><i class="fas fa-edit"></i></button>
                 <button class="btn btn-icon delete-category-btn btn-danger-outline" title="Excluir categoria"><i class="fas fa-trash-alt"></i></button>
                 <button class="btn btn-icon expand-category-btn" title="Ver itens"><i class="fas fa-chevron-down"></i></button>
@@ -119,7 +116,7 @@ async function initializeCardapioSection() {
     }
 
     function renderCategories() {
-        if (!categoryListContainer || !window.menuData) { console.error("Cardapio.js: Container ou menuData não encontrado."); categoryListContainer.innerHTML = "<p>Erro: Não foi possível carregar os dados do cardápio.</p>"; return; }
+        if (!categoryListContainer || !window.menuData) { return; }
         categoryListContainer.innerHTML = '';
         Object.keys(window.menuData).forEach(key => {
             if (typeof window.menuData[key] === 'object' && Array.isArray(window.menuData[key].items)) {
@@ -301,35 +298,22 @@ async function initializeCardapioSection() {
 
     function renderStuffedCrustsAdmin(crusts) {
         if (!stuffedCrustListContainer) return;
-
         const sortedCrusts = crusts.sort((a, b) => a.name.localeCompare(b.name));
-        let listHTML;
-
-        if (sortedCrusts.length > 0) {
-            listHTML = sortedCrusts.map(crust => `
-                <div class="stuffed-crust-card">
-                    <div class="crust-info">
-                        <i class="fas fa-cheese"></i>
-                        <span class="crust-name">${crust.name}</span>
-                        <span class="crust-type-tag ${crust.type || 'salgada'}">${crust.type || 'Salgada'}</span>
-                    </div>
-                    <div class="crust-info">
-                        <span class="crust-price">R$ ${crust.price.toFixed(2).replace('.', ',')}</span>
-                        <div class="crust-actions">
-                            <button class="btn-icon edit-crust-btn" data-id="${crust.id}" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-icon delete-crust-btn" data-id="${crust.id}" data-name="${crust.name}" title="Apagar">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
+        let listHTML = (sortedCrusts.length > 0) ? sortedCrusts.map(crust => `
+            <div class="stuffed-crust-card">
+                <div class="crust-info">
+                    <i class="fas fa-cheese"></i>
+                    <span class="crust-name">${crust.name}</span>
+                    <span class="crust-type-tag ${crust.type || 'salgada'}">${crust.type || 'Salgada'}</span>
+                </div>
+                <div class="crust-info">
+                    <span class="crust-price">${formatPriceAdmin(crust.price)}</span>
+                    <div class="crust-actions">
+                        <button class="btn-icon edit-crust-btn" data-id="${crust.id}" title="Editar"><i class="fas fa-edit"></i></button>
+                        <button class="btn-icon delete-crust-btn" data-id="${crust.id}" data-name="${crust.name}" title="Apagar"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </div>
-            `).join('');
-        } else {
-            listHTML = '<p style="text-align:center; padding: 20px;">Nenhuma borda cadastrada.</p>';
-        }
-
+            </div>`).join('') : '<p style="text-align:center; padding: 20px;">Nenhuma borda cadastrada.</p>';
         stuffedCrustListContainer.innerHTML = `<div class="stuffed-crust-list">${listHTML}</div>`;
         addStuffedCrustActionListeners(sortedCrusts);
     }
@@ -365,6 +349,8 @@ async function initializeCardapioSection() {
         renderStuffedCrustsAdmin(crusts);
     }
 
+    // --- ADICIONANDO LISTENERS AOS FORMULÁRIOS E BOTÕES ---
+
     if (addCategoryForm) { addCategoryForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const keyInput = document.getElementById('new-category-key');
@@ -372,17 +358,13 @@ async function initializeCardapioSection() {
             const newKey = keyInput.value.trim().toLowerCase().replace(/\s+/g, '-');
             const newName = nameInput.value.trim();
 
-            if (!newKey || !newName) {
-                window.showToast('Preencha a chave e o nome da categoria.', "warning"); return;
-            }
+            if (!newKey || !newName) { window.showToast('Preencha a chave e o nome da categoria.', "warning"); return; }
 
             if (keyInput.readOnly) {
                 window.menuData[newKey].name = newName;
                 window.showToast("Categoria atualizada com sucesso!");
             } else {
-                if (window.menuData[newKey]) {
-                    window.showToast('Erro: A "Chave da Categoria" já existe.', "error"); return;
-                }
+                if (window.menuData[newKey]) { window.showToast('Erro: A "Chave da Categoria" já existe.', "error"); return; }
                 window.menuData[newKey] = { name: newName, items: [] };
                 window.showToast("Categoria criada com sucesso!");
             }
@@ -427,13 +409,9 @@ async function initializeCardapioSection() {
             
             await saveMenuToFirestore();
             closeModal(itemEditorModal);
-            const itemsContainer = document.getElementById(`items-${categoryKey}`);
+            loadItemsIntoCategory(categoryKey, document.getElementById(`items-${categoryKey}`));
             const categoryHeader = document.querySelector(`.category-item[data-category-key="${categoryKey}"]`);
-            if (itemsContainer && categoryHeader) {
-                const expandBtn = categoryHeader.querySelector('.expand-category-btn i');
-                itemsContainer.style.display = 'block';
-                if(expandBtn) { expandBtn.classList.remove('fa-chevron-down'); expandBtn.classList.add('fa-chevron-up'); }
-                loadItemsIntoCategory(categoryKey, itemsContainer);
+            if (categoryHeader) {
                 const countSpan = categoryHeader.querySelector('.item-count');
                 const newCount = window.menuData[categoryKey].items.length;
                 countSpan.textContent = `${newCount} itens`;
@@ -473,6 +451,7 @@ async function initializeCardapioSection() {
     }));
     closeItemEditorModalBtns.forEach(btn => btn.addEventListener('click', () => closeModal(itemEditorModal)));
 
+    // --- EXECUÇÃO INICIAL ---
     renderCategories();
     mainStuffedCrustLogic();
 }
