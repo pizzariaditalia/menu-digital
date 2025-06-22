@@ -1799,18 +1799,27 @@ body {
 }
 
 /* ==========================================================================
-   27. ESTILOS PARA O CARROSSEL DE VÍDEOS AUTOMÁTICO (V2)
+   27. ESTILOS PARA O CARROSSEL DE VÍDEOS (VERSÃO QUADRADA)
    ========================================================================== */
+
 .video-carousel-container {
-    position: relative; /* Essencial para posicionar os slides e os dots */
+    position: relative;
+    width: 100%;
+    /* Adiciona um padding lateral para não colar nas bordas em telas cheias */
+    padding: 0 16px; 
+    box-sizing: border-box; /* Garante que o padding não aumente a largura total */
+}
+
+.video-carousel-inner {
     width: 100%;
     max-width: 768px; /* Mantém o limite do seu app */
     margin: var(--space-xl) auto;
-    border-radius: 12px;
+    border-radius: 16px; /* Borda um pouco mais arredondada */
     overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    /* A altura será definida pelo vídeo usando aspect-ratio */
-    aspect-ratio: 16 / 9; /* Proporção comum de vídeo (16:9) */
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    /* CORREÇÃO PRINCIPAL: Força o contêiner a ser um quadrado */
+    aspect-ratio: 1 / 1; 
+    position: relative; /* Necessário para os dots */
 }
 
 .carousel-slides {
@@ -1819,24 +1828,27 @@ body {
 }
 
 .video-slide {
-    position: absolute; /* Sobrepõe todos os vídeos */
+    position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    opacity: 0; /* Começam invisíveis */
-    transition: opacity 0.8s ease-in-out; /* Animação de fade */
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
 }
 
 .video-slide.active {
-    opacity: 1; /* Torna o slide ativo visível */
-    z-index: 2; /* Garante que ele fique na frente */
+    opacity: 1;
+    z-index: 2;
 }
 
 .video-slide video {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Cobre todo o espaço do contêiner */
+    /* Garante que o vídeo cubra a área quadrada, cortando o excesso nas laterais */
+    object-fit: cover; 
+    /* Centraliza o vídeo dentro do corte, focando no meio */
+    object-position: center center; 
 }
 
 .carousel-dots {
@@ -1853,11 +1865,13 @@ body {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.5);
+    background-color: rgba(255, 255, 255, 0.6);
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.2);
 }
 
 .dot.active {
     background-color: white;
+    transform: scale(1.2);
 }
