@@ -1799,27 +1799,20 @@ body {
 }
 
 /* ==========================================================================
-   27. ESTILOS PARA O CARROSSEL DE VÍDEOS (VERSÃO QUADRADA)
+   27. ESTILOS PARA O CARROSSEL DE VÍDEOS (VERSÃO 3.0 - CORRIGIDA)
    ========================================================================== */
 
 .video-carousel-container {
     position: relative;
-    width: 100%;
-    /* Adiciona um padding lateral para não colar nas bordas em telas cheias */
-    padding: 0 16px; 
-    box-sizing: border-box; /* Garante que o padding não aumente a largura total */
-}
-
-.video-carousel-inner {
-    width: 100%;
-    max-width: 768px; /* Mantém o limite do seu app */
-    margin: var(--space-xl) auto;
-    border-radius: 16px; /* Borda um pouco mais arredondada */
-    overflow: hidden;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    /* CORREÇÃO PRINCIPAL: Força o contêiner a ser um quadrado */
+    width: 95%; /* Ocupa 95% da largura da tela, deixando uma margem */
+    max-width: 500px; /* Define uma largura máxima para telas maiores */
+    margin: var(--space-xl) auto; /* Centraliza o carrossel na página */
+    border-radius: 16px;
+    overflow: hidden; /* Essencial para que o vídeo não "vaze" das bordas arredondadas */
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    
+    /* A CORREÇÃO PRINCIPAL: Força o contêiner a ser um quadrado perfeito */
     aspect-ratio: 1 / 1; 
-    position: relative; /* Necessário para os dots */
 }
 
 .carousel-slides {
@@ -1845,15 +1838,11 @@ body {
 .video-slide video {
     width: 100%;
     height: 100%;
-    /* Garante que o vídeo cubra a área quadrada, cortando o excesso nas laterais */
+    /* Garante que o vídeo cubra toda a área quadrada, cortando o excesso */
     object-fit: cover; 
-    /* Centraliza o vídeo dentro do corte, focando no meio */
+    /* Centraliza o vídeo dentro do corte */
     object-position: center center; 
 }
-
-/* ==========================================================================
-   28. ESTILOS PARA OS INDICADORES (DOTS) DO CARROSSEL
-   ========================================================================== */
 
 .carousel-dots {
     position: absolute;
@@ -1861,27 +1850,24 @@ body {
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 8px; /* Espaçamento entre os indicadores */
+    gap: 8px;
     z-index: 3;
-    padding: 5px; /* Adiciona um respiro para o fundo */
-    background-color: rgba(0, 0, 0, 0.2); /* Fundo suave para melhor contraste */
+    padding: 5px;
+    background-color: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
 }
 
 .dot {
-    /* Formato alongado */
     width: 24px;
     height: 4px; 
-    
-    border-radius: 2px; /* Bordas levemente arredondadas */
-    background-color: rgba(255, 255, 255, 0.5); /* Cor para o inativo */
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
-    transition: all 0.4s ease; /* Animação suave para todas as propriedades */
+    transition: all 0.4s ease;
     border: none;
 }
 
 .dot.active {
-    background-color: white; /* Cor para o ativo */
-    /* Efeito de "esticar" o dot ativo */
+    background-color: white;
     width: 36px; 
 }
