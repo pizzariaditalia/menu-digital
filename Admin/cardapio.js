@@ -1,5 +1,5 @@
 // Arquivo: cardapio.js
-// VERSÃO COM GESTÃO COMPLETA DE CATEGORIAS (EDITAR E EXCLUIR)
+// VERSÃO COM CORREÇÃO DE ORDEM DE INICIALIZAÇÃO
 
 let cardapioSectionInitialized = false;
 
@@ -20,11 +20,14 @@ async function initializeCardapioSection() {
         if (typeof mainStuffedCrustLogic === 'function') {
             mainStuffedCrustLogic();
         }
-        renderCategories(); // Garante que as categorias sejam re-renderizadas ao visitar a aba
+        renderCategories();
         return;
     }
     cardapioSectionInitialized = true;
     console.log("Módulo Cardapio.js: Inicializando PELA PRIMEIRA VEZ...");
+
+    // --- CORREÇÃO: Movida a declaração da função para o topo do escopo ---
+    const formatPriceAdmin = (price) => (typeof price === 'number') ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
 
     // --- ATRIBUIÇÃO DAS VARIÁVEIS DE ELEMENTOS DO DOM ---
     categoryListContainer = document.getElementById('category-list-container');
@@ -45,8 +48,6 @@ async function initializeCardapioSection() {
     stuffedCrustIdHidden = document.getElementById('stuffed-crust-id-hidden');
     cancelEditStuffedCrustBtn = document.getElementById('cancel-edit-stuffed-crust-btn');
     stuffedCrustListContainer = document.getElementById('stuffed-crust-list-container');
-
-    const formatPriceAdmin = (price) => (typeof price === 'number') ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
 
     async function saveMenuToFirestore() {
         if (!window.db || !window.firebaseFirestore) { window.showToast("Erro: Conexão com Firestore não encontrada.", "error"); return; }
@@ -181,38 +182,32 @@ async function initializeCardapioSection() {
         openModal(addCategoryModal);
     }
 
-    // Substitua esta função inteira em cardapio.js
-function addCategoryEventListeners() {
-    categoryListContainer.querySelectorAll('.category-item').forEach(header => {
-        // Envolve a área de clique principal para evitar conflitos
-        const clickableArea = header.querySelector('.category-info-clickable'); 
-
-        header.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const categoryKey = header.dataset.categoryKey;
-            const categoryName = header.querySelector('.category-name').textContent;
-            
-            if (e.target.closest('.add-item-btn')) {
-                openItemEditorModal(categoryKey);
-            } else if (e.target.closest('.edit-category-btn')) {
-                openCategoryEditorModal(categoryKey);
-            } else if (e.target.closest('.delete-category-btn')) {
-                deleteCategory(categoryKey, categoryName);
-            } else { // Se o clique não foi em um botão de ação, expande/recolhe
-                const itemsContainer = document.getElementById(`items-${categoryKey}`);
-                const expandBtnIcon = header.querySelector('.expand-category-btn i');
-                const isVisible = itemsContainer.style.display === 'block';
-                itemsContainer.style.display = isVisible ? 'none' : 'block';
-                if(expandBtnIcon) { expandBtnIcon.classList.toggle('fa-chevron-down', isVisible); expandBtnIcon.classList.toggle('fa-chevron-up', !isVisible); }
-                if (!isVisible) {
-                    // --- CORREÇÃO APLICADA AQUI ---
-                    // Usando 'categoryKey' em vez de 'key'
-                    loadItemsIntoCategory(categoryKey, itemsContainer); 
+    function addCategoryEventListeners() {
+        categoryListContainer.querySelectorAll('.category-item').forEach(header => {
+            header.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const categoryKey = header.dataset.categoryKey;
+                const categoryName = header.querySelector('.category-name').textContent;
+                
+                if (e.target.closest('.add-item-btn')) {
+                    openItemEditorModal(categoryKey);
+                } else if (e.target.closest('.edit-category-btn')) {
+                    openCategoryEditorModal(categoryKey);
+                } else if (e.target.closest('.delete-category-btn')) {
+                    deleteCategory(categoryKey, categoryName);
+                } else {
+                    const itemsContainer = document.getElementById(`items-${categoryKey}`);
+                    const expandBtnIcon = header.querySelector('.expand-category-btn i');
+                    const isVisible = itemsContainer.style.display === 'block';
+                    itemsContainer.style.display = isVisible ? 'none' : 'block';
+                    if(expandBtnIcon) { expandBtnIcon.classList.toggle('fa-chevron-down', isVisible); expandBtnIcon.classList.toggle('fa-chevron-up', !isVisible); }
+                    if (!isVisible) {
+                        loadItemsIntoCategory(categoryKey, itemsContainer);
+                    }
                 }
-            }
+            });
         });
-    });
-}
+    }
 
     async function deleteCategory(categoryKey, categoryName) {
         const itemCount = window.menuData[categoryKey].items.length;
