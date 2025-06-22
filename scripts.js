@@ -1,9 +1,9 @@
-// scripts.js - VERSÃO COM LÓGICA DE INSTALAÇÃO DO PWA
+// scripts.js - VERSÃO COMPLETA COM LÓGICA DO PWA E CARROSSEL AUTOMÁTICO
 
 document.addEventListener('DOMContentLoaded', () => {
 
     // ======================================================================
-    // LÓGICA PARA O BOTÃO DE INSTALAÇÃO DO PWA (NOVO)
+    // LÓGICA PARA O BOTÃO DE INSTALAÇÃO DO PWA
     // ======================================================================
     let deferredPrompt; // Variável para guardar o evento de instalação
     const installButton = document.getElementById('install-pwa-button');
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ======================================================================
-    // LÓGICA PARA O MODAL POP-UP DE PROMOÇÃO (EXISTENTE)
+    // LÓGICA PARA O MODAL POP-UP DE PROMOÇÃO
     // ======================================================================
     const promoModal = document.getElementById('promo-popup-modal');
     const closePromoButton = document.getElementById('close-promo-popup');
@@ -89,59 +89,57 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-});
 
-// ======================================================================
-// LÓGICA PARA O CARROSSEL DE VÍDEOS AUTOMÁTICO
-// ======================================================================
-document.addEventListener('DOMContentLoaded', () => {
+    // ======================================================================
+    // LÓGICA PARA O CARROSSEL DE VÍDEOS AUTOMÁTICO
+    // ======================================================================
     const carouselContainer = document.getElementById('video-carousel-container');
-    if (!carouselContainer) return; // Se não houver carrossel, não faz nada
+    if (carouselContainer) { // Só executa se o carrossel existir na página
+        const slides = carouselContainer.querySelectorAll('.video-slide');
+        const dotsContainer = carouselContainer.querySelector('.carousel-dots');
+        
+        if (slides.length > 1) { // Só ativa a lógica se houver mais de um vídeo
+            let currentSlide = 0;
+            let slideInterval;
 
-    const slides = carouselContainer.querySelectorAll('.video-slide');
-    const dotsContainer = carouselContainer.querySelector('.carousel-dots');
+            // Cria os "dots" (indicadores)
+            slides.forEach((slide, index) => {
+                const dot = document.createElement('button');
+                dot.classList.add('dot');
+                dot.addEventListener('click', () => {
+                    setSlide(index);
+                    resetInterval();
+                });
+                dotsContainer.appendChild(dot);
+            });
 
-    if (slides.length <= 1) return; // Se tiver 1 vídeo ou menos, não precisa de carrossel
+            const dots = dotsContainer.querySelectorAll('.dot');
 
-    let currentSlide = 0;
-    let slideInterval;
+            function setSlide(index) {
+                slides.forEach(slide => slide.classList.remove('active'));
+                dots.forEach(dot => dot.classList.remove('active'));
 
-    // Cria os "dots" (indicadores)
-    slides.forEach((slide, index) => {
-        const dot = document.createElement('button');
-        dot.classList.add('dot');
-        dot.addEventListener('click', () => {
-            setSlide(index);
+                slides[index].classList.add('active');
+                dots[index].classList.add('active');
+                currentSlide = index;
+            }
+
+            function nextSlide() {
+                let newIndex = currentSlide + 1;
+                if (newIndex >= slides.length) {
+                    newIndex = 0; // Volta para o primeiro
+                }
+                setSlide(newIndex);
+            }
+
+            function resetInterval() {
+                clearInterval(slideInterval);
+                slideInterval = setInterval(nextSlide, 7000); // Troca de vídeo a cada 7 segundos
+            }
+
+            // Inicia o carrossel
+            setSlide(0);
             resetInterval();
-        });
-        dotsContainer.appendChild(dot);
-    });
-
-    const dots = dotsContainer.querySelectorAll('.dot');
-
-    function setSlide(index) {
-        slides.forEach(slide => slide.classList.remove('active'));
-        dots.forEach(dot => dot.classList.remove('active'));
-
-        slides[index].classList.add('active');
-        dots[index].classList.add('active');
-        currentSlide = index;
-    }
-
-    function nextSlide() {
-        let newIndex = currentSlide + 1;
-        if (newIndex >= slides.length) {
-            newIndex = 0; // Volta para o primeiro
         }
-        setSlide(newIndex);
     }
-
-    function resetInterval() {
-        clearInterval(slideInterval);
-        slideInterval = setInterval(nextSlide, 7000); // Troca de vídeo a cada 7 segundos
-    }
-
-    // Inicia o carrossel
-    setSlide(0);
-    resetInterval();
 });
