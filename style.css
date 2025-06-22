@@ -1851,27 +1851,37 @@ body {
     object-position: center center; 
 }
 
+/* ==========================================================================
+   28. ESTILOS PARA OS INDICADORES (DOTS) DO CARROSSEL
+   ========================================================================== */
+
 .carousel-dots {
     position: absolute;
     bottom: 15px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 8px;
+    gap: 8px; /* Espaçamento entre os indicadores */
     z-index: 3;
+    padding: 5px; /* Adiciona um respiro para o fundo */
+    background-color: rgba(0, 0, 0, 0.2); /* Fundo suave para melhor contraste */
+    border-radius: 10px;
 }
 
 .dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.6);
+    /* Formato alongado */
+    width: 24px;
+    height: 4px; 
+    
+    border-radius: 2px; /* Bordas levemente arredondadas */
+    background-color: rgba(255, 255, 255, 0.5); /* Cor para o inativo */
     cursor: pointer;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(0,0,0,0.2);
+    transition: all 0.4s ease; /* Animação suave para todas as propriedades */
+    border: none;
 }
 
 .dot.active {
-    background-color: white;
-    transform: scale(1.2);
+    background-color: white; /* Cor para o ativo */
+    /* Efeito de "esticar" o dot ativo */
+    width: 36px; 
 }
