@@ -1799,45 +1799,65 @@ body {
 }
 
 /* ==========================================================================
-   27. ESTILOS PARA O CARROSSEL DE VÍDEOS
+   27. ESTILOS PARA O CARROSSEL DE VÍDEOS AUTOMÁTICO (V2)
    ========================================================================== */
 .video-carousel-container {
-    display: flex;
-    overflow-x: auto; /* Habilita o scroll horizontal */
-    scroll-snap-type: x mandatory; /* Faz com que o scroll "trave" em cada vídeo */
-    -webkit-overflow-scrolling: touch; /* Melhora a experiência de scroll em iOS */
-    gap: 16px; /* Espaço entre os vídeos, se desejar */
-    padding: 0 16px; /* Adiciona um padding nas laterais */
-    margin-top: var(--space-xl);
-    margin-bottom: var(--space-xl);
-    /* Esconde a barra de scroll */
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    position: relative; /* Essencial para posicionar os slides e os dots */
+    width: 100%;
+    max-width: 768px; /* Mantém o limite do seu app */
+    margin: var(--space-xl) auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    /* A altura será definida pelo vídeo usando aspect-ratio */
+    aspect-ratio: 16 / 9; /* Proporção comum de vídeo (16:9) */
 }
 
-.video-carousel-container::-webkit-scrollbar {
-    display: none; /* Safari e Chrome */
+.carousel-slides {
+    width: 100%;
+    height: 100%;
 }
 
 .video-slide {
-    flex: 0 0 90%; /* Cada vídeo ocupa 90% da largura do contêiner */
-    max-width: 90%;
-    scroll-snap-align: center; /* Centraliza o slide ao "travar" */
-    border-radius: 12px;
-    overflow: hidden; /* Garante que o vídeo respeite a borda arredondada */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    position: absolute; /* Sobrepõe todos os vídeos */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0; /* Começam invisíveis */
+    transition: opacity 0.8s ease-in-out; /* Animação de fade */
+}
+
+.video-slide.active {
+    opacity: 1; /* Torna o slide ativo visível */
+    z-index: 2; /* Garante que ele fique na frente */
 }
 
 .video-slide video {
     width: 100%;
-    height: auto;
-    display: block; /* Remove qualquer espaço extra abaixo do vídeo */
+    height: 100%;
+    object-fit: cover; /* Cobre todo o espaço do contêiner */
 }
 
-/* Ajuste para telas menores, se necessário */
-@media (max-width: 600px) {
-    .video-slide {
-        flex-basis: 85%; /* Ocupa um pouco menos espaço em telas muito pequenas */
-        max-width: 85%;
-    }
+.carousel-dots {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 3;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.dot.active {
+    background-color: white;
 }
