@@ -167,16 +167,16 @@ function generateCategoryUI() {
         }
     });
 }
-
 function renderDynamicCarousel() {
     const carouselContainer = document.getElementById('video-carousel-container');
     if (!carouselContainer || !window.carouselVideos || window.carouselVideos.length === 0) {
-        return;
+        return; 
     }
 
     const slidesContainer = carouselContainer.querySelector('.carousel-slides');
     if (!slidesContainer) return;
-    slidesContainer.innerHTML = '';
+
+    slidesContainer.innerHTML = ''; 
 
     window.carouselVideos.forEach(videoData => {
         const slideDiv = document.createElement('div');
@@ -185,10 +185,12 @@ function renderDynamicCarousel() {
         slidesContainer.appendChild(slideDiv);
     });
 
-    if (slidesContainer.children.length > 0) {
-      slidesContainer.children[0].classList.add('active');
-    }
     carouselContainer.style.display = 'block'; 
+
+    // NOVO: Chama a função de animação DEPOIS que os slides foram criados
+    if (typeof window.initializeCarousel === 'function') {
+        window.initializeCarousel();
+    }
 }
 
 // ======================================================================
