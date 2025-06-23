@@ -1,9 +1,5 @@
-// menu.js - VERSÃO 6.1 (CORREÇÃO DO SYNTAXERROR)
-console.log('--- EXECUTANDO MENU.JS VERSÃO 7.0 (COM A CORREÇÃO FINAL DO SYNTAXERROR) ---');
+// menu.js - VERSÃO 6.2 (REVERTIDO PARA SINTAXE CORRETA DO JAVASCRIPT)
 
-// O resto do seu código começa aqui...
-// const FIRESTORE_MENU_COLLECTION_SITE = "menus";
-// ...
 // --- CONSTANTES E VARIÁVEIS GLOBAIS ---
 const FIRESTORE_MENU_COLLECTION_SITE = "menus";
 const FIRESTORE_MENU_DOC_ID_SITE = "principal";
@@ -263,7 +259,6 @@ function initializeSiteLogic() {
             if (item.category.includes('pizzas-') || item.name.toLowerCase().includes('pizza') || item.category.includes('calzones-')) {
                 if (window.openProductModal) window.openProductModal(item);
             } else {
-                // ESTA É A LINHA QUE FOI CORRIGIDA
                 if (window.addToCart) window.addToCart({ ...item, quantity: 1, unitPrice: item.price });
             }
         }
