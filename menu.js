@@ -1,4 +1,4 @@
-// menu.js - VERSÃO FINAL COMPLETA (COM LÓGICA DO CARROSSEL EMBUTIDA E CORRIGIDA)
+// menu.js - VERSÃO 6.1 (CORREÇÃO DO SYNTAXERROR)
 
 // --- CONSTANTES E VARIÁVEIS GLOBAIS ---
 const FIRESTORE_MENU_COLLECTION_SITE = "menus";
@@ -135,7 +135,10 @@ function initializeDynamicCarousel() {
     }
     function nextSlide() { currentSlide = (currentSlide + 1) % slides.length; setSlide(currentSlide); }
     function resetInterval() { clearInterval(slideInterval); slideInterval = setInterval(nextSlide, 7000); }
-    setSlide(0); resetInterval();
+    if(slides.length > 0) {
+        setSlide(0);
+        resetInterval();
+    }
 }
 
 function initializeSiteLogic() {
@@ -148,7 +151,7 @@ function initializeSiteLogic() {
     const tabs = document.querySelectorAll('.tab-button');
     const restaurantStatusDiv = document.querySelector('.status');
     const daysOfWeek = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
-    const formatPrice = (price) => price?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) || '';
+    const formatPrice = (price) => price != null ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '';
     
     function findItemAcrossCategories(itemId) {
         for (const key in window.menuData) {
@@ -256,6 +259,7 @@ function initializeSiteLogic() {
             if (item.category.includes('pizzas-') || item.name.toLowerCase().includes('pizza') || item.category.includes('calzones-')) {
                 if (window.openProductModal) window.openProductModal(item);
             } else {
+                // ESTA É A LINHA QUE FOI CORRIGIDA
                 if (window.addToCart) window.addToCart({ ...item, quantity: 1, unitPrice: item.price });
             }
         }
