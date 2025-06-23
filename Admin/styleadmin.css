@@ -453,3 +453,75 @@ body {
 #logout-button:hover i {
   color: var(--admin-white);
 } 
+
+/* ==========================================================================
+   28. ESTILOS PARA A FERRAMENTA DE GERENCIAMENTO DO CARROSSEL
+   ========================================================================== */
+
+/* Estiliza a grade onde as pré-visualizações dos vídeos aparecem */
+#carousel-videos-list {
+    display: grid;
+    /* Cria colunas responsivas: no mínimo 120px, preenchendo o espaço */
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 16px; /* Espaçamento entre os vídeos */
+    padding: 10px;
+    background-color: var(--admin-light-gray-bg);
+    border-radius: 8px;
+    min-height: 140px; /* Altura mínima para quando estiver vazio */
+}
+
+/* Estiliza cada item individual da lista (vídeo + botão) */
+.image-preview-item {
+    position: relative; /* Necessário para posicionar o botão de exclusão */
+    border-radius: 8px;
+    overflow: hidden; /* Garante que o vídeo não "vaze" das bordas */
+    box-shadow: var(--box-shadow-sm);
+    
+    /* Força o item a ser um quadrado perfeito */
+    aspect-ratio: 1 / 1; 
+}
+
+/* Faz a miniatura do vídeo cobrir toda a área do item */
+.image-preview-item video.preview-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cobre o espaço sem distorcer, cortando o excesso */
+}
+
+/* Estiliza o botão de exclusão */
+.image-preview-item .delete-video-btn {
+    position: absolute; /* Posição flutuante sobre o vídeo */
+    top: 5px;
+    right: 5px;
+    
+    background-color: rgba(220, 53, 69, 0.8); /* Vermelho com transparência */
+    color: white;
+    border: none;
+    border-radius: 50%; /* Deixa o botão redondo */
+    width: 28px;
+    height: 28px;
+    
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* Animação suave para o botão aparecer */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Faz o botão de exclusão aparecer ao passar o mouse sobre o vídeo */
+.image-preview-item:hover .delete-video-btn {
+    opacity: 1;
+}
+
+/* Estilos para o grupo de input + botão "Adicionar" */
+.input-with-button {
+    display: flex;
+    gap: 8px;
+}
+
+.input-with-button input {
+    flex-grow: 1; /* Faz o input ocupar o espaço disponível */
+}
