@@ -1,22 +1,24 @@
 // Arquivo: appearance.js
-// VERSÃO FINAL - GERENCIA NOMES DE ARQUIVOS DE VÍDEO LOCAIS NO PROJETO
+// VERSÃO FINAL CORRIGIDA (CORRIGE O ERRO DE INICIALIZAÇÃO)
 
 let appearanceSectionInitialized = false;
 const CAROUSEL_SETTINGS_DOC_ID = "carouselSettings";
-const VIDEO_BASE_PATH = "img/banner/"; // Caminho base onde seus vídeos estão
+const VIDEO_BASE_PATH = "img/banner/";
 
 async function initializeAppearanceSection() {
+    // --- CORREÇÃO: As variáveis que buscam elementos do HTML foram movidas para o topo ---
+    // Assim, elas sempre existem, não importa se é a primeira ou a segunda vez que a função roda.
+    const carouselVideosListContainer = document.getElementById('carousel-videos-list');
+    const videoFileNameInput = document.getElementById('carousel-video-filename-input');
+    const addVideoBtn = document.getElementById('add-video-btn');
+
     if (appearanceSectionInitialized) {
+        // Agora, quando a função for chamada novamente, a variável já existe e o erro não acontece.
         loadAndRenderCarouselVideos();
         return;
     }
     appearanceSectionInitialized = true;
     console.log("Módulo Aparência.js: Inicializando...");
-
-    // Seletores para a seção do carrossel
-    const carouselVideosListContainer = document.getElementById('carousel-videos-list');
-    const videoFileNameInput = document.getElementById('carousel-video-filename-input');
-    const addVideoBtn = document.getElementById('add-video-btn');
 
     // Carrega a lista de vídeos do Firestore e renderiza na tela
     async function loadAndRenderCarouselVideos() {
@@ -45,7 +47,6 @@ async function initializeAppearanceSection() {
         }
 
         carouselVideosListContainer.innerHTML = videos.map((video, index) => {
-            // Usa o caminho salvo, que já deve ser o caminho relativo correto
             const videoPath = `../${video.path.replace('../', '')}`;
             return `
                 <div class="image-preview-item">
@@ -115,7 +116,5 @@ async function initializeAppearanceSection() {
     loadAndRenderCarouselVideos();
 }
 
-// Inicializa a seção de Aparência
-// Se você tem outras lógicas no seu appearance.js, elas devem ser mantidas
-// O ideal é mesclar, mas se a única função era o carrossel, pode substituir tudo.
-initializeAppearanceSection();
+// Garante que a função esteja disponível globalmente para ser chamada pelo admin.js
+window.initializeAppearanceSection = initializeAppearanceSection;
