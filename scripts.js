@@ -1,19 +1,16 @@
-// scripts.js - VERSÃO COMPLETA COM LÓGICA DO PWA E CARROSSEL AUTOMÁTICO
+// scripts.js - VERSÃO COM LÓGICA DO CARROSSEL SEPARADA EM UMA FUNÇÃO
 
+// A lógica do PWA e do Pop-up continuam dentro do DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
-
     // ======================================================================
     // LÓGICA PARA O BOTÃO DE INSTALAÇÃO DO PWA
     // ======================================================================
-    let deferredPrompt; // Variável para guardar o evento de instalação
+    let deferredPrompt;
     const installButton = document.getElementById('install-pwa-button');
 
     window.addEventListener('beforeinstallprompt', (e) => {
-        // Impede que o mini-infobar padrão do Chrome apareça
         e.preventDefault();
-        // Guarda o evento para que possa ser acionado mais tarde.
         deferredPrompt = e;
-        // Mostra o nosso botão de instalação customizado
         if (installButton) {
             installButton.style.display = 'flex';
         }
@@ -21,39 +18,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (installButton) {
         installButton.addEventListener('click', async () => {
-            if (!deferredPrompt) {
-                // Se o deferredPrompt não estiver disponível, não faz nada.
-                return;
-            }
-            // Mostra o prompt de instalação do navegador
+            if (!deferredPrompt) return;
             deferredPrompt.prompt();
-            // Espera o usuário responder ao prompt
             const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response to the install prompt: ${outcome}`);
-            
             if (outcome === 'accepted') {
                 console.log('Usuário aceitou a instalação!');
-            } else {
-                console.log('Usuário recusou a instalação.');
             }
-            
-            // O prompt só pode ser usado uma vez. Limpamos a variável.
             deferredPrompt = null;
-            // Esconde o botão após o uso
             installButton.style.display = 'none';
         });
     }
 
-    // Ouve o evento 'appinstalled' para saber quando o PWA foi instalado
     window.addEventListener('appinstalled', (evt) => {
-        console.log('PWA foi instalado com sucesso!');
-        // Esconde o botão de instalação permanentemente
         if (installButton) {
             installButton.style.display = 'none';
         }
         deferredPrompt = null;
     });
-
 
     // ======================================================================
     // LÓGICA PARA O MODAL POP-UP DE PROMOÇÃO
@@ -61,85 +42,78 @@ document.addEventListener('DOMContentLoaded', () => {
     const promoModal = document.getElementById('promo-popup-modal');
     const closePromoButton = document.getElementById('close-promo-popup');
 
-    const openPromoModal = () => {
-        if (promoModal) {
-            promoModal.style.display = 'flex';
-        }
-    };
+    const openPromoModal = () => { if (promoModal) promoModal.style.display = 'flex'; };
+    const closePromoModal = () => { if (promoModal) promoModal.style.display = 'none'; };
 
-    const closePromoModal = () => {
-        if (promoModal) {
-            promoModal.style.display = 'none';
-        }
-    };
-
-    // Mostra o pop-up de promoção apenas uma vez por sessão
     if (!sessionStorage.getItem('promoShown')) {
         setTimeout(openPromoModal, 2000);
         sessionStorage.setItem('promoShown', 'true');
     }
 
-    if (closePromoButton) {
-        closePromoButton.addEventListener('click', closePromoModal);
-    }
-    if (promoModal) {
-        promoModal.addEventListener('click', (event) => {
-            if (event.target === promoModal) {
-                closePromoModal();
-            }
-        });
-    }
-
-    // ======================================================================
-    // LÓGICA PARA O CARROSSEL DE VÍDEOS AUTOMÁTICO
-    // ======================================================================
-    const carouselContainer = document.getElementById('video-carousel-container');
-    if (carouselContainer) { // Só executa se o carrossel existir na página
-        const slides = carouselContainer.querySelectorAll('.video-slide');
-        const dotsContainer = carouselContainer.querySelector('.carousel-dots');
-        
-        if (slides.length > 1) { // Só ativa a lógica se houver mais de um vídeo
-            let currentSlide = 0;
-            let slideInterval;
-
-            // Cria os "dots" (indicadores)
-            slides.forEach((slide, index) => {
-                const dot = document.createElement('button');
-                dot.classList.add('dot');
-                dot.addEventListener('click', () => {
-                    setSlide(index);
-                    resetInterval();
-                });
-                dotsContainer.appendChild(dot);
-            });
-
-            const dots = dotsContainer.querySelectorAll('.dot');
-
-            function setSlide(index) {
-                slides.forEach(slide => slide.classList.remove('active'));
-                dots.forEach(dot => dot.classList.remove('active'));
-
-                slides[index].classList.add('active');
-                dots[index].classList.add('active');
-                currentSlide = index;
-            }
-
-            function nextSlide() {
-                let newIndex = currentSlide + 1;
-                if (newIndex >= slides.length) {
-                    newIndex = 0; // Volta para o primeiro
-                }
-                setSlide(newIndex);
-            }
-
-            function resetInterval() {
-                clearInterval(slideInterval);
-                slideInterval = setInterval(nextSlide, 7000); // Troca de vídeo a cada 7 segundos
-            }
-
-            // Inicia o carrossel
-            setSlide(0);
-            resetInterval();
-        }
-    }
+    if (closePromoButton) closePromoButton.addEventListener('click', closePromoModal);
+    if (promoModal) promoModal.addEventListener('click', (event) => {
+        if (event.target === promoModal) closePromoModal();
+    });
 });
+
+// ======================================================================
+// NOVA FUNÇÃO GLOBAL PARA INICIAR O CARROSSEL
+// ======================================================================
+function initializeCarousel() {
+    const carouselContainer = document.getElementById('video-carousel-container');
+    if (!carouselContainer) return;
+
+    const slides = carouselContainer.querySelectorAll('.video-slide');
+    const dotsContainer = carouselContainer.querySelector('.carousel-dots');
+
+    if (slides.length <= 1) { // Se tiver 1 vídeo, mostra mas não anima
+        if(slides.length === 1) slides[0].classList.add('active');
+        dotsContainer.style.display = 'none';
+        return;
+    };
+
+    let currentSlide = 0;
+    let slideInterval;
+
+    // Limpa e cria os "dots" (indicadores)
+    dotsContainer.innerHTML = '';
+    slides.forEach((slide, index) => {
+        const dot = document.createElement('button');
+        dot.classList.add('dot');
+        dot.addEventListener('click', () => {
+            setSlide(index);
+            resetInterval();
+        });
+        dotsContainer.appendChild(dot);
+    });
+
+    const dots = dotsContainer.querySelectorAll('.dot');
+
+    function setSlide(index) {
+        slides.forEach(slide => slide.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+
+        slides[index].classList.add('active');
+        dots[index].classList.add('active');
+        currentSlide = index;
+    }
+
+    function nextSlide() {
+        let newIndex = currentSlide + 1;
+        if (newIndex >= slides.length) {
+            newIndex = 0;
+        }
+        setSlide(newIndex);
+    }
+
+    function resetInterval() {
+        clearInterval(slideInterval);
+        slideInterval = setInterval(nextSlide, 7000); // Troca de vídeo a cada 7 segundos
+    }
+
+    setSlide(0);
+    resetInterval();
+}
+
+// Deixa a função acessível para ser chamada por outros arquivos
+window.initializeCarousel = initializeCarousel;
