@@ -36,10 +36,10 @@ document.addEventListener('DOMContentLoaded', () => {
         deferredPrompt = null;
     });
 
-   /* // ======================================================================
+    // ======================================================================
     // LÓGICA PARA O MODAL POP-UP DE PROMOÇÃO
     // ======================================================================
-    const promoModal = document.getElementById('promo-popup-modal');
+   /* const promoModal = document.getElementById('promo-popup-modal');
     const closePromoButton = document.getElementById('close-promo-popup');
 
     const openPromoModal = () => { if (promoModal) promoModal.style.display = 'flex'; };
@@ -53,8 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closePromoButton) closePromoButton.addEventListener('click', closePromoModal);
     if (promoModal) promoModal.addEventListener('click', (event) => {
         if (event.target === promoModal) closePromoModal();
-    });
-}); */
+    });*/
+}); 
 
 // ======================================================================
 // NOVA FUNÇÃO GLOBAL PARA INICIAR O CARROSSEL
