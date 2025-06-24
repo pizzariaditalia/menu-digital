@@ -35,7 +35,7 @@ async function getAndSaveToken() {
   const db = window.db;
 
   try {
-    const vapidKey = 'BEu5mwSdY7ci-Tl8lUJcrq12Ct1w62_2ywucGfPq0FanERTxEUk7wB9PK37dxxles-9jpbN2nsrv3S2xnzelqYU'; // VOLTE NO PASSO 1.1 E PEGUE SUA CHAVE GERADA!
+    const vapidKey = 'BEu5mwSdY7ci-Tl8lUJcrq12Ct1w62_2ywucGfPq0FanERTxEUk7wB9PK37dxxles-9jpbN2nsrv3S2xnzelqYU';
     const fcmToken = await getToken(messagingInstance, {
       vapidKey: vapidKey
     });
