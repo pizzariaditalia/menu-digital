@@ -145,7 +145,7 @@ function initializeDynamicCarousel() {
 
 function initializeSiteLogic() {
     if (window.appSettings?.appearance) applyCustomAppearance(window.appSettings.appearance);
-
+    
     initializeDynamicCarousel();
     renderPromotions();
     generateCategoryUI();
@@ -154,7 +154,7 @@ function initializeSiteLogic() {
     const restaurantStatusDiv = document.querySelector('.status');
     const daysOfWeek = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
     const formatPrice = (price) => price != null ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '';
-
+    
     function findItemAcrossCategories(itemId) {
         for (const key in window.menuData) {
             if(Object.prototype.hasOwnProperty.call(window.menuData, key)) {
@@ -168,7 +168,7 @@ function initializeSiteLogic() {
     function createPromoCardHTML(promo) {
         const imagePath = (promo.image || 'img/placeholder.png').replace('../', '');
         const discountPercentage = Math.round(((promo.originalPrice - promo.newPrice) / promo.originalPrice) * 100);
-        return `<div class="promo-card-horizontal" data-item-id="<span class="math-inline">\{promo\.itemId\}"\></span>{discountPercentage > 0 ? `<div class="promo-discount-tag">-${discountPercentage}%</div>` : ''}<img src="<span class="math-inline">\{imagePath\}" alt\="</span>{promo.name}" class="promo-card-image" onerror="this.onerror=null;this.src='img/placeholder.png';"><div class="promo-card-details"><h4><span class="math-inline">\{promo\.name\}</h4\><p class\="promo\-card\-description"\></span>{promo.description || ''}</p><div class="promo-card-pricing"><span class="promo-price"><span class="math-inline">\{formatPrice\(promo\.newPrice\)\}</span\><span class\="original\-price\-text"\></span>{formatPrice(promo.originalPrice)}</span></div></div></div>`;
+        return `<div class="promo-card-horizontal" data-item-id="${promo.itemId}">${discountPercentage > 0 ? `<div class="promo-discount-tag">-${discountPercentage}%</div>` : ''}<img src="${imagePath}" alt="${promo.name}" class="promo-card-image" onerror="this.onerror=null;this.src='img/placeholder.png';"><div class="promo-card-details"><h4>${promo.name}</h4><p class="promo-card-description">${promo.description || ''}</p><div class="promo-card-pricing"><span class="promo-price">${formatPrice(promo.newPrice)}</span><span class="original-price-text">${formatPrice(promo.originalPrice)}</span></div></div></div>`;
     }
 
     function renderPromotions() {
@@ -200,9 +200,9 @@ function initializeSiteLogic() {
     }
 
     function createMenuItemHTML(item) {
-        let priceHTML = item.originalPrice ? `<p class="item-description">De: <span class="original-price-text"><span class="math-inline">\{formatPrice\(item\.originalPrice\)\}</span\></p\><p class\="promo\-price"\></span>{formatPrice(item.price)}</p>` : `<p class="item-price">${formatPrice(item.price)}</p>`;
+        let priceHTML = item.originalPrice ? `<p class="item-description">De: <span class="original-price-text">${formatPrice(item.originalPrice)}</span></p><p class="promo-price">${formatPrice(item.price)}</p>` : `<p class="item-price">${formatPrice(item.price)}</p>`;
         const imagePath = (item.image || 'img/placeholder.png').replace('../', '');
-        return `<div class="menu-item" data-item-id="<span class="math-inline">\{item\.id\}" data\-category\="</span>{item.category || ''}"><img src="<span class="math-inline">\{imagePath\}" alt\="</span>{item.name}" class="item-image"><div class="item-details"><h4><span class="math-inline">\{item\.name\}</h4\><p class\="item\-description"\></span>{item.description || ''}</p><span class="math-inline">\{priceHTML\}</div\><button class\="add\-to\-cart\-button" data\-item\-id\="</span>{item.id}" data-category="${item.category || ''}">+</button></div>`;
+        return `<div class="menu-item" data-item-id="${item.id}" data-category="${item.category || ''}"><img src="${imagePath}" alt="${item.name}" class="item-image"><div class="item-details"><h4>${item.name}</h4><p class="item-description">${item.description || ''}</p>${priceHTML}</div><button class="add-to-cart-button" data-item-id="${item.id}" data-category="${item.category || ''}">+</button></div>`;
     }
 
     function renderCategory(categoryName) {
@@ -285,7 +285,7 @@ function initializeSiteLogic() {
     function renderCouponsInModal() {
         const listContainer = document.getElementById('coupons-list');
         if (!listContainer) return;
-        listContainer.innerHTML = window.activeCoupons.map(coupon => `<div class="coupon-card"><div class="coupon-info"><div class="coupon-header"><span class="math-inline">\{coupon\.description\}</div\><div class\="coupon\-code"\>Código\: <strong\></span>{coupon.code}</strong></div></div><div class="coupon-actions"><button class="btn-apply-coupon" data-coupon-code="${coupon.code}">Aplicar</button></div></div>`).join('');
+        listContainer.innerHTML = window.activeCoupons.map(coupon => `<div class="coupon-card"><div class="coupon-info"><div class="coupon-header">${coupon.description}</div><div class="coupon-code">Código: <strong>${coupon.code}</strong></div></div><div class="coupon-actions"><button class="btn-apply-coupon" data-coupon-code="${coupon.code}">Aplicar</button></div></div>`).join('');
         listContainer.querySelectorAll('.btn-apply-coupon').forEach(button => {
             button.addEventListener('click', async (e) => {
                 const result = await window.validateAndApplyCoupon(e.target.dataset.couponCode);
