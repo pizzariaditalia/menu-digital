@@ -1,4 +1,4 @@
-// pedidos.js - VERSÃO COM MENSAGEM PARA MOTOBOY APRIMORADA
+// pedidos.js - VERSÃO COMPLETA E ATUALIZADA
 
 // --- Variáveis de estado do módulo ---
 let ordersSectionInitialized = false;
@@ -10,8 +10,6 @@ let activeTypeFilter = 'todos';
 // ======================================================================
 // FUNÇÃO ATUALIZADA
 // ======================================================================
-// Substitua a função inteira em pedidos.js por esta versão
-
 function handleSendWppToDeliveryPerson(orderId) {
   const order = allOrders.find(o => o.id === orderId);
   const deliveryPersonSelect = document.getElementById('modal-delivery-person-select');
@@ -34,9 +32,8 @@ function handleSendWppToDeliveryPerson(orderId) {
   const customerWhatsapp = order.customer.whatsapp.replace(/\D/g, '');
   const customerWhatsappLink = `https://wa.me/55${customerWhatsapp}`;
 
-  // CORREÇÃO APLICADA AQUI
   const fullAddressForMap = `${order.delivery.street}, ${order.delivery.number}, ${order.delivery.neighborhood}, Caçapava, SP`;
-  const googleMapsLink = `https://maps.google.com/?q=${encodeURIComponent(fullAddressForMap)}`;
+  const googleMapsLink = `https://maps.google.com/maps?q=${encodeURIComponent(fullAddressForMap)}`;
 
   let message = `*Nova Entrega D'Italia Pizzaria*\n\n` +
       `*Cliente:* ${customerName}\n` +
@@ -82,8 +79,18 @@ function openOrderDetailsModal(order) {
   modalTitle.innerHTML = `<i class="fas fa-receipt"></i> Pedido #${order.id.substring(0, 6).toUpperCase()}`;
   let modalBodyHTML = '';
   modalBodyHTML += `<h4 class="modal-section-title"><i class="fas fa-user"></i> Cliente</h4><div class="detail-grid"><div class="detail-item full-width"><strong>Nome</strong><span>${`${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Não informado'}</span></div><div class="detail-item full-width"><strong>WhatsApp</strong><span>${customer.whatsapp || 'Não informado'}</span></div></div>`;
-  const itemsHTML = items.length > 0 ? `<ul>${items.map(item => `<li><span class="item-quantity">${item.quantity}x</span><div class="item-info"><span class="item-name">${item.name}</span>${item.notes ? `<span class="item-notes">Obs: ${item.notes}</span>`: ''}</div><span class="item-price">${formatPrice((item.unitPrice || 0) * item.quantity)}</span></li>`).join('')}</ul>`: '<p>Nenhum item encontrado.</p>';
+  
+  // CORREÇÃO DO CALZONE APLICADA AQUI
+  const itemsHTML = items.length > 0 ? `<ul>${items.map(item => {
+      let itemName = item.name;
+      if (item.category && item.category.includes('calzones')) {
+          itemName += ' (Calzone)';
+      }
+      return `<li><span class="item-quantity">${item.quantity}x</span><div class="item-info"><span class="item-name">${itemName}</span>${item.notes ? `<span class="item-notes">Obs: ${item.notes}</span>`: ''}</div><span class="item-price">${formatPrice((item.unitPrice || 0) * item.quantity)}</span></li>`;
+  }).join('')}</ul>`: '<p>Nenhum item encontrado.</p>';
+  
   modalBodyHTML += `<h4 class="modal-section-title"><i class="fas fa-shopping-basket"></i> Itens do Pedido</h4>${itemsHTML}`;
+  
   if (order.notes) {
     modalBodyHTML += `<h4 class="modal-section-title"><i class="fas fa-comment-alt"></i> Observações</h4><div class="detail-item full-width notes-section"><span>${order.notes}</span></div>`;
   }
