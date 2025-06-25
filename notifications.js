@@ -31,7 +31,7 @@ async function getAndSaveToken() {
     const db = window.db;
 
     try {
-        const vapidKey = 'BEu5mwsdY7ci-Tl8lUJcrq12cTlW62-2ywucGfPq0FAnERTxEUkvWBdPKG7daXles-9jpbNZnsrX5ZxnZelgVU';
+        const vapidKey = 'BEu5mwSdY7ci-Tl8lUJcrq12Ct1w62_2ywucGfPq0FanERTxEUk7wB9PK37dxxles-9jpbN2nsrv3S2xnzelqYU';
         console.log("PASSO 3: Usando Vapid Key: ", vapidKey);
         
         console.log("PASSO 4: Aguardando o Service Worker ficar pronto (navigator.serviceWorker.ready)...");
