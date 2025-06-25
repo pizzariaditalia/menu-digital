@@ -1,4 +1,4 @@
-// DENTRO DE sw.js (VERSÃO UNIFICADA)
+// DENTRO DE sw.js (VERSÃO UNIFICADA DE DEPURAÇÃO)
 
 // Importando as bibliotecas do Firebase no início do arquivo
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
@@ -14,6 +14,9 @@ const firebaseConfig = {
     appId: "1:122567535166:web:19de7b8925042027063f6f",
     measurementId: "G-5QW3MVGYME"
 };
+
+// LOG DE DEPURAÇÃO ADICIONADO AQUI
+console.log("[sw.js] Service Worker está sendo inicializado com a seguinte configuração:", firebaseConfig);
 
 // Inicializa o Firebase
 firebase.initializeApp(firebaseConfig);
@@ -35,7 +38,7 @@ messaging.onBackgroundMessage(function(payload) {
 
 // --- A PARTIR DAQUI, SEU CÓDIGO DE CACHE ORIGINAL ---
 
-const CACHE_NAME = 'ditalia-pizzaria-cache-v101'; // Mudei a versão para forçar a atualização
+const CACHE_NAME = 'ditalia-pizzaria-cache-v72'; // Versão do cache atualizada
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
@@ -46,7 +49,7 @@ const URLS_TO_CACHE = [
   '/productModal.js',
   '/checkout.js',
   '/loyalty.js',
-  '/notifications.js', // Adicionei o novo script ao cache
+  '/notifications.js',
   '/pixPayment.js',
   '/img/logos/logo.png',
   '/img/icons/icon-192x192.png',
@@ -54,10 +57,11 @@ const URLS_TO_CACHE = [
 ];
 
 self.addEventListener('install', (event) => {
+  console.log('[sw.js] Evento de instalação disparado.');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Cache aberto');
+        console.log('[sw.js] Cache aberto, adicionando URLs ao cache.');
         return cache.addAll(URLS_TO_CACHE);
       })
   );
@@ -76,12 +80,14 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
+  console.log('[sw.js] Evento de ativação disparado.');
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('[sw.js] Deletando cache antigo:', cacheName);
             return caches.delete(cacheName);
           }
         })
