@@ -1,4 +1,4 @@
-// loyalty.js - VERSÃO COMPLETA COM BOTÃO DE NOTIFICAÇÃO
+// loyalty.js - VERSÃO COMPLETA E ATUALIZADA
 
 // =========================================================================
 // CONSTANTES E FUNÇÕES GLOBAIS DO MÓDULO
@@ -238,17 +238,17 @@ document.addEventListener('DOMContentLoaded', () => {
             ).join('');
 
             loyaltyResultsArea.innerHTML = `
-                <p style="margin-bottom: 20px;">Olá, <strong>${window.currentCustomerDetails.firstName}</strong>!</p>
+                <p style="margin-bottom: 10px;">Olá, <strong>${window.currentCustomerDetails.firstName}</strong>!</p>
+                
+                <div id="notification-button-area" style="text-align:center; margin-bottom: 25px;">
+                    <p style="font-size:0.9em; margin-bottom:10px; margin-top:0;">Quer receber promoções exclusivas e saber o status do seu pedido?</p>
+                    <button id="enable-notifications-button" class="add-to-cart-button-modal" style="width:auto; padding: 10px 20px;">Ativar Notificações</button>
+                </div>
+
                 <div class="points-display-banner">
                     <p class="points-banner-text">Você tem</p>
                     <span class="points-banner-value">${window.currentCustomerDetails.points || 0}</span>
                     <p class="points-banner-label">pontos</p>
-                </div>
-                
-                <hr style="margin: 25px 0;">
-                <div id="notification-button-area" style="text-align:center;">
-                    <p style="font-size:0.9em; margin-bottom:10px;">Quer receber promoções exclusivas e saber o status do seu pedido?</p>
-                    <button id="enable-notifications-button" class="add-to-cart-button-modal" style="width:auto; padding: 10px 20px;">Ativar Notificações</button>
                 </div>
 
                 <div class="loyalty-rules-section" style="margin-top: 25px; text-align: left;">
@@ -266,7 +266,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const enableNotificationsButton = document.getElementById('enable-notifications-button');
             if (enableNotificationsButton) {
-                enableNotificationsButton.addEventListener('click', requestNotificationPermission);
+                // Verifica se o usuário já tem tokens de notificação para não mostrar o botão novamente
+                if (window.currentCustomerDetails.notificationTokens && window.currentCustomerDetails.notificationTokens.length > 0) {
+                    document.getElementById('notification-button-area').innerHTML = '<p style="color:var(--green-status); font-weight:bold;">Notificações ativadas!</p>';
+                } else {
+                    enableNotificationsButton.addEventListener('click', requestNotificationPermission);
+                }
             }
             
         } else {
