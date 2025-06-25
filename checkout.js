@@ -1,4 +1,4 @@
-// checkout.js - VERSÃO FINAL COM TODOS OS PRÊMIOS DA ROLETA
+// checkout.js - VERSÃO COMPLETA E ATUALIZADA
 
 async function saveOrderToFirestore(orderData) {
     if (!window.db || !window.firebaseFirestore) {
@@ -235,15 +235,31 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let summaryHtml = '<ul>';
         cartItems.forEach(item => {
-            summaryHtml += `<li>${item.quantity}x ${item.name}`;
+            // CORREÇÃO DO CALZONE APLICADA AQUI
+            let itemName = item.name;
+            if (item.category && item.category.includes('calzones')) {
+                itemName += ' (Calzone)';
+            }
+            summaryHtml += `<li>${item.quantity}x ${itemName}`;
+            
             let details = [];
-            if (item.selectedSize && item.selectedSize !== 'único' && item.selectedSize !== 'inteira') details.push(`Tamanho: ${item.selectedSize === 'metade' ? 'Metade/Metade' : item.selectedSize}`);
-            if (item.stuffedCrust) details.push(`Borda: ${item.stuffedCrust.typeName}${item.stuffedCrust.filling ? ' (' + item.stuffedCrust.filling + ')' : ''}`);
-            if (details.length > 0) summaryHtml += ` (${details.join(', ')})`;
+            if (item.selectedSize && item.selectedSize !== 'único' && item.selectedSize !== 'inteira') {
+                details.push(`Tamanho: ${item.selectedSize === 'metade' ? 'Metade/Metade' : item.selectedSize}`);
+            }
+            // CORREÇÃO DA BORDA APLICADA AQUI
+            if (item.stuffedCrust && item.stuffedCrust.name) {
+                details.push(`Borda: ${item.stuffedCrust.name}`);
+            }
+            if (details.length > 0) {
+                summaryHtml += ` (${details.join(', ')})`;
+            }
             summaryHtml += ` - ${formatPriceLocal(item.unitPrice * item.quantity)}</li>`;
-            if (item.notes) summaryHtml += `<li style="font-size:0.85em; padding-left:15px; color:#777;"><em>Obs: ${item.notes}</em></li>`;
+            if (item.notes) {
+                summaryHtml += `<li style="font-size:0.85em; padding-left:15px; color:#777;"><em>Obs: ${item.notes}</em></li>`;
+            }
         });
         summaryHtml += '</ul>';
+
         if (checkoutOrderSummaryDiv) checkoutOrderSummaryDiv.innerHTML = summaryHtml;
         
         if (checkoutNeighborhoodSelect) {
