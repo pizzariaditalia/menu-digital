@@ -1,9 +1,10 @@
-// DENTRO DE firebase-messaging-sw.js (ARQUIVO NOVO)
+// DENTRO DE firebase-messaging-sw.js (NOVA VERSÃO MODULAR)
 
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+// Importando as bibliotecas modulares (v9+), igual ao seu index.html
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getMessaging, onBackgroundMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-sw.js";
 
-// Sua configuração do Firebase (copie do index.html)
+// Cole aqui o seu objeto firebaseConfig, garantindo que seja IDÊNTICO ao do seu index.html
 const firebaseConfig = {
     apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
     authDomain: "app-ditalia.firebaseapp.com",
@@ -14,19 +15,19 @@ const firebaseConfig = {
     measurementId: "G-5QW3MVGYME"
 };
 
-firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app);
 
-const messaging = firebase.messaging();
+onBackgroundMessage(messaging, (payload) => {
+  console.log(
+    "[firebase-messaging-sw.js] Received background message ",
+    payload
+  );
 
-// Este código opcional é para quando a notificação chega com o site aberto
-messaging.onBackgroundMessage(function(payload) {
-  console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: '/img/icons/icon-192x192.png' // Ícone padrão
+    icon: "/img/icons/icon-192x192.png",
   };
-
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
