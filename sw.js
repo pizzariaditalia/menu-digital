@@ -1,10 +1,8 @@
-// DENTRO DE sw.js (VERSÃO UNIFICADA DE DEPURAÇÃO)
+// DENTRO DE sw.js (VERSÃO FINAL CORRIGIDA)
 
-// Importando as bibliotecas do Firebase no início do arquivo
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
 
-// Sua configuração do Firebase (a mesma do seu index.html)
 const firebaseConfig = {
     apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
     authDomain: "app-ditalia.firebaseapp.com",
@@ -15,30 +13,22 @@ const firebaseConfig = {
     measurementId: "G-5QW3MVGYME"
 };
 
-// LOG DE DEPURAÇÃO ADICIONADO AQUI
 console.log("[sw.js] Service Worker está sendo inicializado com a seguinte configuração:", firebaseConfig);
 
-// Inicializa o Firebase
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
-// Lógica para receber a notificação em segundo plano
 messaging.onBackgroundMessage(function(payload) {
   console.log('[sw.js] Received background message ', payload);
-  
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: '/img/icons/icon-192x192.png'
+    icon: '/img/icons/icon.png' // Corrigido para corresponder ao que será cacheado
   };
-
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-
-// --- A PARTIR DAQUI, SEU CÓDIGO DE CACHE ORIGINAL ---
-
-const CACHE_NAME = 'ditalia-pizzaria-cache-v72'; // Versão do cache atualizada
+const CACHE_NAME = 'ditalia-pizzaria-cache-v73'; // Mudei a versão mais uma vez
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
@@ -52,17 +42,19 @@ const URLS_TO_CACHE = [
   '/notifications.js',
   '/pixPayment.js',
   '/img/logos/logo.png',
-  '/img/icons/icon-192x192.png',
-  '/img/icons/icon-512x512.png'
+  '/img/icons/icon.png' // <<< CORREÇÃO APLICADA AQUI
 ];
 
 self.addEventListener('install', (event) => {
-  console.log('[sw.js] Evento de instalação disparado.');
+  console.log('[sw.js] Evento de instalação disparado (v73).');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('[sw.js] Cache aberto, adicionando URLs ao cache.');
         return cache.addAll(URLS_TO_CACHE);
+      })
+      .catch((error) => {
+        console.error('[sw.js] Falha ao adicionar arquivos ao cache durante a instalação:', error);
       })
   );
 });
@@ -80,7 +72,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('[sw.js] Evento de ativação disparado.');
+  console.log('[sw.js] Evento de ativação disparado (v73).');
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
