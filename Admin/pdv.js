@@ -456,7 +456,14 @@ function addItemToPdvCart(itemData) {
 function renderPdvCart() {
   const cartItemsContainer = document.getElementById('pdv-cart-items');
   if (cartItemsContainer) {
-    cartItemsContainer.innerHTML = (!currentPdvOrder.items || currentPdvOrder.items.length === 0) ? `<p class="empty-cart-text">Adicione produtos ao pedido</p>`: currentPdvOrder.items.map((item, index) => `<div class="pdv-cart-item"><div><span class="quantity">${item.quantity}x</span> ${item.name}</div><div class="cart-item-actions"><span>R$ ${item.price.toFixed(2).replace('.', ',')}</span><button class="btn btn-sm btn-danger remove-item-btn" data-index="${index}">&times;</button></div></div>`).join('');
+   // LINHA CORRIGIDA
+cartItemsContainer.innerHTML = (!currentPdvOrder.items || currentPdvOrder.items.length === 0) ? `<p class="empty-cart-text">Adicione produtos ao pedido</p>`: currentPdvOrder.items.map((item, index) => {
+    let itemName = item.name;
+    if (item.category && item.category.includes('calzones')) {
+        itemName += ' (Calzone)';
+    }
+    return `<div class="pdv-cart-item"><div><span class="quantity">${item.quantity}x</span> ${itemName}</div><div class="cart-item-actions"><span>R$ ${item.price.toFixed(2).replace('.', ',')}</span><button class="btn btn-sm btn-danger remove-item-btn" data-index="${index}">×</button></div></div>`;
+}).join('');
   }
   cartItemsContainer.querySelectorAll('.remove-item-btn').forEach(btn => btn.addEventListener('click', (e) => removeItemFromPdvCart(parseInt(e.target.dataset.index))));
 }
