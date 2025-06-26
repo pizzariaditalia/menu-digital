@@ -451,97 +451,43 @@ Gire uma vez por semana e ganhe prêmios!
 <script src="./libs/Winwheel.min.js"></script>
 
 <script type="module">
-// Importando módulos do App, Firestore E AGORA O DE AUTENTICAÇÃO COM GOOGLE
-import {
-initializeApp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-getFirestore,
-doc,
-getDoc,
-getDocs,
-setDoc,
-updateDoc,
-collection,
-query,
-where,
-orderBy,
-onSnapshot,
-deleteDoc,
-writeBatch,
-serverTimestamp,
-Timestamp,
-limit,
-arrayUnion
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-// *** ALTERADO PARA INCLUIR FUNÇÕES DO GOOGLE AUTH ***
-import {
-getAuth,
-GoogleAuthProvider,
-signInWithPopup
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    // Importando módulos do App, Firestore e Autenticação
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-import {
-getMessaging,
-getToken,
-onMessage
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+    // ADICIONAMOS 'increment' AQUI NA LISTA DE IMPORTS
+    import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// Sua configuração do Firebase (não muda)
-const firebaseConfig = {
-apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
-authDomain: "app-ditalia.firebaseapp.com",
-projectId: "app-ditalia",
-storageBucket: "app-ditalia.firebasestorage.app",
-messagingSenderId: "122567535166",
-appId: "1:122567535166:web:19de7b8925042027063f6f",
-measurementId: "G-5QW3MVGYME"
-};
+    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
-// Inicialização do App, Firestore e Auth
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+    // Sua configuração do Firebase (não muda)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
+      authDomain: "app-ditalia.firebaseapp.com",
+      projectId: "app-ditalia",
+      storageBucket: "app-ditalia.firebasestorage.app",
+      messagingSenderId: "122567535166",
+      appId: "1:122567535166:web:19de7b8925042027063f6f",
+      measurementId: "G-5QW3MVGYME"
+    };
 
-const messaging = getMessaging(app);
+    // Inicialização
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app); 
+    const messaging = getMessaging(app);
 
-// Disponibiliza TUDO globalmente para os outros scripts poderem usar
-window.firebaseApp = app;
-window.db = db;
-window.firebaseFirestore = {
-doc,
-getDoc,
-getDocs,
-setDoc,
-updateDoc,
-collection,
-query,
-where,
-orderBy,
-onSnapshot,
-deleteDoc,
-writeBatch,
-serverTimestamp,
-Timestamp,
-limit,
-arrayUnion
-};
+    // Disponibiliza TUDO globalmente para os outros scripts poderem usar
+    window.firebaseApp = app;
+    window.db = db;
 
-// *** ALTERADO PARA DISPONIBILIZAR AS FUNÇÕES DE AUTENTICAÇÃO DO GOOGLE ***
-window.firebaseAuth = {
-getAuth,
-GoogleAuthProvider,
-signInWithPopup
-};
+    // E ADICIONAMOS 'increment' AQUI NO OBJETO GLOBAL
+    window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, increment };
 
-window.firebaseMessaging = {
-getMessaging,
-getToken,
-onMessage,
-messagingInstance: messaging
-}; // Disponibiliza globalmente
+    window.firebaseAuth = { getAuth, GoogleAuthProvider, signInWithPopup }; 
+    window.firebaseMessaging = { getMessaging, getToken, onMessage, messagingInstance: messaging };
 
-console.log("Firebase (modular), Firestore e Auth (Google) inicializados para o Site Principal!");
+    console.log("Firebase (modular), Firestore, Auth e Messaging inicializados para o Site Principal!");
 </script>
 
 <script src="menu.js" defer></script>
