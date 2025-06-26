@@ -106,10 +106,7 @@ function applyCustomAppearance(appearanceSettings) {
 // ======================================================================
 // LÓGICA DE CARREGAMENTO DE DADOS DO FIRESTORE
 // ======================================================================
-async function loadDataFromFirestore() {
-  // LINHA ADICIONADA: Chama a função para registrar a visita
-  logPageView();
-  
+async function loadDataFromFirestore() { 
   const loadingIndicator = document.getElementById('loading-indicator');
   if (loadingIndicator) loadingIndicator.style.display = 'block';
 
@@ -118,6 +115,9 @@ async function loadDataFromFirestore() {
     if (loadingIndicator) loadingIndicator.textContent = 'Erro de conexão.';
     return;
   }
+
+  // LINHA ADICIONADA: Chama a função para registrar a visita
+  logPageView();
 
   const {
     doc,
