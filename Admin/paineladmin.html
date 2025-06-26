@@ -913,11 +913,13 @@
     </main>
   </div>
 
-  <script type="module">
-    // Importando módulos do App, Firestore e AGORA o de Autenticação com signOut
+ <script type="module">
+    // Importando módulos do App, Firestore e Autenticação
     import {
       initializeApp
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    
+    // CORREÇÃO: Adicionamos 'documentId' à lista de imports
     import {
       getFirestore,
       doc,
@@ -933,8 +935,10 @@
       deleteDoc,
       writeBatch,
       serverTimestamp,
-      Timestamp
+      Timestamp,
+      documentId 
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
     import {
       getAuth,
       onAuthStateChanged,
@@ -966,6 +970,8 @@
         // Disponibiliza as funções do Firestore globalmente para os outros scripts
         window.firebaseApp = app;
         window.db = db;
+        
+        // CORREÇÃO: Adicionamos 'documentId' ao objeto global
         window.firebaseFirestore = {
           doc,
           getDoc,
@@ -980,7 +986,8 @@
           deleteDoc,
           writeBatch,
           serverTimestamp,
-          Timestamp
+          Timestamp,
+          documentId
         };
 
         // Chama a função principal do admin.js para iniciar o painel
@@ -990,9 +997,7 @@
           console.error("ERRO GRAVE: A função startAdminPanel() do admin.js não foi encontrada.");
         }
 
-        // =======================================================
-        // NOVO: LÓGICA DO BOTÃO DE LOGOUT
-        // =======================================================
+        // LÓGICA DO BOTÃO DE LOGOUT
         const logoutButton = document.getElementById('logout-button');
         if (logoutButton) {
           logoutButton.addEventListener('click', (e) => {
@@ -1009,17 +1014,13 @@
             });
           });
         }
-        // =======================================================
-        // FIM DA LÓGICA DE LOGOUT
-        // =======================================================
-
       } else {
         // O usuário NÃO está logado! Redireciona para a página de login.
         console.log("Nenhum usuário autenticado. Redirecionando para /login.html");
         window.location.href = 'login.html';
       }
     });
-  </script>
+</script>
   
   <script src="appearance.js" defer></script>
   <script src="config.js" defer></script>
