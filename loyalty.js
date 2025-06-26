@@ -1,4 +1,4 @@
-// loyalty.js - VERSÃO COM STATUS DO PEDIDO COLORIDO
+// loyalty.js - VERSÃO COM BOTÃO DE NOTIFICAÇÃO CORRETAMENTE DESATIVADO
 
 // =========================================================================
 // CONSTANTES E FUNÇÕES GLOBAIS DO MÓDULO
@@ -246,6 +246,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     
     function renderLoyaltyModalContent() {
+        // Flag para controlar a visibilidade da funcionalidade de notificação
+        const showNotificationFeature = false; // Mude para 'true' para reativar no futuro
+
         const googleLoginSection = document.getElementById('google-login-section');
         const loyaltyResultsArea = document.getElementById('loyalty-results-area');
 
@@ -262,12 +265,12 @@ document.addEventListener('DOMContentLoaded', () => {
             loyaltyResultsArea.innerHTML = `
                 <p style="margin-bottom: 10px;">Olá, <strong>${window.currentCustomerDetails.firstName}</strong>!</p>
                 
-                /* --- BOTÃO DE NOTIFICAÇÃO TEMPORARIAMENTE DESATIVADO ---
+                ${showNotificationFeature ? `
                 <div id="notification-button-area" style="text-align:center; margin-bottom: 25px;">
                     <p style="font-size:0.9em; margin-bottom:10px; margin-top:0;">Quer receber promoções exclusivas e saber o status do seu pedido?</p>
                     <button id="enable-notifications-button" class="add-to-cart-button-modal" style="width:auto; padding: 10px 20px;">Ativar Notificações</button>
                 </div>
-                */
+                ` : ''}
 
                 <div class="points-display-banner">
                     <p class="points-banner-text">Você tem</p>
@@ -288,16 +291,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button id="logout-button" class="button-link-style" style="margin-top: 20px; color: var(--medium-gray);">Sair da conta</button>
             `;
 
-            /* --- CÓDIGO DO BOTÃO DE NOTIFICAÇÃO TEMPORARIAMENTE DESATIVADO ---
-            const enableNotificationsButton = document.getElementById('enable-notifications-button');
-            if (enableNotificationsButton) {
-                if (window.currentCustomerDetails.notificationTokens && window.currentCustomerDetails.notificationTokens.length > 0) {
-                    document.getElementById('notification-button-area').innerHTML = '<p style="color:var(--green-status); font-weight:bold;">Notificações ativadas!</p>';
-                } else {
-                    enableNotificationsButton.addEventListener('click', requestNotificationPermission);
+            if (showNotificationFeature) {
+                const enableNotificationsButton = document.getElementById('enable-notifications-button');
+                if (enableNotificationsButton) {
+                    if (window.currentCustomerDetails.notificationTokens && window.currentCustomerDetails.notificationTokens.length > 0) {
+                        document.getElementById('notification-button-area').innerHTML = '<p style="color:var(--green-status); font-weight:bold;">Notificações ativadas!</p>';
+                    } else {
+                        enableNotificationsButton.addEventListener('click', requestNotificationPermission);
+                    }
                 }
             }
-            */
             
         } else {
             googleLoginSection.style.display = 'block';
