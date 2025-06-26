@@ -1,4 +1,4 @@
-// menu.js - VERSÃO COMPLETA E ATUALIZADA
+// menu.js - VERSÃO FINAL COM CORREÇÃO NO CONTADOR DE VISITAS
 
 // --- CONSTANTES DE COLEÇÕES DO FIRESTORE ---
 const FIRESTORE_MENU_COLLECTION_SITE = "menus";
@@ -46,17 +46,19 @@ function startTypingAnimation() {
   });
 }
 
-// CÓDIGO NOVO - contagem de visitas ao site.
+// ======================================================================
+// LÓGICA DO CONTADOR DE VISITAS
+// ======================================================================
 async function logPageView() {
-    // Se a sessão já foi registrada, não faz nada. Isso continua igual.
+    // Se a sessão já foi registrada, não faz mais nada.
     if (sessionStorage.getItem('sessionLogged')) {
+        console.log("Sessão já registrada. Não vou contar de novo.");
         return;
     }
 
-    // Função interna que contém a lógica de salvar no banco de dados
     const executeLog = async () => {
         try {
-            // Marca esta sessão como registrada para não contar recarregamentos
+            // Marca esta sessão como registrada para não contar recarregamentos futuros
             sessionStorage.setItem('sessionLogged', 'true');
 
             const { doc, setDoc, serverTimestamp, increment } = window.firebaseFirestore;
@@ -78,9 +80,8 @@ async function logPageView() {
         }
     };
 
-    // Verificador que espera o window.firebaseFirestore existir antes de continuar
     const waitForFirebase = () => {
-        if (window.firebaseFirestore) {
+        if (window.firebaseFirestore && window.firebaseFirestore.increment) {
             console.log("Ferramentas do Firebase prontas. Executando o log da visita.");
             executeLog();
         } else {
@@ -88,10 +89,12 @@ async function logPageView() {
             setTimeout(waitForFirebase, 100); // Tenta de novo em 100 milissegundos
         }
     };
-
+    
     // Inicia o verificador
     waitForFirebase();
 }
+
+
 // Função para aplicar as customizações de aparência
 function applyCustomAppearance(appearanceSettings) {
   if (!appearanceSettings) return;
@@ -118,7 +121,9 @@ function applyCustomAppearance(appearanceSettings) {
 // ======================================================================
 // LÓGICA DE CARREGAMENTO DE DADOS DO FIRESTORE
 // ======================================================================
-async function loadDataFromFirestore() { 
+async function loadDataFromFirestore() {
+  logPageView(); // Chama a função para registrar a visita
+
   const loadingIndicator = document.getElementById('loading-indicator');
   if (loadingIndicator) loadingIndicator.style.display = 'block';
 
@@ -127,9 +132,6 @@ async function loadDataFromFirestore() {
     if (loadingIndicator) loadingIndicator.textContent = 'Erro de conexão.';
     return;
   }
-
-  // LINHA ADICIONADA: Chama a função para registrar a visita
-  logPageView();
 
   const {
     doc,
@@ -163,7 +165,6 @@ async function loadDataFromFirestore() {
     window.menuData = menuDocSnap.exists() ? menuDocSnap.data(): {};
     if (settingsDocSnap.exists()) {
       window.appSettings = settingsDocSnap.data();
-      // Guarda a lista de vídeos na variável global
       window.carouselVideos = settingsDocSnap.data().videos || [];
     } else {
       window.appSettings = {
@@ -181,7 +182,7 @@ async function loadDataFromFirestore() {
       id: d.id, ...d.data()
     }));
 
-    console.log("Dados do site carregados, incluindo vídeos do carrossel.");
+    console.log("Dados do site carregados.");
     initializeSiteLogic();
 
   } catch (error) {
@@ -301,10 +302,8 @@ function renderPromotions() {
   const promoListDiv = document.getElementById('horizontal-promos-list');
   if (!promoSection || !promoListDiv) return;
 
-  // CORREÇÃO: Filtra também por promoções ativas (p.active !== false)
-  // LINHA CORRIGIDA
   const visiblePromotions = window.promoData.filter(p => p.active !== false && findItemAcrossCategories(p.itemId)?.isVisible !== false);
-  
+
   if (visiblePromotions && visiblePromotions.length > 0) {
     promoListDiv.innerHTML = visiblePromotions.map(p => createPromoCardHTML(p)).join('');
     promoSection.style.display = 'block';
@@ -331,7 +330,6 @@ function initializeSiteLogic() {
   }
 
   renderDynamicCarousel();
-  // CORREÇÃO: Ativa a funcionalidade do carrossel
   if (typeof window.initializeCarousel === 'function') {
       window.initializeCarousel();
   }
@@ -371,7 +369,6 @@ function initializeSiteLogic() {
       contentDiv.innerHTML = '<p style="text-align:center; color: #777; padding: 20px;">Nenhum item nesta categoria.</p>';
     }
     attachAddToCartButtonListeners();
-    // LINHA NOVA - Adicionar esta chamada no final
     if (typeof initializeSearch === 'function') {
         initializeSearch();
     }
