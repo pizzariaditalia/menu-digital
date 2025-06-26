@@ -1,4 +1,4 @@
-// menu.js - VERSÃO FINAL COMPLETA COM CARROSSEL DINÂMICO E CATEGORIAS ORDENADAS
+// menu.js - VERSÃO COMPLETA E ATUALIZADA
 
 // --- CONSTANTES DE COLEÇÕES DO FIRESTORE ---
 const FIRESTORE_MENU_COLLECTION_SITE = "menus";
@@ -215,6 +215,63 @@ function renderDynamicCarousel() {
   carouselContainer.style.display = 'block';
 }
 
+function findItemAcrossCategories(itemId) {
+  for (const categoryKey in window.menuData) {
+    if (window.menuData[categoryKey] && window.menuData[categoryKey].items) {
+      const foundItem = window.menuData[categoryKey].items.find(item => item.id === itemId);
+      if (foundItem) {
+        return { ...foundItem, category: categoryKey };
+      }
+    }
+  }
+  return null;
+}
+
+function createPromoCardHTML(promo) {
+  const formatPrice = (price) => price && typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : String(price);
+  const imagePath = (promo.image || 'img/placeholder.png').replace('../', '');
+  const discountPercentage = Math.round(((promo.originalPrice - promo.newPrice) / promo.originalPrice) * 100);
+
+  return `
+  <div class="promo-card-horizontal" data-item-id="${promo.itemId}">
+    ${discountPercentage > 0 ? `<div class="promo-discount-tag">-${discountPercentage}%</div>`: ''}
+    <img src="${imagePath}" alt="${promo.name}" class="promo-card-image" onerror="this.onerror=null;this.src='img/placeholder.png';">
+    <div class="promo-card-details">
+      <h4>${promo.name}</h4>
+      <p class="promo-card-description">${promo.description || ''}</p>
+      <div class="promo-card-pricing">
+        <span class="promo-price">${formatPrice(promo.newPrice)}</span>
+        <span class="original-price-text">${formatPrice(promo.originalPrice)}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderPromotions() {
+  const promoSection = document.getElementById('horizontal-promos-section');
+  const promoListDiv = document.getElementById('horizontal-promos-list');
+  if (!promoSection || !promoListDiv) return;
+
+  // CORREÇÃO: Filtra também por promoções ativas (p.active !== false)
+  const visiblePromotions = window.promoData.filter(p => p.active !== false && findItemAcrossCategories(p.itemId)?.isVisible !== false);
+
+  if (visiblePromotions && visiblePromotions.length > 0) {
+    promoListDiv.innerHTML = visiblePromotions.map(p => createPromoCardHTML(p)).join('');
+    promoSection.style.display = 'block';
+    promoListDiv.querySelectorAll('.promo-card-horizontal').forEach(card => {
+      card.addEventListener('click', () => {
+        const promotion = visiblePromotions.find(p => p.itemId === card.dataset.itemId);
+        const originalItem = findItemAcrossCategories(card.dataset.itemId);
+        if (originalItem && promotion && window.openProductModal) {
+          window.openProductModal({ ...originalItem, price: promotion.newPrice, originalPrice: promotion.originalPrice, isPromotion: true });
+        }
+      });
+    });
+  } else {
+    promoSection.style.display = 'none';
+  }
+}
+
 // ======================================================================
 // FUNÇÃO DE LÓGICA PRINCIPAL DO SITE
 // ======================================================================
@@ -224,23 +281,18 @@ function initializeSiteLogic() {
   }
 
   renderDynamicCarousel();
-  window.initializeCarousel();
+  // CORREÇÃO: Ativa a funcionalidade do carrossel
+  if (typeof window.initializeCarousel === 'function') {
+      window.initializeCarousel();
+  }
 
   generateCategoryUI();
 
   const tabs = document.querySelectorAll('.tab-button');
   const restaurantStatusDiv = document.querySelector('.status');
-  const daysOfWeek = ["Domingo",
-    "Segunda-feira",
-    "Terça-feira",
-    "Quarta-feira",
-    "Quinta-feira",
-    "Sexta-feira",
-    "Sábado"];
+  const daysOfWeek = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
 
-  const formatPrice = (price) => price && typeof price === 'number' ? price.toLocaleString('pt-BR', {
-    style: 'currency', currency: 'BRL'
-  }): String(price);
+  const formatPrice = (price) => price && typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : String(price);
 
   const minOrderLine = document.getElementById('min-order-line');
   const minOrderValueSpan = document.getElementById('min-order-value');
@@ -251,27 +303,25 @@ function initializeSiteLogic() {
   }
 
   function createMenuItemHTML(item) {
-    let priceSectionHTML = item.originalPrice ? `<p class="item-description">De: <span class="original-price-text">${formatPrice(item.originalPrice)}</span></p><p class="promo-price">${formatPrice(item.price)}</p>`: `<p class="item-price">${formatPrice(item.price)}</p>`;
-    let descriptionHTML = item.description ? `<p class="item-description">${item.description}</p>`: '';
+    let priceSectionHTML = item.originalPrice ? `<p class="item-description">De: <span class="original-price-text">${formatPrice(item.originalPrice)}</span></p><p class="promo-price">${formatPrice(item.price)}</p>` : `<p class="item-price">${formatPrice(item.price)}</p>`;
+    let descriptionHTML = item.description ? `<p class="item-description">${item.description}</p>` : '';
     const imagePath = (item.image || 'img/placeholder.png').replace('../', '');
     return `<div class="menu-item" data-item-id="${item.id}" data-category="${item.category || ''}"><img src="${imagePath}" alt="${item.name}" class="item-image" onerror="this.onerror=null;this.src='img/placeholder.png';"><div class="item-details"><h4>${item.name}</h4>${descriptionHTML}${priceSectionHTML}</div><button class="add-to-cart-button" data-item-id="${item.id}" data-category="${item.category || ''}">+</button></div>`;
-  };
+  }
 
   function renderCategory(categoryName) {
     const contentDiv = document.getElementById(`${categoryName}-content`);
     if (!contentDiv) return;
-    const categoryData = window.menuData ? window.menuData[categoryName]: undefined;
-    const items = categoryData ? categoryData.items: [];
+    const categoryData = window.menuData ? window.menuData[categoryName] : undefined;
+    const items = categoryData ? categoryData.items : [];
     const visibleItems = items.filter(item => item.isVisible !== false);
     if (visibleItems && visibleItems.length > 0) {
-      contentDiv.innerHTML = visibleItems.map(item => createMenuItemHTML( {
-        ...item, category: item.category || categoryName
-      })).join('');
+      contentDiv.innerHTML = visibleItems.map(item => createMenuItemHTML({ ...item, category: item.category || categoryName })).join('');
     } else {
       contentDiv.innerHTML = '<p style="text-align:center; color: #777; padding: 20px;">Nenhum item nesta categoria.</p>';
     }
     attachAddToCartButtonListeners();
-  };
+  }
 
   window.showCategory = function(categoryKey) {
     const allContent = document.querySelectorAll('.category-content');
@@ -302,10 +352,8 @@ function initializeSiteLogic() {
     if (operatingHoursStr && operatingHoursStr.toLowerCase() !== "fechado") {
       const parts = operatingHoursStr.split(' - ');
       if (parts.length === 2) {
-        const [startHour,
-          startMinute] = parts[0].split(':').map(Number);
-        const [endHour,
-          endMinute] = parts[1].split(':').map(Number);
+        const [startHour, startMinute] = parts[0].split(':').map(Number);
+        const [endHour, endMinute] = parts[1].split(':').map(Number);
         let startTimeTotalMinutes = startHour * 60 + startMinute;
         let endTimeTotalMinutes = endHour * 60 + endMinute;
         if (endTimeTotalMinutes <= startTimeTotalMinutes) endTimeTotalMinutes += 24 * 60;
@@ -314,15 +362,13 @@ function initializeSiteLogic() {
         if (currentTimeAdjusted >= startTimeTotalMinutes && currentTimeAdjusted < endTimeTotalMinutes) isOpen = true;
       }
     }
-    restaurantStatusDiv.textContent = isOpen ? "ABERTO": "FECHADO";
-    restaurantStatusDiv.style.backgroundColor = isOpen ? "var(--green-status)": "var(--primary-red)";
+    restaurantStatusDiv.textContent = isOpen ? "ABERTO" : "FECHADO";
+    restaurantStatusDiv.style.backgroundColor = isOpen ? "var(--green-status)" : "var(--primary-red)";
     document.querySelectorAll('.add-to-cart-button, #add-to-cart-modal-button, #cart-modal .checkout-button').forEach(button => {
       button.disabled = !isOpen;
       if (!isOpen) {
-        button.style.backgroundColor = 'var(--medium-gray)';
         button.style.cursor = 'not-allowed';
       } else {
-        button.style.backgroundColor = '';
         button.style.cursor = '';
       }
     });
@@ -343,75 +389,15 @@ function initializeSiteLogic() {
     const category = button.dataset.category;
     const item = window.menuData[category]?.items.find(p => p.id === itemId);
     if (item) {
-      const itemForInteraction = {
-        ...item,
-        category
-      };
+      const itemForInteraction = { ...item, category };
       if (itemForInteraction.category.includes('pizzas-') || item.name.toLowerCase().includes('pizza') || itemForInteraction.category.includes('calzones-')) {
         if (window.openProductModal) window.openProductModal(itemForInteraction);
       } else {
-        if (window.addToCart) window.addToCart({
-          id: item.id, name: item.name, image: item.image, price: item.price, quantity: 1, selectedSize: 'único', notes: '', unitPrice: item.price, category: item.category
-        });
+        if (window.addToCart) window.addToCart({ id: item.id, name: item.name, image: item.image, price: item.price, quantity: 1, selectedSize: 'único', notes: '', unitPrice: item.price, category: item.category });
       }
     }
   }
-
-  function renderPromotions() {
-    const promoSection = document.getElementById('horizontal-promos-section');
-    const promoListDiv = document.getElementById('horizontal-promos-list');
-    if (!promoSection || !promoListDiv) return;
-    const visiblePromotions = window.promoData.filter(p => findItemAcrossCategories(p.itemId)?.isVisible !== false);
-    if (visiblePromotions && visiblePromotions.length > 0) {
-      promoListDiv.innerHTML = visiblePromotions.map(p => createPromoCardHTML(p)).join('');
-      promoSection.style.display = 'block';
-      promoListDiv.querySelectorAll('.promo-card-horizontal').forEach(card => {
-        card.addEventListener('click', () => {
-          const promotion = visiblePromotions.find(p => p.itemId === card.dataset.itemId);
-          const originalItem = findItemAcrossCategories(card.dataset.itemId);
-          if (originalItem && promotion && window.openProductModal) {
-            window.openProductModal({
-              ...originalItem, price: promotion.newPrice, originalPrice: promotion.originalPrice, isPromotion: true
-            });
-          }
-        });
-      });
-    } else {
-      promoSection.style.display = 'none';
-    }
-  }
-
-  function findItemAcrossCategories(itemId) {
-    for (const categoryKey in window.menuData) {
-      const foundItem = window.menuData[categoryKey].items.find(item => item.id === itemId);
-      if (foundItem) return {
-        ...foundItem,
-        category: categoryKey
-      };
-    }
-    return null;
-  }
-
-  function createPromoCardHTML(promo) {
-    const imagePath = (promo.image || 'img/placeholder.png').replace('../', '');
-    const discountPercentage = Math.round(((promo.originalPrice - promo.newPrice) / promo.originalPrice) * 100);
-
-    return `
-    <div class="promo-card-horizontal" data-item-id="${promo.itemId}">
-    ${discountPercentage > 0 ? `<div class="promo-discount-tag">-${discountPercentage}%</div>`: ''}
-    <img src="${imagePath}" alt="${promo.name}" class="promo-card-image" onerror="this.onerror=null;this.src='img/placeholder.png';">
-    <div class="promo-card-details">
-    <h4>${promo.name}</h4>
-    <p class="promo-card-description">${promo.description || ''}</p>
-    <div class="promo-card-pricing">
-    <span class="promo-price">${formatPrice(promo.newPrice)}</span>
-    <span class="original-price-text">${formatPrice(promo.originalPrice)}</span>
-    </div>
-    </div>
-    </div>
-    `;
-  };
-
+  
   function initializeCouponsFeature() {
     const banner = document.getElementById('coupons-banner');
     const modal = document.getElementById('coupons-modal');
@@ -437,8 +423,7 @@ function initializeSiteLogic() {
       document.body.style.overflow = '';
     };
 
-    banner.addEventListener('click', openModal);
-    if (viewButton) viewButton.addEventListener('click', openModal);
+    if(viewButton) viewButton.addEventListener('click', openModal);
     if (closeButton) closeButton.addEventListener('click', closeModal);
     modal.addEventListener('click', (event) => {
       if (event.target === modal) closeModal();
@@ -447,8 +432,7 @@ function initializeSiteLogic() {
 
   function renderCouponsInModal() {
     const listContainer = document.getElementById('coupons-list');
-    const couponsModal = document.getElementById('coupons-modal');
-    if (!listContainer || !couponsModal) return;
+    if (!listContainer) return;
 
     if (!window.activeCoupons || window.activeCoupons.length === 0) {
         listContainer.innerHTML = '<p>Nenhum cupom de desconto disponível no momento.</p>';
@@ -472,19 +456,20 @@ function initializeSiteLogic() {
     listContainer.querySelectorAll('.btn-apply-coupon').forEach(button => {
         button.addEventListener('click', async (event) => {
             const code = event.target.dataset.couponCode;
-            const result = await window.validateAndApplyCoupon(code);
-
-            if (result.success) {
-                alert('Cupom aplicado com sucesso!');
-                couponsModal.classList.remove('show');
-                window.openCartModal();
-            } else {
-                alert(`Não foi possível aplicar o cupom: ${result.message}`);
+            if (typeof window.validateAndApplyCoupon === 'function') {
+                const result = await window.validateAndApplyCoupon(code);
+                if (result.success) {
+                    alert('Cupom aplicado com sucesso!');
+                    const modal = document.getElementById('coupons-modal');
+                    if (modal) modal.classList.remove('show');
+                    if (typeof window.openCartModal === 'function') window.openCartModal();
+                } else {
+                    alert(`Não foi possível aplicar o cupom: ${result.message}`);
+                }
             }
         });
     });
   }
-
 
   // --- EXECUÇÃO DA LÓGICA DE UI ---
   if (tabs.length > 0) {
@@ -509,7 +494,6 @@ function initializeSiteLogic() {
   if (loadingIndicator) loadingIndicator.style.display = 'none';
 }
 
-
 // ======================================================================
 // BLOCO DE INICIALIZAÇÃO SINCRONIZADO
 // ======================================================================
@@ -525,7 +509,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (splashScreen) {
         splashScreen.classList.add('hidden');
       }
-    },
-      250);
+    }, 250);
   });
 });
