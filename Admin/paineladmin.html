@@ -82,30 +82,30 @@
           </div>
 
          <div class="settings-group active">
-    <h3><i class="fas fa-film"></i> Gerenciamento do Carrossel</h3>
-    <div class="settings-content-wrapper" style="display: block; padding: var(--space-lg);">
-        
-        <p class="form-instruction">
-            Adicione ou remova vídeos da "playlist" do carrossel. Os arquivos de vídeo já devem existir na pasta <strong>/img/banner/</strong> do seu projeto.
-        </p>
+            <h3><i class="fas fa-film"></i> Gerenciamento do Carrossel</h3>
+            <div class="settings-content-wrapper" style="display: block; padding: var(--space-lg);">
+                
+                <p class="form-instruction">
+                    Adicione ou remova vídeos da "playlist" do carrossel. Os arquivos de vídeo já devem existir na pasta <strong>/img/banner/</strong> do seu projeto.
+                </p>
 
-        <div id="carousel-videos-list" class="image-preview-grid">
-            <p>Carregando vídeos...</p>
-        </div>
-        
-        <hr style="margin: var(--space-lg) 0;">
+                <div id="carousel-videos-list" class="image-preview-grid">
+                    <p>Carregando vídeos...</p>
+                </div>
+                
+                <hr style="margin: var(--space-lg) 0;">
 
-        <h4 style="margin-top: 0;">Adicionar Vídeo ao Carrossel</h4>
-        <div class="form-group">
-            <label for="carousel-video-filename-input">Nome do Arquivo (ex: video1.mp4)</label>
-            <div class="input-with-button">
-                <input type="text" id="carousel-video-filename-input" class="form-control" placeholder="Digite o nome exato do arquivo...">
-                <button type="button" id="add-video-btn" class="btn btn-primary">Adicionar</button>
+                <h4 style="margin-top: 0;">Adicionar Vídeo ao Carrossel</h4>
+                <div class="form-group">
+                    <label for="carousel-video-filename-input">Nome do Arquivo (ex: video1.mp4)</label>
+                    <div class="input-with-button">
+                        <input type="text" id="carousel-video-filename-input" class="form-control" placeholder="Digite o nome exato do arquivo...">
+                        <button type="button" id="add-video-btn" class="btn btn-primary">Adicionar</button>
+                    </div>
+                </div>
+
             </div>
         </div>
-
-    </div>
-</div>
 
           <div class="settings-group active" style="margin-top: 2rem;">
             <h3><i class="fas fa-palette"></i> Esquema de Cores</h3>
@@ -470,7 +470,9 @@
         </div>
 
         <form id="new-promotion-form" class="admin-form" style="display: none; margin-top: var(--space-lg); border-top: 1px solid var(--admin-border-color); padding-top: var(--space-lg);">
-          <h3>Criar Nova Promoção</h3>
+          <h3 id="new-promotion-form-title">Criar Nova Promoção</h3>
+          <input type="hidden" id="promotion-id-hidden">
+          
           <div class="form-group">
             <label for="select-item-for-promotion">Item do Cardápio:</label><select id="select-item-for-promotion" required><option value="" disabled selected>Carregando...</option></select>
           </div>
@@ -1020,15 +1022,5 @@
   <script src="vendas.js" defer></script>
   <script src="pdv.js" defer></script>
 
-  <!--<script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw-admin.js')
-          .then((reg) => console.log('Service Worker do Admin registrado com sucesso!', reg.scope))
-          .catch((err) => console.log('Falha ao registrar Service Worker do Admin: ', err));
-      });
-    }
-  </script>-->
-  
-</body>
+  </body>
 </html>
