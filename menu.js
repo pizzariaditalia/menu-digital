@@ -46,6 +46,40 @@ function startTypingAnimation() {
   });
 }
 
+// CÓDIGO NOVO - contagem de visitas ao site.
+
+async function logPageView() {
+    // Verifica se a visita nesta sessão já foi registrada para não contar recarregamentos
+    if (sessionStorage.getItem('sessionLogged')) {
+        return;
+    }
+
+    // Marca esta sessão como registrada
+    sessionStorage.setItem('sessionLogged', 'true');
+
+    // Pega as ferramentas do Firestore que já estão na janela
+    const { doc, setDoc, serverTimestamp, increment } = window.firebaseFirestore;
+    const db = window.db;
+
+    // Cria um ID de documento baseado na data atual (ex: "2025-06-26")
+    const today = new Date();
+    const dateString = today.toISOString().split('T')[0]; // Formato AAAA-MM-DD
+    const analyticsDocRef = doc(db, 'analytics', dateString);
+
+    try {
+        // Cria ou atualiza o documento do dia, incrementando o contador de page_views
+        await setDoc(analyticsDocRef, {
+            page_views: increment(1),
+            last_view: serverTimestamp()
+        }, { merge: true });
+
+        console.log('Sessão do usuário registrada com sucesso.');
+
+    } catch (error) {
+        console.error('Erro ao registrar a visualização da página:', error);
+    }
+}
+
 // Função para aplicar as customizações de aparência
 function applyCustomAppearance(appearanceSettings) {
   if (!appearanceSettings) return;
