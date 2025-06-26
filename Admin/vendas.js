@@ -1,5 +1,4 @@
-// Arquivo: vendas.js
-// VERSÃO FINAL COM TOP 5 EM FORMATO DE LISTA
+// vendas.js - VERSÃO COMPLETA COM CONTAGEM DE ACESSOS
 
 async function initializeVendasSection() {
     const startDateInput = document.getElementById('sales-start-date');
@@ -23,40 +22,65 @@ async function initializeVendasSection() {
     }
 
     const fetchAndRenderSales = async (startDate, endDate) => {
-        salesListContainer.innerHTML = '<p class="empty-list-message">Buscando pedidos...</p>';
+        salesListContainer.innerHTML = '<p class="empty-list-message">Buscando dados...</p>';
         if (paymentSummaryContainer) paymentSummaryContainer.innerHTML = '';
         if (bestsellersContainer) bestsellersContainer.style.display = 'none';
         if (bestsellersList) bestsellersList.innerHTML = '';
         
-        const { collection, query, where, getDocs, orderBy, Timestamp } = window.firebaseFirestore;
+        const { collection, query, where, getDocs, orderBy, Timestamp, documentId } = window.firebaseFirestore;
         const db = window.db;
 
         const adjustedEndDate = new Date(endDate);
         adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
 
         try {
-            const q = query(
+            // Query para buscar os pedidos
+            const ordersQuery = query(
                 collection(db, "pedidos"),
                 where('createdAt', '>=', Timestamp.fromDate(startDate)),
                 where('createdAt', '<', Timestamp.fromDate(adjustedEndDate)),
                 orderBy('createdAt', 'desc')
             );
             
-            const querySnapshot = await getDocs(q);
-            const allFetchedOrders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            salesData = allFetchedOrders.filter(order => order.status !== 'Cancelado');
+            // Query para buscar os dados de analytics (visitas)
+            const startDateString = startDate.toISOString().split('T')[0];
+            const endDateString = endDate.toISOString().split('T')[0];
+            const analyticsQuery = query(
+                collection(db, "analytics"),
+                where(documentId(), '>=', startDateString),
+                where(documentId(), '<=', endDateString)
+            );
 
+            // Executa as duas buscas ao mesmo tempo para mais performance
+            const [ordersSnapshot, analyticsSnapshot] = await Promise.all([
+                getDocs(ordersQuery),
+                getDocs(analyticsQuery)
+            ]);
+            
+            // Processa os pedidos (como antes)
+            const allFetchedOrders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            salesData = allFetchedOrders.filter(order => order.status !== 'Cancelado');
             const totalValue = salesData.reduce((sum, order) => sum + (order.totals?.grandTotal || 0), 0);
             const totalCount = salesData.length;
             const totalDeliveryFees = salesData.reduce((sum, order) => sum + (order.totals?.deliveryFee || 0), 0);
-
+            
             totalValueEl.textContent = totalValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             totalCountEl.textContent = totalCount;
             if (totalDeliveryFeesEl) {
                 totalDeliveryFeesEl.textContent = totalDeliveryFees.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             }
 
+            // Processa e exibe as visitas
+            let totalVisits = 0;
+            analyticsSnapshot.forEach(doc => {
+                totalVisits += doc.data().page_views || 0;
+            });
+            const totalVisitsEl = document.getElementById('sales-total-visits');
+            if(totalVisitsEl) {
+                totalVisitsEl.textContent = totalVisits;
+            }
+
+            // O resto da função continua igual (pagamentos, mais vendidos, etc.)
             if (paymentSummaryContainer) {
                 const paymentTotals = { 'Pix': 0, 'Cartão de Crédito': 0, 'Cartão de Débito': 0, 'Dinheiro': 0 };
                 salesData.forEach(order => {
@@ -70,8 +94,7 @@ async function initializeVendasSection() {
                     <div class="payment-summary-box dinheiro"><span class="label"><i class="fas fa-money-bill-wave"></i> Dinheiro</span><span class="value">${paymentTotals['Dinheiro'].toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span></div>
                 `;
             }
-            
-            // LÓGICA ATUALIZADA PARA O TOP 5 EM FORMATO DE LISTA
+
             if (bestsellersContainer && salesData.length > 0) {
                 const productCount = {};
                 salesData.forEach(order => {
@@ -83,18 +106,10 @@ async function initializeVendasSection() {
                     }
                 });
                 const sortedProducts = Object.entries(productCount).sort((a, b) => b[1] - a[1]);
-                
                 bestsellersList.innerHTML = sortedProducts.slice(0, 5).map(([name, quantity], index) => {
                     const rank = index + 1;
-                    return `
-                        <li class="top5-list-item rank-${rank}">
-                            <span class="rank">#${rank}</span>
-                            <span class="product-name">${name}</span>
-                            <span class="quantity-sold">${quantity}<span> vendas</span></span>
-                        </li>
-                    `;
+                    return `<li class="top5-list-item rank-${rank}"><span class="rank">#${rank}</span><span class="product-name">${name}</span><span class="quantity-sold">${quantity}<span> vendas</span></span></li>`;
                 }).join('');
-                
                 bestsellersContainer.style.display = 'block';
             }
 
