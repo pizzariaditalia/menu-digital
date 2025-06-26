@@ -107,6 +107,9 @@ function applyCustomAppearance(appearanceSettings) {
 // LÓGICA DE CARREGAMENTO DE DADOS DO FIRESTORE
 // ======================================================================
 async function loadDataFromFirestore() {
+  // LINHA ADICIONADA: Chama a função para registrar a visita
+  logPageView();
+  
   const loadingIndicator = document.getElementById('loading-indicator');
   if (loadingIndicator) loadingIndicator.style.display = 'block';
 
