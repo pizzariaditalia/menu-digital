@@ -41,6 +41,7 @@
         <li class="active-link"><a href="#" data-section-target="orders-content"><i class="fas fa-receipt"></i> Pedidos</a></li>
         <li><a href="#" data-section-target="vendas-view"><i class="fas fa-chart-line"></i> Relatório de Vendas</a></li>
         <li><a href="#" data-section-target="customers-content"><i class="fas fa-users"></i> Clientes</a></li>
+        <li><a href="#" data-section-target="comunicados-view"><i class="fab fa-whatsapp"></i> Comunicados</a></li>
         <li><a href="#" data-section-target="promotions-content"><i class="fas fa-tags"></i> Promoções</a></li>
         <li><a href="#" data-section-target="settings-content"><i class="fas fa-cog"></i> Configurações</a></li>
         <li>
@@ -55,6 +56,32 @@
     <div class="drawer-overlay" id="drawer-overlay"></div>
 
     <main class="admin-main-content">
+
+      <section id="comunicados-view" class="admin-view">
+    <div class="view-header">
+        <h2><i class="fab fa-whatsapp"></i> Envio de Comunicados via WhatsApp</h2>
+    </div>
+
+    <div class="admin-form">
+        <h3>1. Escreva sua Mensagem</h3>
+        <p class="form-instruction">
+            Use <strong>{nome_cliente}</strong> para personalizar a mensagem com o primeiro nome de cada cliente.
+        </p>
+        <div class="form-group">
+            <label for="comunicado-mensagem">Mensagem a ser enviada:</label>
+            <textarea id="comunicado-mensagem" rows="6" class="form-control"></textarea>
+        </div>
+         <div class="form-actions" style="justify-content: flex-start;">
+            <button id="gerar-links-envio" class="btn btn-success btn-lg"><i class="fas fa-rocket"></i> Gerar Links de Envio</button>
+        </div>
+    </div>
+
+    <div id="lista-envio-whatsapp-container" class="hidden" style="margin-top: var(--space-lg);">
+        <h3>2. Lista de Clientes</h3>
+        <div id="lista-envio-whatsapp" class="table-responsive" style="max-height: 500px;">
+            </div>
+    </div>
+</section>
 
       <section id="appearance-view" class="admin-view">
         <div class="view-header">
@@ -1031,6 +1058,7 @@
   <script src="clientes.js" defer></script>
   <script src="vendas.js" defer></script>
   <script src="pdv.js" defer></script>
+  <script src="comunicados.js" defer></script>
 
   </body>
 </html>
