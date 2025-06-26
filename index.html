@@ -453,10 +453,10 @@ Gire uma vez por semana e ganhe prêmios!
 <script type="module">
     // Importando módulos do App, Firestore e Autenticação
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
-    // ADICIONAMOS 'increment' AQUI NA LISTA DE IMPORTS
-    import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
+    
+    // GARANTIMOS QUE 'increment' E 'arrayUnion' ESTÃO AQUI
+    import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    
     import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
@@ -480,10 +480,10 @@ Gire uma vez por semana e ganhe prêmios!
     // Disponibiliza TUDO globalmente para os outros scripts poderem usar
     window.firebaseApp = app;
     window.db = db;
-
-    // E ADICIONAMOS 'increment' AQUI NO OBJETO GLOBAL
+    
+    // E GARANTIMOS QUE 'increment' E 'arrayUnion' ESTÃO AQUI TAMBÉM
     window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, increment };
-
+    
     window.firebaseAuth = { getAuth, GoogleAuthProvider, signInWithPopup }; 
     window.firebaseMessaging = { getMessaging, getToken, onMessage, messagingInstance: messaging };
 
