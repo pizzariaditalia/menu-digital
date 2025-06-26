@@ -253,8 +253,9 @@ function renderPromotions() {
   if (!promoSection || !promoListDiv) return;
 
   // CORREÇÃO: Filtra também por promoções ativas (p.active !== false)
+  // LINHA CORRIGIDA
   const visiblePromotions = window.promoData.filter(p => p.active !== false && findItemAcrossCategories(p.itemId)?.isVisible !== false);
-
+  
   if (visiblePromotions && visiblePromotions.length > 0) {
     promoListDiv.innerHTML = visiblePromotions.map(p => createPromoCardHTML(p)).join('');
     promoSection.style.display = 'block';
