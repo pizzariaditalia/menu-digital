@@ -41,6 +41,7 @@
         <li class="active-link"><a href="#" data-section-target="orders-content"><i class="fas fa-receipt"></i> Pedidos</a></li>
         <li><a href="#" data-section-target="vendas-view"><i class="fas fa-chart-line"></i> Relatório de Vendas</a></li>
         <li><a href="#" data-section-target="customers-content"><i class="fas fa-users"></i> Clientes</a></li>
+        <li><a href="#" data-section-target="import-view"><i class="fas fa-file-import"></i> Importar Clientes</a></li>
         <li><a href="#" data-section-target="comunicados-view"><i class="fab fa-whatsapp"></i> Comunicados</a></li>
         <li><a href="#" data-section-target="promotions-content"><i class="fas fa-tags"></i> Promoções</a></li>
         <li><a href="#" data-section-target="settings-content"><i class="fas fa-cog"></i> Configurações</a></li>
@@ -91,6 +92,34 @@
     </div>
 </section>
 
+      <section id="import-view" class="admin-view">
+    <div class="view-header">
+        <h2><i class="fas fa-file-import"></i> Importar Clientes de Planilha (CSV)</h2>
+    </div>
+
+    <div class="admin-form">
+        <h3>Passo 1: Selecione o Arquivo CSV</h3>
+        <p class="form-instruction">
+            Prepare sua planilha com as colunas: <strong>nome, sobrenome, whatsapp, endereco</strong>. Depois, salve como CSV e selecione o arquivo abaixo.
+        </p>
+        <div class="form-group">
+            <input type="file" id="csv-file-input" accept=".csv" class="form-control">
+        </div>
+         <div class="form-actions" style="justify-content: flex-start;">
+            <button id="process-csv-btn" class="btn btn-primary"><i class="fas fa-cogs"></i> Carregar e Pré-visualizar</button>
+        </div>
+    </div>
+
+    <div id="csv-preview-container" class="hidden" style="margin-top: var(--space-lg);">
+        <h3>Passo 2: Pré-visualização dos Dados</h3>
+        <p class="form-instruction">Verifique se os dados abaixo estão corretos antes de importar.</p>
+        <div id="csv-preview-area" class="table-responsive" style="max-height: 400px;"></div>
+        <div class="form-actions" style="margin-top: var(--space-md); justify-content: flex-start;">
+            <button id="confirm-import-btn" class="btn btn-success btn-lg"><i class="fas fa-check-circle"></i> Confirmar e Importar Clientes</button>
+        </div>
+    </div>
+</section>
+      
       <section id="appearance-view" class="admin-view">
         <div class="view-header">
           <h2><i class="fas fa-paint-brush"></i> Aparência do Site</h2>
@@ -1067,6 +1096,7 @@
   <script src="vendas.js" defer></script>
   <script src="pdv.js" defer></script>
   <script src="comunicados.js" defer></script>
+  <script src="importar.js" defer></script>
 
   </body>
 </html>
