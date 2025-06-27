@@ -23,7 +23,7 @@ const MENSAGENS_PRE_MONTADAS = {
     },
     aviso_funcionamento: {
         titulo: 'Aviso de Funcionamento (Sexta-feira) 🔥',
-        texto: `Sextou, {nome_cliente}! 🍕🔥 Já estamos com o forno a todo vapor esperando seu pedido! O melhor da pizza na sua casa.\n\nPeça pelo nosso site: https://www.pizzaditalia.com.br`
+        texto: `Olá, {nome_cliente} boa noite! 🍕🔥 Já estamos com o forno a todo vapor esperando seu pedido! 🛵💨. O melhor da pizza na sua casa.\n\nPeça pelo nosso site: https://www.pizzaditalia.com.br`
     }
 };
 
