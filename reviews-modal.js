@@ -1,10 +1,11 @@
-// Arquivo: reviews-modal.js - VERSÃO SIMPLIFICADA E CORRETA
+// Arquivo: reviews-modal.js - VERSÃO COM O SELETOR CORRETO
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Encontra o link especificamente dentro do rodapé (footer)
-    const reviewsLink = document.querySelector('.footer-social a[href*="google.com/search"]');
+    // CORREÇÃO: Este seletor agora procura o link dentro do card de informações do restaurante
+    const reviewsLink = document.querySelector('.restaurant-info-card a[href*="g.co/kgs"]');
 
     const reviewsModal = document.getElementById('google-reviews-modal');
+    // Adicionamos um '?' para o caso do modal não ser encontrado, evitando erros
     const closeModalBtn = reviewsModal?.querySelector('.close-button');
 
     if (reviewsLink && reviewsModal && closeModalBtn) {
@@ -23,8 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 reviewsModal.classList.remove('show');
             }
         });
-        console.log("Modal de avaliações do rodapé inicializado com sucesso!");
+        console.log("Modal de avaliações inicializado com sucesso!");
     } else {
-        console.warn("Não foi possível inicializar o modal de avaliações. Link do rodapé não encontrado.");
+        console.warn("Não foi possível inicializar o modal de avaliações. Link não encontrado.");
     }
 });
