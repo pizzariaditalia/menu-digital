@@ -1,4 +1,4 @@
-// Arquivo: reviews-modal.js - VERSÃO COM MODAL CENTRALIZADO
+// Arquivo: reviews-modal.js - VERSÃO FINAL COM TRAVA DE SCROLL
 
 document.addEventListener('DOMContentLoaded', () => {
     const reviewsLink = document.getElementById('open-reviews-modal-link');
@@ -6,23 +6,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeModalBtn = reviewsModal?.querySelector('.close-button');
 
     if (reviewsLink && reviewsModal && closeModalBtn) {
-        reviewsLink.addEventListener('click', function(event) {
-            event.preventDefault(); 
-            // USA A NOVA FUNÇÃO GLOBAL
-            openModal(reviewsModal); 
+
+        const openTheModal = () => {
+            reviewsModal.classList.add('show');
+            document.body.classList.add('body-no-scroll'); // <-- TRAVA O SCROLL DO FUNDO
+        };
+
+        const closeTheModal = () => {
+            reviewsModal.classList.remove('show');
+            document.body.classList.remove('body-no-scroll'); // <-- DESTRAVA O SCROLL
+        };
+
+        reviewsLink.addEventListener('click', (event) => {
+            event.preventDefault();
+            openTheModal();
         });
 
-        // USA A NOVA FUNÇÃO GLOBAL
-        closeModalBtn.addEventListener('click', () => closeModal(reviewsModal));
-        
+        closeModalBtn.addEventListener('click', closeTheModal);
+
         reviewsModal.addEventListener('click', (e) => {
             if (e.target === reviewsModal) {
-                // USA A NOVA FUNÇÃO GLOBAL
-                closeModal(reviewsModal);
+                closeTheModal();
             }
         });
-        console.log("Modal de avaliações inicializado com sucesso, usando ID!");
+        console.log("Modal de avaliações com trava de scroll inicializado!");
     } else {
-        console.warn("Não foi possível inicializar o modal de avaliações. Link com ID 'open-reviews-modal-link' não foi encontrado.");
+        console.warn("Não foi possível inicializar o modal de avaliações. Link não encontrado.");
     }
 });
