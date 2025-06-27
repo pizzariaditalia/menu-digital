@@ -78,9 +78,10 @@
             <label for="comunicado-mensagem">Mensagem a ser enviada:</label>
             <textarea id="comunicado-mensagem" rows="6" class="form-control"></textarea>
         </div>
-         <div class="form-actions" style="justify-content: flex-start;">
-            <button id="gerar-links-envio" class="btn btn-success btn-lg"><i class="fas fa-rocket"></i> Gerar Links de Envio</button>
-        </div>
+         <div class="form-actions" style="justify-content: flex-start; gap: 12px;">
+    <button id="gerar-links-envio" class="btn btn-primary btn-lg"><i class="fas fa-list"></i> Gerar Lista de Clientes</button>
+    <button id="enviar-lote-selecionado-btn" class="btn btn-success btn-lg hidden"><i class="fab fa-whatsapp"></i> Enviar para Selecionados</button>
+</div>
     </div>
 
     <div id="lista-envio-whatsapp-container" class="hidden" style="margin-top: var(--space-lg);">
