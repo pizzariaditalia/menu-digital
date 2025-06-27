@@ -1,5 +1,18 @@
 // scripts.js - VERSÃO COM LÓGICA DO CARROSSEL SEPARADA EM UMA FUNÇÃO
+// FUNÇÕES GLOBAIS PARA CONTROLE DE MODAIS
+function openModal(modalElement) {
+    if (modalElement) {
+        modalElement.classList.add('show');
+        document.body.classList.add('body-no-scroll');
+    }
+}
 
+function closeModal(modalElement) {
+    if (modalElement) {
+        modalElement.classList.remove('show');
+        document.body.classList.remove('body-no-scroll');
+    }
+}
 // A lógica do PWA e do Pop-up continuam dentro do DOMContentLoaded
 document.addEventListener('DOMContentLoaded', () => {
     // ======================================================================
