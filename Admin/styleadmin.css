@@ -525,3 +525,8 @@ body {
 .input-with-button input {
     flex-grow: 1; /* Faz o input ocupar o espaço disponível */
 }
+
+/* CLASSE PARA TRAVAR O SCROLL DO BODY QUANDO UM MODAL ESTIVER ABERTO */
+.body-no-scroll {
+    overflow: hidden;
+}
