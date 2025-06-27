@@ -1,11 +1,10 @@
-// Arquivo: reviews-modal.js - VERSÃO COM O SELETOR CORRETO
+// Arquivo: reviews-modal.js - VERSÃO COM SELETOR PRECISO
 
 document.addEventListener('DOMContentLoaded', () => {
-    // CORREÇÃO: Este seletor agora procura o link dentro do card de informações do restaurante
-    const reviewsLink = document.querySelector('.restaurant-info-card a[href*="g.co/kgs"]');
+    // CORREÇÃO: Este seletor agora procura pelo link exato que você informou.
+    const reviewsLink = document.querySelector('a[href="https://g.co/kgs/5ZHYjoE"]');
 
     const reviewsModal = document.getElementById('google-reviews-modal');
-    // Adicionamos um '?' para o caso do modal não ser encontrado, evitando erros
     const closeModalBtn = reviewsModal?.querySelector('.close-button');
 
     if (reviewsLink && reviewsModal && closeModalBtn) {
@@ -26,6 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         console.log("Modal de avaliações inicializado com sucesso!");
     } else {
-        console.warn("Não foi possível inicializar o modal de avaliações. Link não encontrado.");
+        console.warn("Não foi possível inicializar o modal de avaliações. Link de avaliação não encontrado.");
     }
 });
