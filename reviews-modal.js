@@ -1,30 +1,27 @@
-// Arquivo: reviews-modal.js - VERSÃO COM SELETOR PRECISO
+// Arquivo: reviews-modal.js - VERSÃO FINAL COM SELEÇÃO POR ID
 
 document.addEventListener('DOMContentLoaded', () => {
-    // CORREÇÃO: Este seletor agora procura pelo link exato que você informou.
-    const reviewsLink = document.querySelector('a[href="https://g.co/kgs/5ZHYjoE"]');
+    // CORREÇÃO: Agora procuramos pelo ID específico que criamos.
+    const reviewsLink = document.getElementById('open-reviews-modal-link');
 
     const reviewsModal = document.getElementById('google-reviews-modal');
     const closeModalBtn = reviewsModal?.querySelector('.close-button');
 
     if (reviewsLink && reviewsModal && closeModalBtn) {
-        // Adiciona o evento de clique ao link
         reviewsLink.addEventListener('click', function(event) {
-            event.preventDefault(); // Impede a navegação para o site do Google
+            event.preventDefault(); // Impede a ação padrão do link '#'
             reviewsModal.classList.add('show'); // Mostra o nosso modal
         });
 
-        // Adiciona o evento para o botão de fechar
         closeModalBtn.addEventListener('click', () => reviewsModal.classList.remove('show'));
 
-        // Adiciona o evento para fechar clicando fora do conteúdo
         reviewsModal.addEventListener('click', (e) => {
             if (e.target === reviewsModal) {
                 reviewsModal.classList.remove('show');
             }
         });
-        console.log("Modal de avaliações inicializado com sucesso!");
+        console.log("Modal de avaliações inicializado com sucesso, usando ID!");
     } else {
-        console.warn("Não foi possível inicializar o modal de avaliações. Link de avaliação não encontrado.");
+        console.warn("Não foi possível inicializar o modal de avaliações. Link com ID 'open-reviews-modal-link' não foi encontrado.");
     }
 });
