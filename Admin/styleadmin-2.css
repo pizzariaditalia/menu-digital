@@ -1247,3 +1247,31 @@
 .top5-list-item.rank-3 .rank {
    color: #8C7853; font-weight: 900;
 }
+
+/* ==========================================================================
+   ESTILOS PARA A LISTA DE ENVIO DE COMUNICADOS
+   ========================================================================== */
+.admin-table th.checkbox-cell, .admin-table td.checkbox-cell {
+    width: 40px;
+    text-align: center;
+}
+
+tr.sent {
+    background-color: #f0fff0 !important; /* Verde bem claro */
+    opacity: 0.6;
+    transition: background-color 0.5s, opacity 0.5s;
+}
+
+tr.sent .btn {
+    background-color: var(--admin-secondary-gray) !important;
+    border-color: var(--admin-secondary-gray) !important;
+    cursor: not-allowed;
+    pointer-events: none; /* Desativa cliques */
+}
+
+tr.sent::after {
+    content: 'Enviado ✓';
+    color: var(--admin-success-green);
+    font-weight: bold;
+    padding-left: 10px;
+}
