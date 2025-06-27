@@ -105,6 +105,7 @@ async function startAdminPanel() {
         case 'promotions-content': if (typeof window.initializePromotionsSection === 'function') window.initializePromotionsSection(); break;
         case 'settings-content': if (typeof window.initializeSettingsSection === 'function') window.initializeSettingsSection(); break;
         case 'comunicados-view': if (typeof window.initializeComunicadosSection === 'function') window.initializeComunicadosSection(); break;
+        case 'import-view': if (typeof window.initializeImportSection === 'function') window.initializeImportSection(); break;
       }
       toggleDrawer(false);
     });
