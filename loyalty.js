@@ -1,4 +1,4 @@
-// loyalty.js - VERSÃO COM BOTÃO DE NOTIFICAÇÃO CORRETAMENTE DESATIVADO
+// loyalty.js - VERSÃO COM MODAL CENTRALIZADO
 
 // =========================================================================
 // CONSTANTES E FUNÇÕES GLOBAIS DO MÓDULO
@@ -84,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             closeLoyaltyModal();
+            // AQUI PODEMOS USAR O NOVO ALERTA NO FUTURO
             alert(`Bem-vindo, ${user.displayName}! Login realizado com sucesso.`);
 
         } catch (error) {
@@ -246,7 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     
     function renderLoyaltyModalContent() {
-        // Flag para controlar a visibilidade da funcionalidade de notificação
         const showNotificationFeature = false; // Mude para 'true' para reativar no futuro
 
         const googleLoginSection = document.getElementById('google-login-section');
@@ -311,13 +311,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function openLoyaltyModal() {
         if (!loyaltyModal) return;
         renderLoyaltyModalContent();
-        loyaltyModal.classList.add('show');
-        document.body.style.overflow = 'hidden';
+        // USA A NOVA FUNÇÃO GLOBAL
+        openModal(loyaltyModal);
     }
 
     function closeLoyaltyModal() {
-        if (loyaltyModal) loyaltyModal.classList.remove('show');
-        document.body.style.overflow = '';
+        // USA A NOVA FUNÇÃO GLOBAL
+        closeModal(loyaltyModal);
     }
 
     async function openLastOrdersModal() {
@@ -325,16 +325,17 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("Você precisa fazer o login primeiro para ver seus pedidos.");
             return;
         };
-        lastOrdersModal.classList.add('show');
-        document.body.style.overflow = 'hidden';
+        // USA A NOVA FUNÇÃO GLOBAL
+        openModal(lastOrdersModal);
+        
         lastOrdersListDiv.innerHTML = '<p>Buscando seu histórico de pedidos...</p>';
         const orders = await fetchLastOrders(window.currentCustomerDetails.id);
         renderLastOrders(orders);
     }
 
     function closeLastOrdersModal() {
-        if (lastOrdersModal) lastOrdersModal.classList.remove('show');
-        document.body.style.overflow = '';
+        // USA A NOVA FUNÇÃO GLOBAL
+        closeModal(lastOrdersModal);
     }
     
     async function loadCurrentCustomerOnPageLoad() {
