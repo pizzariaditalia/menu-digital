@@ -1970,3 +1970,8 @@ body {
 .status-desconhecido {
     color: var(--dark-gray);
 }
+
+/* CLASSE PARA TRAVAR O SCROLL DO BODY QUANDO UM MODAL ESTIVER ABERTO */
+.body-no-scroll {
+    overflow: hidden;
+}
