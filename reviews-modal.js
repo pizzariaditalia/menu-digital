@@ -1,23 +1,24 @@
-// Arquivo: reviews-modal.js - VERSÃO FINAL COM SELEÇÃO POR ID
+// Arquivo: reviews-modal.js - VERSÃO COM MODAL CENTRALIZADO
 
 document.addEventListener('DOMContentLoaded', () => {
-    // CORREÇÃO: Agora procuramos pelo ID específico que criamos.
     const reviewsLink = document.getElementById('open-reviews-modal-link');
-
     const reviewsModal = document.getElementById('google-reviews-modal');
     const closeModalBtn = reviewsModal?.querySelector('.close-button');
 
     if (reviewsLink && reviewsModal && closeModalBtn) {
         reviewsLink.addEventListener('click', function(event) {
-            event.preventDefault(); // Impede a ação padrão do link '#'
-            reviewsModal.classList.add('show'); // Mostra o nosso modal
+            event.preventDefault(); 
+            // USA A NOVA FUNÇÃO GLOBAL
+            openModal(reviewsModal); 
         });
 
-        closeModalBtn.addEventListener('click', () => reviewsModal.classList.remove('show'));
-
+        // USA A NOVA FUNÇÃO GLOBAL
+        closeModalBtn.addEventListener('click', () => closeModal(reviewsModal));
+        
         reviewsModal.addEventListener('click', (e) => {
             if (e.target === reviewsModal) {
-                reviewsModal.classList.remove('show');
+                // USA A NOVA FUNÇÃO GLOBAL
+                closeModal(reviewsModal);
             }
         });
         console.log("Modal de avaliações inicializado com sucesso, usando ID!");
