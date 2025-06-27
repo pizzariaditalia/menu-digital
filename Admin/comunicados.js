@@ -1,10 +1,8 @@
-// Arquivo: comunicados.js - VERSÃO COM MENSAGENS AUTOMÁTICAS (CASA NOVA)
+// Arquivo: comunicados.js - VERSÃO COM ENVIO EM LOTE E SINALIZAÇÃO
 
 let comunicadosSectionInitialized = false;
 
-// Objeto com os modelos de mensagem
 const MENSAGENS_PRE_MONTADAS = {
-    // MENSAGEM NOVA ADICIONADA AQUI
     aviso_novo_aplicativo: {
         titulo: 'Aviso de Casa Nova 📲',
         texto: `Olá, {nome_cliente}! Tudo bem? 😊\n\nEstamos de casa nova! 🚀 Agora você pode fazer seus pedidos da D'Italia Pizzaria pelo nosso novo site oficial, mais rápido e com promoções exclusivas!\n\nClique no link para conferir: https://www.pizzaditalia.com.br\n\nEsperamos seu pedido! 🍕`
@@ -23,104 +21,212 @@ const MENSAGENS_PRE_MONTADAS = {
     },
     aviso_funcionamento: {
         titulo: 'Aviso de Funcionamento (Sexta-feira) 🔥',
-        texto: `Olá, {nome_cliente} boa noite! 🍕🔥 Já estamos com o forno a todo vapor esperando seu pedido! 🛵💨. O melhor da pizza na sua casa.\n\nPeça pelo nosso site: https://www.pizzaditalia.com.br`
+        texto: `Olá, {nome_cliente} boa noite! 🍕🔥 Já estamos com o forno a todo vapor esperando seu pedido 🛵💨! O melhor da pizza na sua casa.\n\nPeça pelo nosso site: https://www.pizzaditalia.com.br`
     }
 };
-
 
 async function initializeComunicadosSection() {
     if (comunicadosSectionInitialized) return;
     comunicadosSectionInitialized = true;
-    console.log("Módulo Comunicados.js: Inicializando PELA PRIMEIRA VEZ...");
+    console.log("Módulo Comunicados.js: Inicializando...");
 
     const mensagemTextarea = document.getElementById('comunicado-mensagem');
     const gerarLinksBtn = document.getElementById('gerar-links-envio');
+    const enviarLoteBtn = document.getElementById('enviar-lote-selecionado-btn');
     const listaContainer = document.getElementById('lista-envio-whatsapp');
     const listaContainerWrapper = document.getElementById('lista-envio-whatsapp-container');
     const templateSelect = document.getElementById('template-selecao-mensagem');
 
-    if (templateSelect) {
-        templateSelect.innerHTML = '<option value="">-- Selecione um modelo --</option>';
-
+    // Popula o menu de seleção
+    if (templateSelect.options.length <= 1) {
         Object.keys(MENSAGENS_PRE_MONTADAS).forEach(key => {
             const option = new Option(MENSAGENS_PRE_MONTADAS[key].titulo, key);
             templateSelect.appendChild(option);
         });
-
-        templateSelect.addEventListener('change', (e) => {
-            const selectedKey = e.target.value;
-            if (selectedKey && MENSAGENS_PRE_MONTADAS[selectedKey]) {
-                mensagemTextarea.value = MENSAGENS_PRE_MONTADAS[selectedKey].texto;
-            } else {
-                mensagemTextarea.value = '';
-            }
-        });
     }
-
+    
+    templateSelect.addEventListener('change', (e) => {
+        const selectedKey = e.target.value;
+        mensagemTextarea.value = selectedKey ? MENSAGENS_PRE_MONTADAS[selectedKey].texto : '';
+    });
 
     gerarLinksBtn.addEventListener('click', async () => {
-        const mensagemBase = mensagemTextarea.value;
-        if (!mensagemBase) {
-            window.showToast("Por favor, escreva uma mensagem ou selecione um modelo.", "warning");
-            return;
-        }
-
         window.showToast("Buscando clientes...", "info");
         gerarLinksBtn.disabled = true;
         gerarLinksBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
-
+        
         try {
             const { collection, getDocs, query } = window.firebaseFirestore;
             const customersQuery = query(collection(window.db, "customer"));
             const querySnapshot = await getDocs(customersQuery);
             const allCustomers = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            const customersWithWhatsapp = allCustomers.filter(c => c.whatsapp);
-
-            if (customersWithWhatsapp.length === 0) {
-                listaContainer.innerHTML = '<p class="empty-list-message">Nenhum cliente com WhatsApp cadastrado foi encontrado.</p>';
-            } else {
-                const tableRows = customersWithWhatsapp.map(customer => {
-                    const nomeCliente = customer.firstName || "Cliente";
-                    const mensagemPersonalizada = mensagemBase.replace(/{nome_cliente}/g, nomeCliente);
-                    const whatsappLink = `https://wa.me/55${customer.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(mensagemPersonalizada)}`;
-                    
-                    return `
-                        <tr>
-                            <td>${nomeCliente} ${customer.lastName || ''}</td>
-                            <td>${customer.whatsapp}</td>
-                            <td class="table-actions">
-                                <a href="${whatsappLink}" target="_blank" class="btn btn-sm btn-success"><i class="fab fa-whatsapp"></i> Enviar</a>
-                            </td>
-                        </tr>
-                    `;
-                }).join('');
-                
-                listaContainer.innerHTML = `
-                    <table class="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>WhatsApp</th>
-                                <th>Ação</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableRows}
-                        </tbody>
-                    </table>
-                `;
-            }
+            renderCustomerList(allCustomers.filter(c => c.whatsapp));
             listaContainerWrapper.classList.remove('hidden');
-
         } catch (error) {
-            console.error("Erro ao gerar links de WhatsApp:", error);
+            console.error("Erro ao gerar lista de clientes:", error);
             window.showToast("Ocorreu um erro ao buscar os clientes.", "error");
         } finally {
             gerarLinksBtn.disabled = false;
-            gerarLinksBtn.innerHTML = '<i class="fas fa-rocket"></i> Gerar Links de Envio';
+            gerarLinksBtn.innerHTML = '<i class="fas fa-list"></i> Gerar Lista de Clientes';
         }
     });
+    
+    enviarLoteBtn.addEventListener('click', () => {
+        const mensagemBase = mensagemTextarea.value;
+        if (!mensagemBase) {
+            window.showToast("Escreva uma mensagem antes de enviar.", "warning");
+            return;
+        }
+
+        const checkboxes = listaContainer.querySelectorAll('.customer-select-checkbox:checked');
+        
+        // Abre o WhatsApp para os selecionados
+        checkboxes.forEach(checkbox => {
+            const customerRow = checkbox.closest('tr');
+            const customerId = customerRow.dataset.customerId;
+            const customerName = customerRow.dataset.customerName;
+            const customerWhatsapp = customerRow.dataset.customerWhatsapp;
+
+            const mensagemPersonalizada = mensagemBase.replace(/{nome_cliente}/g, customerName);
+            const whatsappLink = `https://wa.me/55${customerWhatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(mensagemPersonalizada)}`;
+            
+            window.open(whatsappLink, '_blank');
+            markAsSent(customerId); // Marca como enviado
+        });
+
+        // Atualiza a UI após o envio
+        updateCustomerListUI();
+    });
+
+    function renderCustomerList(customers) {
+        if (customers.length === 0) {
+            listaContainer.innerHTML = '<p class="empty-list-message">Nenhum cliente com WhatsApp cadastrado.</p>';
+            return;
+        }
+
+        const tableRows = customers.map(customer => {
+            const nomeCliente = customer.firstName || "Cliente";
+            const customerId = customer.id || customer.whatsapp;
+            
+            return `
+                <tr data-customer-id="${customerId}" data-customer-name="${nomeCliente}" data-customer-whatsapp="${customer.whatsapp}">
+                    <td class="checkbox-cell">
+                        <input type="checkbox" class="customer-select-checkbox" data-customer-id="${customerId}">
+                    </td>
+                    <td>${nomeCliente} ${customer.lastName || ''}</td>
+                    <td>${customer.whatsapp}</td>
+                    <td class="table-actions">
+                        <button class="btn btn-sm btn-success individual-send-btn"><i class="fab fa-whatsapp"></i> Enviar</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        listaContainer.innerHTML = `
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th class="checkbox-cell"><input type="checkbox" id="select-all-customers"></th>
+                        <th>Nome</th>
+                        <th>WhatsApp</th>
+                        <th>Ação Individual</th>
+                    </tr>
+                </thead>
+                <tbody>${tableRows}</tbody>
+            </table>
+        `;
+        addTableEventListeners();
+        updateCustomerListUI(); // Aplica o status 'sent' ao carregar
+    }
+
+    function addTableEventListeners() {
+        // Lógica para limitar a seleção a 5 checkboxes
+        const checkboxes = listaContainer.querySelectorAll('.customer-select-checkbox');
+        checkboxes.forEach(cb => {
+            cb.addEventListener('click', (e) => {
+                const checkedCount = listaContainer.querySelectorAll('.customer-select-checkbox:checked').length;
+                if (checkedCount > 5) {
+                    window.showToast("Você pode selecionar no máximo 5 clientes por vez.", "warning");
+                    e.target.checked = false; // Desfaz a seleção
+                }
+                updateBatchButtonState();
+            });
+        });
+
+        // Lógica para o botão "Selecionar Todos" (que na verdade seleciona os 5 primeiros visíveis)
+        document.getElementById('select-all-customers').addEventListener('click', (e) => {
+            checkboxes.forEach((cb, index) => {
+                cb.checked = e.target.checked && index < 5 && !cb.closest('tr').classList.contains('sent');
+            });
+            updateBatchButtonState();
+        });
+        
+        // Lógica para o botão de envio individual
+        listaContainer.querySelectorAll('.individual-send-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const customerRow = button.closest('tr');
+                const customerId = customerRow.dataset.customerId;
+                const customerName = customerRow.dataset.customerName;
+                const customerWhatsapp = customerRow.dataset.customerWhatsapp;
+                
+                const mensagemBase = mensagemTextarea.value;
+                if (!mensagemBase) {
+                    window.showToast("Escreva uma mensagem antes de enviar.", "warning");
+                    return;
+                }
+
+                const mensagemPersonalizada = mensagemBase.replace(/{nome_cliente}/g, customerName);
+                const whatsappLink = `https://wa.me/55${customerWhatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(mensagemPersonalizada)}`;
+                window.open(whatsappLink, '_blank');
+                markAsSent(customerId);
+                updateCustomerListUI();
+            });
+        });
+    }
+    
+    function updateBatchButtonState() {
+        const checkedCount = listaContainer.querySelectorAll('.customer-select-checkbox:checked').length;
+        if (checkedCount > 0) {
+            enviarLoteBtn.classList.remove('hidden');
+            enviarLoteBtn.innerHTML = `<i class="fab fa-whatsapp"></i> Enviar para ${checkedCount} Selecionado(s)`;
+        } else {
+            enviarLoteBtn.classList.add('hidden');
+        }
+    }
+
+    function markAsSent(customerId) {
+        const sentTime = new Date().getTime(); // Pega o tempo atual em milissegundos
+        localStorage.setItem(`sent_${customerId}`, sentTime);
+    }
+    
+    function updateCustomerListUI() {
+        const TWO_HOURS_IN_MS = 2 * 60 * 60 * 1000;
+        const now = new Date().getTime();
+        
+        listaContainer.querySelectorAll('tr[data-customer-id]').forEach(row => {
+            const customerId = row.dataset.customerId;
+            const sentTimestamp = localStorage.getItem(`sent_${customerId}`);
+            
+            if (sentTimestamp) {
+                if (now - sentTimestamp < TWO_HOURS_IN_MS) {
+                    // Ainda está no período de 2 horas
+                    row.classList.add('sent');
+                    row.querySelector('.customer-select-checkbox').disabled = true;
+                    row.querySelector('.customer-select-checkbox').checked = false;
+                } else {
+                    // Já passaram 2 horas, remove a marcação
+                    localStorage.removeItem(`sent_${customerId}`);
+                    row.classList.remove('sent');
+                    row.querySelector('.customer-select-checkbox').disabled = false;
+                }
+            } else {
+                row.classList.remove('sent');
+                row.querySelector('.customer-select-checkbox').disabled = false;
+            }
+        });
+        updateBatchButtonState();
+    }
 }
 
 window.initializeComunicadosSection = initializeComunicadosSection;
