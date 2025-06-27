@@ -1,9 +1,10 @@
-// Arquivo: comunicados.js - VERSÃO COM MENSAGENS AUTOMÁTICAS
+// Arquivo: comunicados.js - VERSÃO COM MENSAGENS AUTOMÁTICAS (CASA NOVA)
 
 let comunicadosSectionInitialized = false;
 
 // Objeto com os modelos de mensagem
 const MENSAGENS_PRE_MONTADAS = {
+    // MENSAGEM NOVA ADICIONADA AQUI
     aviso_novo_aplicativo: {
         titulo: 'Aviso de Casa Nova 📲',
         texto: `Olá, {nome_cliente}! Tudo bem? 😊\n\nEstamos de casa nova! 🚀 Agora você pode fazer seus pedidos da D'Italia Pizzaria pelo nosso novo site oficial, mais rápido e com promoções exclusivas!\n\nClique no link para conferir: https://www.pizzaditalia.com.br\n\nEsperamos seu pedido! 🍕`
@@ -21,11 +22,12 @@ const MENSAGENS_PRE_MONTADAS = {
         texto: `Olá, {nome_cliente}, sentimos sua falta! 😊 Que tal uma pizza deliciosa hoje? Preparamos nosso cardápio com muito carinho para você.\n\nDê uma olhada nas novidades: https://www.pizzaditalia.com.br`
     },
     aviso_funcionamento: {
-        titulo: 'Aviso de Funcionamento 🕝',
-        texto: `Olá {nome_cliente}! 🍕🔥 Já estamos com o forno a todo vapor esperando seu pedido! O melhor da pizza na sua casa.\n\nPeça pelo nosso site: https://www.pizzaditalia.com.br`
+        titulo: 'Aviso de Funcionamento (Sexta-feira) 🔥',
+        texto: `Sextou, {nome_cliente}! 🍕🔥 Já estamos com o forno a todo vapor esperando seu pedido! O melhor da pizza na sua casa.\n\nPeça pelo nosso site: https://www.pizzaditalia.com.br`
     }
 };
-    
+
+
 async function initializeComunicadosSection() {
     if (comunicadosSectionInitialized) return;
     comunicadosSectionInitialized = true;
@@ -37,20 +39,20 @@ async function initializeComunicadosSection() {
     const listaContainerWrapper = document.getElementById('lista-envio-whatsapp-container');
     const templateSelect = document.getElementById('template-selecao-mensagem');
 
-    // Popula o menu de seleção com as mensagens pré-montadas
     if (templateSelect) {
+        templateSelect.innerHTML = '<option value="">-- Selecione um modelo --</option>';
+
         Object.keys(MENSAGENS_PRE_MONTADAS).forEach(key => {
             const option = new Option(MENSAGENS_PRE_MONTADAS[key].titulo, key);
             templateSelect.appendChild(option);
         });
 
-        // Adiciona o evento que preenche a caixa de texto
         templateSelect.addEventListener('change', (e) => {
             const selectedKey = e.target.value;
             if (selectedKey && MENSAGENS_PRE_MONTADAS[selectedKey]) {
                 mensagemTextarea.value = MENSAGENS_PRE_MONTADAS[selectedKey].texto;
             } else {
-                mensagemTextarea.value = ''; // Limpa se a opção "Selecione" for escolhida
+                mensagemTextarea.value = '';
             }
         });
     }
@@ -80,7 +82,7 @@ async function initializeComunicadosSection() {
             } else {
                 const tableRows = customersWithWhatsapp.map(customer => {
                     const nomeCliente = customer.firstName || "Cliente";
-                    const mensagemPersonalizada = mensagemBase.replace('{nome_cliente}', nomeCliente);
+                    const mensagemPersonalizada = mensagemBase.replace(/{nome_cliente}/g, nomeCliente);
                     const whatsappLink = `https://wa.me/55${customer.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(mensagemPersonalizada)}`;
                     
                     return `
