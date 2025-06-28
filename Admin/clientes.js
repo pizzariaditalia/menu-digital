@@ -1,11 +1,11 @@
-// Arquivo: clientes.js
-// VERSÃO FINAL COM CÁLCULO DE QUANTIDADE E DATA DO ÚLTIMO PEDIDO E EDIÇÃO CORRIGIDA
+// clientes.js - VERSÃO COM EDIÇÃO DE ENDEREÇO COMPLETA
 
 let customersSectionInitialized = false;
 
 async function initializeCustomersSection() {
     if (customersSectionInitialized) return;
     customersSectionInitialized = true;
+    console.log("Módulo Clientes.js: Inicializando...");
 
     // Seletores de Elementos do DOM
     const customersListContainer = document.getElementById('customers-list-container');
@@ -15,6 +15,7 @@ async function initializeCustomersSection() {
     const closeEditCustomerModalBtn = editCustomerModal ? editCustomerModal.querySelector('.close-modal-btn') : null;
 
     let allCustomers = [];
+    let allNeighborhoods = []; // Para popular o select de bairros
 
     // --- Funções de Interação com o Firestore ---
     async function fetchAllCustomers() {
@@ -29,17 +30,15 @@ async function initializeCustomersSection() {
             return [];
         }
     }
-
-    async function fetchAllOrders() {
+    
+    async function fetchNeighborhoodsForSelect() {
         if (!window.db || !window.firebaseFirestore) return [];
-        const { collection, getDocs, query } = window.firebaseFirestore;
+        const { collection, getDocs } = window.firebaseFirestore;
         try {
-            const q = query(collection(window.db, "pedidos"));
-            const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => doc.data());
+            const querySnapshot = await getDocs(collection(window.db, "delivery_fees"));
+            allNeighborhoods = querySnapshot.docs.map(doc => doc.data().name).sort();
         } catch (error) {
-            console.error("Erro ao buscar pedidos:", error);
-            return [];
+            console.error("Erro ao buscar bairros para o formulário:", error);
         }
     }
 
@@ -61,10 +60,6 @@ async function initializeCustomersSection() {
         const address = customer.address || {};
         const fullAddress = [address.street, address.number, address.neighborhood].filter(Boolean).join(', ');
 
-        const lastOrderDate = customer.lastOrderDate
-            ? new Date(customer.lastOrderDate).toLocaleDateString('pt-BR')
-            : 'Nenhum pedido';
-
         return `
         <div class="customer-card" data-customer-id="${customer.id}">
             <div class="customer-summary">
@@ -78,14 +73,6 @@ async function initializeCustomersSection() {
                 <div class="detail-item">
                     <strong><i class="fas fa-star"></i> Pontos:</strong>
                     <span>${customer.points || 0}</span>
-                </div>
-                <div class="detail-item">
-                    <strong><i class="fas fa-receipt"></i> Pedidos:</strong>
-                    <span>${customer.orderCount || 0}</span>
-                </div>
-                <div class="detail-item">
-                    <strong><i class="fas fa-calendar-alt"></i> Último Pedido:</strong>
-                    <span>${lastOrderDate}</span>
                 </div>
                 <div class="detail-item full-width">
                     <strong><i class="fas fa-map-marker-alt"></i> Endereço:</strong>
@@ -104,8 +91,7 @@ async function initializeCustomersSection() {
         const filteredCustomers = searchTerm
             ? customers.filter(c =>
                 (`${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().includes(lowerCaseTerm)) ||
-                (c.whatsapp && c.whatsapp.includes(lowerCaseTerm)) ||
-                (c.email && c.email.toLowerCase().includes(lowerCaseTerm))
+                (c.whatsapp && c.whatsapp.includes(lowerCaseTerm))
             )
             : customers;
         if (filteredCustomers.length === 0) {
@@ -118,15 +104,21 @@ async function initializeCustomersSection() {
 
     async function openEditModal(customerId) {
         if (!editCustomerModal || !editCustomerForm) return;
+        
+        // Busca os dados mais recentes do cliente
         const { doc, getDoc } = window.firebaseFirestore;
         const customerRef = doc(window.db, "customer", customerId);
         const customerSnap = await getDoc(customerRef);
+        
         if (!customerSnap.exists()) {
             window.showToast("Cliente não encontrado!", "error");
             return;
         }
-        const customer = customerSnap.data();
         
+        const customer = customerSnap.data();
+        const address = customer.address || {};
+        
+        // Gera o HTML do formulário com todos os campos de endereço
         const formContent = `
             <div class="modal-body">
                 <input type="hidden" id="edit-customer-id" value="${customerId}">
@@ -145,7 +137,34 @@ async function initializeCustomersSection() {
                     <input type="tel" id="edit-customer-whatsapp-display" class="form-control" value="${customer.whatsapp || ''}">
                 </div>
                 <hr>
-                <h4>Pontos de Fidelidade</h4>
+                <h4><i class="fas fa-map-marker-alt"></i> Endereço de Entrega</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit-customer-street">Rua / Avenida</label>
+                        <input type="text" id="edit-customer-street" class="form-control" value="${address.street || ''}">
+                    </div>
+                     <div class="form-group" style="flex-basis: 120px; flex-grow: 0;">
+                        <label for="edit-customer-number">Número</label>
+                        <input type="text" id="edit-customer-number" class="form-control" value="${address.number || ''}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit-customer-neighborhood">Bairro</label>
+                    <select id="edit-customer-neighborhood" class="form-control">
+                        <option value="">-- Sem bairro --</option>
+                        ${allNeighborhoods.map(name => `<option value="${name}" ${name === address.neighborhood ? 'selected' : ''}>${name}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-customer-complement">Complemento</label>
+                    <input type="text" id="edit-customer-complement" class="form-control" placeholder="Apto, casa, etc." value="${address.complement || ''}">
+                </div>
+                 <div class="form-group">
+                    <label for="edit-customer-reference">Ponto de Referência</label>
+                    <input type="text" id="edit-customer-reference" class="form-control" value="${address.reference || ''}">
+                </div>
+                <hr>
+                <h4><i class="fas fa-star"></i> Pontos de Fidelidade</h4>
                 <div class="form-group">
                     <label for="edit-customer-points">Pontos Atuais</label>
                     <input type="number" id="edit-customer-points" class="form-control" value="${customer.points || 0}" step="1">
@@ -158,22 +177,24 @@ async function initializeCustomersSection() {
         `;
         editCustomerForm.innerHTML = formContent;
         editCustomerForm.querySelector('.close-modal-btn').addEventListener('click', closeEditCustomerModal);
-        editCustomerModal.classList.add('show');
+        openModal(editCustomerModal);
     }
 
     function closeEditCustomerModal() {
-        if (editCustomerModal) editCustomerModal.classList.remove('show');
+        closeModal(editCustomerModal);
     }
 
     function addCardEventListeners() {
         customersListContainer.querySelectorAll('.customer-card').forEach(card => {
             card.addEventListener('click', (event) => {
                 const customerId = card.dataset.customerId;
+                // Abre o modal de edição SOMENTE se o botão de editar for clicado
                 if (event.target.closest('.edit-customer-btn')) {
                     event.stopPropagation();
                     openEditModal(customerId);
                     return;
                 }
+                // Expande para ver detalhes se clicar em qualquer outro lugar do card
                 card.classList.toggle('expanded');
             });
         });
@@ -198,54 +219,39 @@ async function initializeCustomersSection() {
             const customerId = editCustomerForm.querySelector('#edit-customer-id').value;
             if (!customerId) return;
             
+            // Monta o objeto com os dados do cliente e do endereço
             const updatedData = {
                 firstName: editCustomerForm.querySelector('#edit-customer-firstname').value.trim(),
                 lastName: editCustomerForm.querySelector('#edit-customer-lastname').value.trim(),
                 whatsapp: editCustomerForm.querySelector('#edit-customer-whatsapp-display').value.trim(),
                 points: parseInt(editCustomerForm.querySelector('#edit-customer-points').value, 10) || 0,
+                address: {
+                    street: editCustomerForm.querySelector('#edit-customer-street').value.trim(),
+                    number: editCustomerForm.querySelector('#edit-customer-number').value.trim(),
+                    neighborhood: editCustomerForm.querySelector('#edit-customer-neighborhood').value,
+                    complement: editCustomerForm.querySelector('#edit-customer-complement').value.trim(),
+                    reference: editCustomerForm.querySelector('#edit-customer-reference').value.trim()
+                }
             };
             
             await saveCustomerToFirestore(customerId, updatedData);
             closeEditCustomerModal();
-            main();
+            main(); // Recarrega a lista de clientes para mostrar os dados atualizados
         });
     }
 
     async function main() {
         if (customersListContainer) {
-            customersListContainer.innerHTML = '<p class="empty-list-message">Carregando clientes e processando pedidos...</p>';
+            customersListContainer.innerHTML = '<p class="empty-list-message">Carregando clientes...</p>';
         }
 
-        const [customers, orders] = await Promise.all([
+        // Busca os dados necessários em paralelo para mais performance
+        const [customers, _] = await Promise.all([
             fetchAllCustomers(),
-            fetchAllOrders()
+            fetchNeighborhoodsForSelect() // Carrega os bairros para o formulário
         ]);
 
-        const orderStats = new Map();
-        for (const order of orders) {
-            const customerIdentifier = order.customer?.id || order.customer?.whatsapp;
-            if (!customerIdentifier) continue;
-
-            if (!orderStats.has(customerIdentifier)) {
-                orderStats.set(customerIdentifier, { count: 0, lastOrderDate: null });
-            }
-            const stats = orderStats.get(customerIdentifier);
-            stats.count++;
-            const orderDate = order.createdAt?.toDate();
-            if (orderDate && (!stats.lastOrderDate || orderDate > stats.lastOrderDate)) {
-                stats.lastOrderDate = orderDate;
-            }
-        }
-
-        allCustomers = customers.map(customer => {
-            const stats = orderStats.get(customer.id) || orderStats.get(customer.whatsapp);
-            return {
-                ...customer,
-                orderCount: stats ? stats.count : 0,
-                lastOrderDate: stats ? stats.lastOrderDate?.toISOString() : null
-            };
-        });
-
+        allCustomers = customers;
         renderCustomersList(allCustomers, searchCustomerInput ? searchCustomerInput.value : "");
     }
 
