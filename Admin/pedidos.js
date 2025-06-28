@@ -65,11 +65,11 @@ function handleSendWppToDeliveryPerson(orderId) {
       `*CONTATO:*\n` +
       `${customerWhatsappLink}\n\n` +
       `*ENDEREÇO:*\n` +
-      `${addressLine}\n` + // Usa a nova variável corrigida
-      `Bairro: ${order.delivery.neighborhood || ''}\n`;
+      `*RUA/AV:*${addressLine}\n` + // Usa a nova variável corrigida
+      `*BAIRRO:* ${order.delivery.neighborhood || ''}\n`;
 
-  if (order.delivery.complement) message += `Complemento: ${order.delivery.complement}\n`;
-  if (order.delivery.reference) message += `Ponto de Referência: ${order.delivery.reference}\n`;
+  if (order.delivery.complement) message += `*COMPLEMENTO:* ${order.delivery.complement}\n`;
+  if (order.delivery.reference) message += `*PONTO DE REFERÊNCIA:* ${order.delivery.reference}\n`;
 
   message += `\n-----------------------------------\n` +
       `*PEDIDO:*\n` +
@@ -87,7 +87,7 @@ function handleSendWppToDeliveryPerson(orderId) {
     }
   }
 
-  message += `\nBoa entrega!`;
+  message += `\nBoa entrega! 🛵💨`;
   
   const deliveryPersonWhatsappUrl = `https://wa.me/55${deliveryPerson.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
   window.open(deliveryPersonWhatsappUrl, '_blank');
