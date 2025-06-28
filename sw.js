@@ -28,7 +28,7 @@ messaging.onBackgroundMessage(function(payload) {
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-const CACHE_NAME = 'ditalia-pizzaria-cache-v150'; // Mudei a versão mais uma vez
+const CACHE_NAME = 'ditalia-pizzaria-cache-v160'; // Mudei a versão mais uma vez
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
