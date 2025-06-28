@@ -10,6 +10,8 @@ let activeTypeFilter = 'todos';
 // ======================================================================
 // FUNÇÃO ATUALIZADA
 // ======================================================================
+// DENTRO DE pedidos.js - SUBSTITUA A FUNÇÃO INTEIRA
+
 function handleSendWppToDeliveryPerson(orderId) {
   const order = allOrders.find(o => o.id === orderId);
   const deliveryPersonSelect = document.getElementById('modal-delivery-person-select');
@@ -30,31 +32,40 @@ function handleSendWppToDeliveryPerson(orderId) {
     return;
   }
 
-  // --- Montagem da Nova Mensagem ---
+  // --- Montagem da Mensagem Corrigida ---
 
   const customerName = `${order.customer.firstName} ${order.customer.lastName}`;
   const customerWhatsapp = order.customer.whatsapp.replace(/\D/g, '');
   const customerWhatsappLink = `https://wa.me/55${customerWhatsapp}`;
   
-  const itemsList = order.items.map(item => `- ${item.quantity}x ${item.name}`).join('\n');
+  const itemsList = order.items.map(item => {
+    let itemName = item.name;
+    // Adiciona a identificação de Calzone que fizemos antes
+    if (item.category && item.category.includes('calzones')) {
+        itemName += ' (Calzone)';
+    }
+    return `- ${item.quantity}x ${itemName}`;
+  }).join('\n');
   
   const grandTotal = (order.totals?.grandTotal || 0).toFixed(2).replace('.', ',');
   const paymentMethod = order.payment.method || "Não definido";
   
-  // Lógica para o Status do Pagamento
   let paymentStatus = 'Receber na entrega';
   if (order.payment?.method === 'Pix') {
     paymentStatus = order.payment.pixPaid ? 'Já foi pago (Pix)' : 'Aguardando Pagamento';
   }
+  
+  // LÓGICA CORRIGIDA PARA O ENDEREÇO
+  // Primeiro, tenta usar o campo `address` completo. Se não existir, monta com `street` e `number`.
+  const addressLine = order.delivery.address || `${order.delivery.street || ''}, ${order.delivery.number || ''}`;
 
-  // Montando a mensagem na ordem que você pediu
   let message = `*Nova Entrega D'Italia Pizzaria* 🛵\n\n` +
       `*CLIENTE:*\n` +
       `${customerName}\n\n` +
       `*CONTATO:*\n` +
       `${customerWhatsappLink}\n\n` +
       `*ENDEREÇO:*\n` +
-      `Rua/Av: ${order.delivery.street || ''}, ${order.delivery.number || ''}\n` +
+      `${addressLine}\n` + // Usa a nova variável corrigida
       `Bairro: ${order.delivery.neighborhood || ''}\n`;
 
   if (order.delivery.complement) message += `Complemento: ${order.delivery.complement}\n`;
