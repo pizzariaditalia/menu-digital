@@ -65,7 +65,7 @@ function handleSendWppToDeliveryPerson(orderId) {
       `*CONTATO:*\n` +
       `${customerWhatsappLink}\n\n` +
       `*ENDEREÇO:*\n` +
-      `*RUA/AV:*${addressLine}\n` + // Usa a nova variável corrigida
+      `*RUA:* ${addressLine}\n` + // Usa a nova variável corrigida
       `*BAIRRO:* ${order.delivery.neighborhood || ''}\n`;
 
   if (order.delivery.complement) message += `*COMPLEMENTO:* ${order.delivery.complement}\n`;
