@@ -126,8 +126,7 @@ async function initializeCustomersSection() {
             return;
         }
         const customer = customerSnap.data();
-        
-        const formContent =
+        const formContent = `
             <div class="modal-body">
                 <input type="hidden" id="edit-customer-id" value="${customerId}">
                 <div class="form-row">
