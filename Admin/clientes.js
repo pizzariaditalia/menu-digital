@@ -2,30 +2,27 @@
 
 let customersSectionInitialized = false;
 
+// Função principal que organiza a inicialização da aba
 async function initializeCustomersSection() {
-    // A verificação impede que o código seja executado múltiplas vezes
     if (customersSectionInitialized) {
-        return; 
+        // Se a aba já foi aberta antes, não precisa refazer tudo,
+        // mas podemos adicionar uma lógica de atualização aqui se necessário no futuro.
+        return;
     }
     customersSectionInitialized = true;
     console.log("Módulo Clientes.js: Inicializando...");
-    await main(); // Chama a função principal que organiza toda a lógica
-}
-
-// A função 'main' garante que tudo execute na ordem correta
-async function main() {
-    // Seleciona os elementos do DOM aqui, garantindo que a página já carregou
+    
+    // --- Seletores de Elementos (garantido que o DOM está pronto) ---
     const customersListContainer = document.getElementById('customers-list-container');
     const searchCustomerInput = document.getElementById('search-customer-input');
     const editCustomerModal = document.getElementById('edit-customer-modal');
     const editCustomerForm = document.getElementById('edit-customer-form');
-
+    
     let allCustomers = [];
     let allNeighborhoods = [];
 
     // --- Funções de busca de dados ---
     async function fetchAllCustomers() {
-        if (!window.db || !window.firebaseFirestore) return [];
         const { collection, getDocs, orderBy, query } = window.firebaseFirestore;
         try {
             const q = query(collection(window.db, "customer"), orderBy("firstName"));
@@ -35,7 +32,6 @@ async function main() {
     }
     
     async function fetchAllOrders() {
-        if (!window.db || !window.firebaseFirestore) return [];
         const { collection, getDocs, query } = window.firebaseFirestore;
         try {
             const q = query(collection(window.db, "pedidos"));
@@ -45,7 +41,6 @@ async function main() {
     }
 
     async function fetchNeighborhoodsForSelect() {
-        if (!window.db || !window.firebaseFirestore) return [];
         const { collection, getDocs } = window.firebaseFirestore;
         try {
             const querySnapshot = await getDocs(collection(window.db, "delivery_fees"));
@@ -56,8 +51,7 @@ async function main() {
     async function saveCustomerToFirestore(customerId, customerData) {
         const { doc, updateDoc } = window.firebaseFirestore;
         try {
-            const customerRef = doc(window.db, "customer", customerId);
-            await updateDoc(customerRef, customerData);
+            await updateDoc(doc(window.db, "customer", customerId), customerData);
             window.showToast("Cliente salvo com sucesso!");
         } catch (error) { window.showToast("Erro ao salvar cliente.", "error"); }
     }
@@ -94,14 +88,14 @@ async function main() {
         const filteredCustomers = searchTerm ? customers.filter(c => (`${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().includes(lowerCaseTerm)) || (c.whatsapp && c.whatsapp.includes(lowerCaseTerm))) : customers;
         
         customersListContainer.innerHTML = filteredCustomers.length > 0 ? filteredCustomers.map(createCustomerCardHTML).join('') : `<p class="empty-list-message">Nenhum cliente encontrado.</p>`;
-        addCardEventListeners();
+        addCardEventListeners(); // Adiciona os eventos DEPOIS de renderizar
     }
 
     async function openEditModal(customerId) {
         if (!editCustomerModal || !editCustomerForm) return;
+        
         const { doc, getDoc } = window.firebaseFirestore;
-        const customerRef = doc(window.db, "customer", customerId);
-        const customerSnap = await getDoc(customerRef);
+        const customerSnap = await getDoc(doc(window.db, "customer", customerId));
         
         if (!customerSnap.exists()) { window.showToast("Cliente não encontrado!", "error"); return; }
         
@@ -112,20 +106,22 @@ async function main() {
             <div class="modal-body">
                 <input type="hidden" id="edit-customer-id" value="${customerId}">
                 <div class="form-row">
-                    <div class="form-group"><label for="edit-customer-firstname">Nome</label><input type="text" id="edit-customer-firstname" value="${customer.firstName || ''}"></div>
-                    <div class="form-group"><label for="edit-customer-lastname">Sobrenome</label><input type="text" id="edit-customer-lastname" value="${customer.lastName || ''}"></div>
+                    <div class="form-group"><label for="edit-customer-firstname">Nome</label><input type="text" id="edit-customer-firstname" class="form-control" value="${customer.firstName || ''}"></div>
+                    <div class="form-group"><label for="edit-customer-lastname">Sobrenome</label><input type="text" id="edit-customer-lastname" class="form-control" value="${customer.lastName || ''}"></div>
                 </div>
-                <div class="form-group"><label for="edit-customer-whatsapp-display">WhatsApp</label><input type="tel" id="edit-customer-whatsapp-display" value="${customer.whatsapp || ''}"></div>
-                <hr><h4><i class="fas fa-map-marker-alt"></i> Endereço</h4>
+                <div class="form-group"><label for="edit-customer-whatsapp">WhatsApp</label><input type="tel" id="edit-customer-whatsapp" class="form-control" value="${customer.whatsapp || ''}"></div>
+                <hr>
+                <h4><i class="fas fa-map-marker-alt"></i> Endereço</h4>
                 <div class="form-row">
-                    <div class="form-group"><label for="edit-customer-street">Rua/Avenida</label><input type="text" id="edit-customer-street" value="${address.street || ''}"></div>
-                    <div class="form-group" style="flex-basis: 120px; flex-grow: 0;"><label for="edit-customer-number">Número</label><input type="text" id="edit-customer-number" value="${address.number || ''}"></div>
+                    <div class="form-group"><label for="edit-customer-street">Rua/Avenida</label><input type="text" id="edit-customer-street" class="form-control" value="${address.street || ''}"></div>
+                    <div class="form-group" style="flex-basis: 120px; flex-grow: 0;"><label for="edit-customer-number">Número</label><input type="text" id="edit-customer-number" class="form-control" value="${address.number || ''}"></div>
                 </div>
-                <div class="form-group"><label for="edit-customer-neighborhood">Bairro</label><select id="edit-customer-neighborhood"><option value="">-- Sem bairro --</option>${allNeighborhoods.map(n => `<option value="${n}" ${n === address.neighborhood ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
-                <div class="form-group"><label for="edit-customer-complement">Complemento</label><input type="text" id="edit-customer-complement" placeholder="Apto, casa..." value="${address.complement || ''}"></div>
-                <div class="form-group"><label for="edit-customer-reference">Ponto de Referência</label><input type="text" id="edit-customer-reference" value="${address.reference || ''}"></div>
-                <hr><h4><i class="fas fa-star"></i> Pontos</h4>
-                <div class="form-group"><label for="edit-customer-points">Pontos Atuais</label><input type="number" id="edit-customer-points" value="${customer.points || 0}" step="1"></div>
+                <div class="form-group"><label for="edit-customer-neighborhood">Bairro</label><select id="edit-customer-neighborhood" class="form-control"><option value="">-- Sem bairro --</option>${allNeighborhoods.map(n => `<option value="${n}" ${n === address.neighborhood ? 'selected' : ''}>${n}</option>`).join('')}</select></div>
+                <div class="form-group"><label for="edit-customer-complement">Complemento</label><input type="text" id="edit-customer-complement" class="form-control" placeholder="Apto, casa..." value="${address.complement || ''}"></div>
+                <div class="form-group"><label for="edit-customer-reference">Ponto de Referência</label><input type="text" id="edit-customer-reference" class="form-control" value="${address.reference || ''}"></div>
+                <hr>
+                <h4><i class="fas fa-star"></i> Pontos</h4>
+                <div class="form-group"><label for="edit-customer-points">Pontos Atuais</label><input type="number" id="edit-customer-points" class="form-control" value="${customer.points || 0}" step="1"></div>
             </div>
             <div class="modal-footer"><button type="button" class="btn btn-secondary close-modal-btn">Cancelar</button><button type="submit" class="btn btn-success">Salvar</button></div>`;
         
@@ -151,7 +147,7 @@ async function main() {
         });
     }
     
-    // --- Lógica de Eventos ---
+    // --- Lógica de Eventos e Inicialização ---
     if (searchCustomerInput) {
         searchCustomerInput.addEventListener('input', (e) => renderCustomersList(allCustomers, e.target.value));
     }
@@ -173,7 +169,7 @@ async function main() {
             const updatedData = {
                 firstName: editCustomerForm.querySelector('#edit-customer-firstname').value.trim(),
                 lastName: editCustomerForm.querySelector('#edit-customer-lastname').value.trim(),
-                whatsapp: editCustomerForm.querySelector('#edit-customer-whatsapp-display').value.trim(),
+                whatsapp: editCustomerForm.querySelector('#edit-customer-whatsapp').value.trim(),
                 points: parseInt(editCustomerForm.querySelector('#edit-customer-points').value, 10) || 0,
                 address: {
                     street: editCustomerForm.querySelector('#edit-customer-street').value.trim(),
@@ -186,7 +182,7 @@ async function main() {
             
             await saveCustomerToFirestore(customerId, updatedData);
             closeEditCustomerModal();
-            main(); // Recarrega a lista
+            main(); 
         });
     }
 
@@ -221,4 +217,5 @@ async function main() {
     renderCustomersList(allCustomers, searchCustomerInput ? searchCustomerInput.value : "");
 }
 
+// Exporta a função de inicialização para ser chamada pelo admin.js
 window.initializeCustomersSection = initializeCustomersSection;
