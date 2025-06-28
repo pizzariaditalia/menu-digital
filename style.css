@@ -1975,3 +1975,16 @@ body {
 .body-no-scroll {
     overflow: hidden;
 }
+
+/* Estilo para o Textarea do Modal de Calzone */
+#calzone-notes.form-control {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1em;
+    padding: 10px;
+    background-color: var(--light-gray);
+    resize: vertical;
+}
