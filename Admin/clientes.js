@@ -1,22 +1,28 @@
-// clientes.js - VERSÃO COM CORREÇÃO DO RESUMO E EDIÇÃO DE ENDEREÇO
+// clientes.js - VERSÃO COM CORREÇÃO DE RESUMO E TIMING DO MODAL
 
 let customersSectionInitialized = false;
 
 async function initializeCustomersSection() {
-    if (customersSectionInitialized) return;
+    if (customersSectionInitialized) {
+        // Se a seção já foi inicializada, apenas recarrega os dados
+        await main();
+        return;
+    }
     customersSectionInitialized = true;
     console.log("Módulo Clientes.js: Inicializando...");
+    await main(); // Chama a função principal que agora contém toda a lógica
+}
 
-    // Seletores de Elementos do DOM
+// A função principal agora organiza toda a inicialização
+async function main() {
+    // --- Seletores de Elementos do DOM (Agora dentro de main) ---
     const customersListContainer = document.getElementById('customers-list-container');
     const searchCustomerInput = document.getElementById('search-customer-input');
     const editCustomerModal = document.getElementById('edit-customer-modal');
     const editCustomerForm = document.getElementById('edit-customer-form');
-    // Corrigido para ser mais seguro caso o modal não seja encontrado imediatamente
-    const closeEditCustomerModalBtn = editCustomerModal ? editCustomerModal.querySelector('.close-modal-btn') : null;
 
     let allCustomers = [];
-    let allNeighborhoods = []; // Para popular o select de bairros
+    let allNeighborhoods = [];
 
     // --- Funções de Interação com o Firestore ---
     async function fetchAllCustomers() {
@@ -78,6 +84,7 @@ async function initializeCustomersSection() {
             ? new Date(customer.lastOrderDate).toLocaleDateString('pt-BR')
             : 'Nenhum pedido';
 
+        // CORREÇÃO: Readicionando os campos de contagem e data do último pedido
         return `
         <div class="customer-card" data-customer-id="${customer.id}">
             <div class="customer-summary">
@@ -209,6 +216,7 @@ async function initializeCustomersSection() {
     }
 
     function addCardEventListeners() {
+        if (!customersListContainer) return;
         customersListContainer.querySelectorAll('.customer-card').forEach(card => {
             card.addEventListener('click', (event) => {
                 const customerId = card.dataset.customerId;
@@ -221,20 +229,22 @@ async function initializeCustomersSection() {
             });
         });
     }
-
+    
+    // --- Lógica de Eventos ---
     if (searchCustomerInput) {
         searchCustomerInput.addEventListener('input', (e) => {
             renderCustomersList(allCustomers, e.target.value);
         });
     }
-    if (closeEditCustomerModalBtn) {
-        closeEditCustomerModalBtn.addEventListener('click', closeEditCustomerModal);
-    }
+    
     if (editCustomerModal) {
+        const closeBtn = editCustomerModal.querySelector('.close-modal-btn');
+        if(closeBtn) closeBtn.addEventListener('click', closeEditCustomerModal);
         editCustomerModal.addEventListener('click', (e) => {
             if (e.target === editCustomerModal) closeEditCustomerModal();
         });
     }
+
     if (editCustomerForm) {
         editCustomerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -261,46 +271,44 @@ async function initializeCustomersSection() {
         });
     }
 
-    async function main() {
-        if (customersListContainer) {
-            customersListContainer.innerHTML = '<p class="empty-list-message">Carregando clientes e processando pedidos...</p>';
-        }
-
-        const [customers, orders] = await Promise.all([
-            fetchAllCustomers(),
-            fetchAllOrders(),
-            fetchNeighborhoodsForSelect()
-        ]);
-
-        const orderStats = new Map();
-        for (const order of orders) {
-            const customerIdentifier = order.customer?.id || order.customer?.whatsapp;
-            if (!customerIdentifier) continue;
-
-            if (!orderStats.has(customerIdentifier)) {
-                orderStats.set(customerIdentifier, { count: 0, lastOrderDate: null });
-            }
-            const stats = orderStats.get(customerIdentifier);
-            stats.count++;
-            const orderDate = order.createdAt?.toDate();
-            if (orderDate && (!stats.lastOrderDate || orderDate > stats.lastOrderDate)) {
-                stats.lastOrderDate = orderDate;
-            }
-        }
-
-        allCustomers = customers.map(customer => {
-            const stats = orderStats.get(customer.id) || orderStats.get(customer.whatsapp);
-            return {
-                ...customer,
-                orderCount: stats ? stats.count : 0,
-                lastOrderDate: stats ? stats.lastOrderDate?.toISOString() : null
-            };
-        });
-
-        renderCustomersList(allCustomers, searchCustomerInput ? searchCustomerInput.value : "");
+    // --- Execução Principal (agora como função) ---
+    if (customersListContainer) {
+        customersListContainer.innerHTML = '<p class="empty-list-message">Carregando clientes e processando dados...</p>';
     }
 
-    main();
+    const [customers, orders] = await Promise.all([
+        fetchAllCustomers(),
+        fetchAllOrders(),
+        fetchNeighborhoodsForSelect()
+    ]);
+
+    const orderStats = new Map();
+    for (const order of orders) {
+        const customerIdentifier = order.customer?.id || order.customer?.whatsapp;
+        if (!customerIdentifier) continue;
+
+        if (!orderStats.has(customerIdentifier)) {
+            orderStats.set(customerIdentifier, { count: 0, lastOrderDate: null });
+        }
+        const stats = orderStats.get(customerIdentifier);
+        stats.count++;
+        const orderDate = order.createdAt?.toDate();
+        if (orderDate && (!stats.lastOrderDate || orderDate > stats.lastOrderDate)) {
+            stats.lastOrderDate = orderDate;
+        }
+    }
+
+    allCustomers = customers.map(customer => {
+        const stats = orderStats.get(customer.id) || orderStats.get(customer.whatsapp);
+        return {
+            ...customer,
+            orderCount: stats ? stats.count : 0,
+            lastOrderDate: stats ? stats.lastOrderDate?.toISOString() : null
+        };
+    });
+
+    renderCustomersList(allCustomers, searchCustomerInput ? searchCustomerInput.value : "");
 }
+
 
 window.initializeCustomersSection = initializeCustomersSection;
