@@ -1,4 +1,4 @@
-// pedidos.js - VERSÃO COMPLETA E ATUALIZADA
+// pedidos.js - VERSÃO COM MENSAGEM PARA MOTOBOY APRIMORADA
 
 // --- Variáveis de estado do módulo ---
 let ordersSectionInitialized = false;
@@ -13,39 +13,61 @@ let activeTypeFilter = 'todos';
 function handleSendWppToDeliveryPerson(orderId) {
   const order = allOrders.find(o => o.id === orderId);
   const deliveryPersonSelect = document.getElementById('modal-delivery-person-select');
+  
   if (!order || !deliveryPersonSelect) {
-    console.error("Pedido ou seletor de entregador não encontrado."); return;
+    console.error("Pedido ou seletor de entregador não encontrado.");
+    window.showToast("Erro ao encontrar dados do pedido.", "error");
+    return;
   }
   const selectedDeliveryPersonId = deliveryPersonSelect.value;
   if (!selectedDeliveryPersonId) {
-    window.showToast("Selecione um entregador para enviar a mensagem.", "warning"); return;
+    window.showToast("Selecione um entregador para enviar a mensagem.", "warning");
+    return;
   }
   const deliveryPerson = allDeliveryPeople.find(p => p.id === selectedDeliveryPersonId);
   if (!deliveryPerson) {
-    window.showToast("Erro: Dados do entregador não encontrados.", "error"); return;
+    window.showToast("Erro: Dados do entregador não encontrados.", "error");
+    return;
   }
 
+  // --- Montagem da Nova Mensagem ---
+
   const customerName = `${order.customer.firstName} ${order.customer.lastName}`;
-  const addressString = order.delivery.address || `${order.delivery.street}, ${order.delivery.number} - ${order.delivery.neighborhood}`;
-  const paymentMethod = order.payment.method || "Não definido";
-  const grandTotal = (order.totals?.grandTotal || 0).toFixed(2).replace('.', ',');
   const customerWhatsapp = order.customer.whatsapp.replace(/\D/g, '');
   const customerWhatsappLink = `https://wa.me/55${customerWhatsapp}`;
+  
+  const itemsList = order.items.map(item => `- ${item.quantity}x ${item.name}`).join('\n');
+  
+  const grandTotal = (order.totals?.grandTotal || 0).toFixed(2).replace('.', ',');
+  const paymentMethod = order.payment.method || "Não definido";
+  
+  // Lógica para o Status do Pagamento
+  let paymentStatus = 'Receber na entrega';
+  if (order.payment?.method === 'Pix') {
+    paymentStatus = order.payment.pixPaid ? 'Já foi pago (Pix)' : 'Aguardando Pagamento';
+  }
 
-  const fullAddressForMap = `${order.delivery.street}, ${order.delivery.number}, ${order.delivery.neighborhood}, Caçapava, SP`;
-  const googleMapsLink = `https://maps.google.com/maps?q=${encodeURIComponent(fullAddressForMap)}`;
+  // Montando a mensagem na ordem que você pediu
+  let message = `*Nova Entrega D'Italia Pizzaria* 🛵\n\n` +
+      `*CLIENTE:*\n` +
+      `${customerName}\n\n` +
+      `*CONTATO:*\n` +
+      `${customerWhatsappLink}\n\n` +
+      `*ENDEREÇO:*\n` +
+      `Rua/Av: ${order.delivery.street || ''}, ${order.delivery.number || ''}\n` +
+      `Bairro: ${order.delivery.neighborhood || ''}\n`;
 
-  let message = `*Nova Entrega D'Italia Pizzaria*\n\n` +
-      `*Cliente:* ${customerName}\n` +
-      `*Contato:* ${customerWhatsappLink}\n\n` +
-      `*Endereço:* ${addressString}\n` +
-      `*Ver no Mapa:* ${googleMapsLink}\n`;
+  if (order.delivery.complement) message += `Complemento: ${order.delivery.complement}\n`;
+  if (order.delivery.reference) message += `Ponto de Referência: ${order.delivery.reference}\n`;
 
-  if (order.delivery.complement) message += `*Complemento:* ${order.delivery.complement}\n`;
-  if (order.delivery.reference) message += `*Referência:* ${order.delivery.reference}\n`;
-
-  message += `\n*Valor a Receber:* R$ ${grandTotal}\n` +
-      `*Forma de Pagamento:* ${paymentMethod}\n`;
+  message += `\n-----------------------------------\n` +
+      `*PEDIDO:*\n` +
+      `${itemsList}\n\n` +
+      `-----------------------------------\n` +
+      `*PAGAMENTO:*\n` +
+      `Valor a Receber: *R$ ${grandTotal}*\n` +
+      `Forma de Pagamento: *${paymentMethod}*\n` +
+      `Status do Pagamento: *${paymentStatus}*\n`;
 
   if (paymentMethod === 'Dinheiro') {
     const changeValue = parseFloat(order.payment.changeFor);
@@ -54,7 +76,7 @@ function handleSendWppToDeliveryPerson(orderId) {
     }
   }
 
-  message += `\nLembre-se de levar a maquininha de cartão se necessário. Boa entrega!`;
+  message += `\nBoa entrega!`;
   
   const deliveryPersonWhatsappUrl = `https://wa.me/55${deliveryPerson.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
   window.open(deliveryPersonWhatsappUrl, '_blank');
@@ -80,7 +102,6 @@ function openOrderDetailsModal(order) {
   let modalBodyHTML = '';
   modalBodyHTML += `<h4 class="modal-section-title"><i class="fas fa-user"></i> Cliente</h4><div class="detail-grid"><div class="detail-item full-width"><strong>Nome</strong><span>${`${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Não informado'}</span></div><div class="detail-item full-width"><strong>WhatsApp</strong><span>${customer.whatsapp || 'Não informado'}</span></div></div>`;
   
-  // CORREÇÃO DO CALZONE APLICADA AQUI
   const itemsHTML = items.length > 0 ? `<ul>${items.map(item => {
       let itemName = item.name;
       if (item.category && item.category.includes('calzones')) {
