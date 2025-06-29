@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
     
     function renderLoyaltyModalContent() {
-        const showNotificationFeature = false; // Mude para 'true' para reativar no futuro
+        const showNotificationFeature = true; // Mude para 'true' para reativar no futuro
 
         const googleLoginSection = document.getElementById('google-login-section');
         const loyaltyResultsArea = document.getElementById('loyalty-results-area');
