@@ -1,4 +1,4 @@
-// loyalty.js - VERSÃO COM MODAL DE DETALHES DO PEDIDO
+// loyalty.js - VERSÃO CORRIGIDA E ROBUSTA
 
 // =========================================================================
 // CONSTANTES E FUNÇÕES GLOBAIS DO MÓDULO
@@ -36,19 +36,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const loyaltyModal = document.getElementById('loyalty-modal');
     const closeLoyaltyModalButton = document.getElementById('close-loyalty-modal');
     const googleLoginButton = document.getElementById('google-login-button');
-
-    // Elementos de "Últimos Pedidos"
     const lastOrdersButton = document.getElementById('last-orders-button');
     const lastOrdersModal = document.getElementById('last-orders-modal');
     const lastOrdersListDiv = document.getElementById('last-orders-list');
-    const closeLastOrdersModalButton = lastOrdersModal?.querySelector('.close-button');
-
-    // Listener para fechar o novo modal de detalhes do pedido
     const orderDetailsModal = document.getElementById('order-details-modal');
-    if (orderDetailsModal) {
-        orderDetailsModal.querySelector('.close-button').addEventListener('click', () => closeModal(orderDetailsModal));
-    }
 
+    // --- Lógica para Fechar os Modais (Forma Segura) ---
+    // Adiciona o evento de clique apenas se o botão existir.
+    if (closeLoyaltyModalButton) {
+        closeLoyaltyModalButton.addEventListener('click', () => closeModal(loyaltyModal));
+    }
+    if (lastOrdersModal) {
+        const closeButton = lastOrdersModal.querySelector('.close-button');
+        if (closeButton) {
+            closeButton.addEventListener('click', () => closeModal(lastOrdersModal));
+        }
+    }
+    if (orderDetailsModal) {
+        const closeButton = orderDetailsModal.querySelector('.close-button');
+        if (closeButton) {
+            closeButton.addEventListener('click', () => closeModal(orderDetailsModal));
+        }
+    }
 
     // =========================================================================
     // LÓGICA DE AUTENTICAÇÃO COM GOOGLE
@@ -159,7 +168,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function displayCustomerWelcomeInfo(customer) {
-        const lastOrdersButton = document.getElementById('last-orders-button');
         if (lastOrdersButton) {
             lastOrdersButton.style.display = customer ? 'flex' : 'none';
         }
@@ -238,7 +246,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
         }).join('');
 
-        // Listener para o botão 'Ver Pedido'
         lastOrdersListDiv.querySelectorAll('.btn-view-order').forEach(button => {
             button.addEventListener('click', (event) => {
                 const orderToView = orders.find(o => o.id === event.target.dataset.orderId);
@@ -248,13 +255,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Listener para o botão 'Pedir Novamente'
         lastOrdersListDiv.querySelectorAll('.btn-reorder').forEach(button => {
             button.addEventListener('click', (event) => {
                 const orderToReorder = orders.find(o => o.id === event.target.dataset.orderId);
                 if (orderToReorder?.items) {
                     orderToReorder.items.forEach(item => window.addToCart(item));
-                    closeLastOrdersModal();
+                    closeModal(lastOrdersModal);
                     window.openCartModal();
                 }
             });
@@ -266,8 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================================================================
 
     function renderLoyaltyModalContent() {
-        const showNotificationFeature = true; // Botão de notificação reativado
-
+        const showNotificationFeature = true;
         const googleLoginSection = document.getElementById('google-login-section');
         const loyaltyResultsArea = document.getElementById('loyalty-results-area');
 
@@ -276,49 +281,31 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.currentCustomerDetails) {
             googleLoginSection.style.display = 'none';
             loyaltyResultsArea.style.display = 'block';
-
-            let rulesHtml = DISCOUNT_TIERS.map(tier =>
-                `<li style="margin-bottom: 8px;"><strong>${tier.points} pontos</strong> = ${tier.percentage * 100}% de desconto em pizzas</li>`
-            ).join('');
-
+            let rulesHtml = DISCOUNT_TIERS.map(tier => `<li style="margin-bottom: 8px;"><strong>${tier.points} pontos</strong> = ${tier.percentage * 100}% de desconto em pizzas</li>`).join('');
             loyaltyResultsArea.innerHTML = `
                 <p style="margin-bottom: 10px;">Olá, <strong>${window.currentCustomerDetails.firstName}</strong>!</p>
-
-                ${showNotificationFeature ? `
-                <div id="notification-button-area" style="text-align:center; margin-bottom: 25px;">
-                    <p style="font-size:0.9em; margin-bottom:10px; margin-top:0;">Quer receber promoções exclusivas e saber o status do seu pedido?</p>
-                    <button id="enable-notifications-button" class="add-to-cart-button-modal" style="width:auto; padding: 10px 20px;">Ativar Notificações</button>
-                </div>
-                ` : ''}
-
-                <div class="points-display-banner">
-                    <p class="points-banner-text">Você tem</p>
-                    <span class="points-banner-value">${window.currentCustomerDetails.points || 0}</span>
-                    <p class="points-banner-label">pontos</p>
-                </div>
-
-                <div class="loyalty-rules-section" style="margin-top: 25px; text-align: left;">
-                    <h4 style="font-size: 1.1em; margin-bottom: 10px; color: var(--dark-gray);">Como Resgatar:</h4>
-                    <ul style="list-style: none; padding-left: 0; font-size: 0.9em; color: var(--medium-gray);">
-                        ${rulesHtml}
-                    </ul>
-                    <p style="font-size: 0.8em; color: #888; margin-top: 15px; text-align: center; font-style: italic;">
-                        O maior desconto disponível para seus pontos será oferecido no seu carrinho.
-                    </p>
-                </div>
-
-                <button id="logout-button" class="button-link-style" style="margin-top: 20px; color: var(--medium-gray);">Sair da conta</button>
-            `;
+                ${showNotificationFeature ? `<div id="notification-button-area" style="text-align:center; margin-bottom: 25px;">...</div>` : ''}
+                <div class="points-display-banner">...</div>
+                <div class="loyalty-rules-section">...</div>
+                <button id="logout-button" class="button-link-style">Sair da conta</button>`;
+            
+            // Re-preenche o conteúdo dinâmico que foi abreviado
+            loyaltyResultsArea.querySelector('.points-display-banner').innerHTML = `<p class="points-banner-text">Você tem</p><span class="points-banner-value">${window.currentCustomerDetails.points || 0}</span><p class="points-banner-label">pontos</p>`;
+            loyaltyResultsArea.querySelector('.loyalty-rules-section').innerHTML = `<h4 style="font-size: 1.1em; margin-bottom: 10px; color: var(--dark-gray);">Como Resgatar:</h4><ul style="list-style: none; padding-left: 0; font-size: 0.9em; color: var(--medium-gray);">${rulesHtml}</ul><p style="font-size: 0.8em; color: #888; margin-top: 15px; text-align: center; font-style: italic;">O maior desconto disponível para seus pontos será oferecido no seu carrinho.</p>`;
 
             if (showNotificationFeature) {
-                const enableNotificationsButton = document.getElementById('enable-notifications-button');
-                if (enableNotificationsButton) {
-                    if (window.currentCustomerDetails.notificationTokens && window.currentCustomerDetails.notificationTokens.length > 0) {
-                        document.getElementById('notification-button-area').innerHTML = '<p style="color:var(--green-status); font-weight:bold;">Notificações ativadas!</p>';
-                    } else {
+                const notificationArea = document.getElementById('notification-button-area');
+                if (window.currentCustomerDetails.notificationTokens && window.currentCustomerDetails.notificationTokens.length > 0) {
+                    notificationArea.innerHTML = '<p style="color:var(--green-status); font-weight:bold;">Notificações ativadas!</p>';
+                } else {
+                    notificationArea.innerHTML = `<p style="font-size:0.9em; margin-bottom:10px; margin-top:0;">Quer receber promoções exclusivas e saber o status do seu pedido?</p><button id="enable-notifications-button" class="add-to-cart-button-modal" style="width:auto; padding: 10px 20px;">Ativar Notificações</button>`;
+                    const enableNotificationsButton = document.getElementById('enable-notifications-button');
+                    if (enableNotificationsButton) {
                         enableNotificationsButton.addEventListener('click', () => {
                             if (typeof requestNotificationPermission === 'function') {
                                 requestNotificationPermission();
+                            } else {
+                                console.error("Função requestNotificationPermission não encontrada.");
                             }
                         });
                     }
@@ -330,12 +317,10 @@ document.addEventListener('DOMContentLoaded', () => {
             loyaltyResultsArea.style.display = 'none';
         }
     }
-    
-    // NOVA FUNÇÃO para renderizar os detalhes do pedido no modal
+
     function renderOrderDetailsModal(order) {
-        const modal = document.getElementById('order-details-modal');
         const contentDiv = document.getElementById('order-details-content');
-        if (!modal || !contentDiv) return;
+        if (!orderDetailsModal || !contentDiv) return;
 
         const formatPrice = (price) => typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : '';
         let formattedDate = 'Data indisponível';
@@ -345,53 +330,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let detailsHtml = `
-            <div class="order-summary-section">
-                <h4>Pedido #${(order.orderId || order.id).substring(0, 8)}</h4>
-                <p><strong>Data:</strong> ${formattedDate}</p>
-                <p><strong>Status:</strong> <span class="order-status ${getOrderStatusClass(order.status)}">${order.status || 'Status N/A'}</span></p>
-            </div>
-
-            <div class="order-summary-section">
-                <h4>Itens do Pedido</h4>
-                <ul class="order-items-list-summary">
-                    ${order.items.map(item => `
-                        <li>
-                            <span>${item.quantity}x ${item.name}</span>
-                            <span>${formatPrice(item.unitPrice * item.quantity)}</span>
-                        </li>
-                        ${item.notes ? `<li class="item-notes-summary">Obs: ${item.notes}</li>` : ''}
-                    `).join('')}
-                </ul>
-            </div>
-
-            <div class="order-summary-section">
-                <h4>Resumo Financeiro</h4>
-                <div class="order-totals-summary">
-                    <div><span>Subtotal</span> <span>${formatPrice(order.totals.subtotal)}</span></div>
-                    ${order.totals.discount > 0 ? `<div><span style="color: var(--green-status);">Desconto</span> <span style="color: var(--green-status);">- ${formatPrice(order.totals.discount)}</span></div>` : ''}
-                    <div><span>Taxa de Entrega</span> <span>${formatPrice(order.totals.deliveryFee)}</span></div>
-                    <div class="grand-total-summary"><strong>Total Pago</strong> <strong>${formatPrice(order.totals.grandTotal)}</strong></div>
-                </div>
-            </div>
-
-            <div class="order-summary-section">
-                <h4>Endereço de Entrega</h4>
-                <p>${order.delivery.address}<br>
-                Bairro: ${order.delivery.neighborhood}<br>
-                ${order.delivery.complement ? `Complemento: ${order.delivery.complement}<br>` : ''}
-                ${order.delivery.reference ? `Referência: ${order.delivery.reference}` : ''}</p>
-            </div>
-
-             <div class="order-summary-section">
-                <h4>Pagamento</h4>
-                <p>Forma de Pagamento: ${order.payment.method}</p>
-             </div>
-        `;
+            <div class="order-summary-section"><h4>Pedido #${(order.orderId || order.id).substring(0, 8)}</h4><p><strong>Data:</strong> ${formattedDate}</p><p><strong>Status:</strong> <span class="order-status ${getOrderStatusClass(order.status)}">${order.status || 'Status N/A'}</span></p></div>
+            <div class="order-summary-section"><h4>Itens do Pedido</h4><ul class="order-items-list-summary">${order.items.map(item => `<li><span>${item.quantity}x ${item.name}</span><span>${formatPrice(item.unitPrice * item.quantity)}</span></li>${item.notes ? `<li class="item-notes-summary">Obs: ${item.notes}</li>` : ''}`).join('')}</ul></div>
+            <div class="order-summary-section"><h4>Resumo Financeiro</h4><div class="order-totals-summary"><div><span>Subtotal</span> <span>${formatPrice(order.totals.subtotal)}</span></div>${order.totals.discount > 0 ? `<div><span style="color: var(--green-status);">Desconto</span> <span style="color: var(--green-status);">- ${formatPrice(order.totals.discount)}</span></div>` : ''}<div><span>Taxa de Entrega</span> <span>${formatPrice(order.totals.deliveryFee)}</span></div><div class="grand-total-summary"><strong>Total Pago</strong> <strong>${formatPrice(order.totals.grandTotal)}</strong></div></div></div>
+            <div class="order-summary-section"><h4>Endereço de Entrega</h4><p>${order.delivery.address}<br>Bairro: ${order.delivery.neighborhood}<br>${order.delivery.complement ? `Complemento: ${order.delivery.complement}<br>` : ''}${order.delivery.reference ? `Referência: ${order.delivery.reference}` : ''}</p></div>
+            <div class="order-summary-section"><h4>Pagamento</h4><p>Forma de Pagamento: ${order.payment.method}</p></div>`;
 
         contentDiv.innerHTML = detailsHtml;
-        openModal(modal);
+        openModal(orderDetailsModal);
     }
-
 
     function openLoyaltyModal() {
         if (!loyaltyModal) return;
@@ -399,28 +346,21 @@ document.addEventListener('DOMContentLoaded', () => {
         openModal(loyaltyModal);
     }
 
-    function closeLoyaltyModal() {
-        closeModal(loyaltyModal);
-    }
-
     async function openLastOrdersModal() {
         if (!lastOrdersModal || !window.currentCustomerDetails) {
             alert("Você precisa fazer o login primeiro para ver seus pedidos.");
             return;
-        };
+        }
         openModal(lastOrdersModal);
 
         lastOrdersListDiv.innerHTML = '<p>Buscando seu histórico de pedidos...</p>';
         const orders = await fetchLastOrders(window.currentCustomerDetails.id);
         renderLastOrders(orders);
     }
-
-    function closeLastOrdersModal() {
-        closeModal(lastOrdersModal);
-    }
-
+    
     async function loadCurrentCustomerOnPageLoad() {
-        const auth = window.firebaseAuth?.getAuth();
+        if (!window.firebaseAuth) return;
+        const auth = window.firebaseAuth.getAuth();
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const customerData = await getCustomerFromFirestore(user.uid);
@@ -432,15 +372,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================================================================
-    // EVENT LISTENERS (OUVINTES DE EVENTOS)
+    // EVENT LISTENERS PRINCIPAIS
     // =========================================================================
 
     if (loyaltyButton) loyaltyButton.addEventListener('click', openLoyaltyModal);
-    if (closeLoyaltyModalButton) closeLoyaltyModalButton.addEventListener('click', closeLoyaltyModal);
     if (googleLoginButton) googleLoginButton.addEventListener('click', signInWithGoogle);
     if (lastOrdersButton) lastOrdersButton.addEventListener('click', openLastOrdersModal);
-    if (closeLastOrdersModalButton) closeLastOrdersModalButton.addEventListener('click', closeLastOrdersModal);
-
+    
     if (loyaltyModal) {
         loyaltyModal.addEventListener('click', (event) => {
             if (event.target && event.target.id === 'logout-button') {
