@@ -2073,3 +2073,72 @@ body {
     font-weight: 500;
     cursor: pointer;
 }
+
+/* ==========================================================================
+   ESTILOS PARA A SEÇÃO DE HORÁRIO DE FUNCIONAMENTO
+   ========================================================================== */
+
+.operating-hours { 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--dark-gray); /* Cor mais escura para melhor leitura */
+    font-weight: 500; 
+    font-size: var(--font-size-sm); /* Mesmo tamanho das outras infos */
+    cursor: pointer;
+    margin-top: var(--space-md); /* Espaçamento do topo */
+    padding: var(--space-md) 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.operating-hours span i {
+    margin-right: var(--space-sm);
+    color: var(--primary-red);
+}
+
+.operating-hours .fa-chevron-down {
+    transition: transform 0.3s ease-out; 
+}
+
+.operating-hours.expanded .fa-chevron-down {
+    transform: rotate(180deg); 
+}
+
+.operating-hours-details {
+    background-color: var(--light-gray); 
+    padding: 0 var(--space-md);
+    border-radius: 8px;
+    margin-top: var(--space-sm); 
+    font-size: var(--font-size-sm); 
+    color: var(--dark-gray);
+    max-height: 0; /* Começa escondido */
+    overflow: hidden; 
+    transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+}
+
+.operating-hours-details.show {
+    max-height: 300px; /* Altura suficiente para mostrar todos os dias */
+    padding: var(--space-md); 
+}
+
+.operating-hours-details ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.operating-hours-details ul li {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-sm) 0; 
+    border-bottom: 1px solid var(--border-color);
+}
+
+.operating-hours-details ul li:last-child {
+    border-bottom: none; 
+}
+
+.operating-hours-details ul li .day {
+    font-weight: 500; 
+}
