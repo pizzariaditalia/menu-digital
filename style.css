@@ -1988,3 +1988,88 @@ body {
     background-color: var(--light-gray);
     resize: vertical;
 }
+
+/* ==========================================================================
+   ESTILOS PARA O MODAL DE DETALHES DO PEDIDO
+   ========================================================================== */
+
+#order-details-modal .modal-content h3 {
+    text-align: center;
+    color: var(--dark-gray);
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.order-summary-section {
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.order-summary-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.order-summary-section h4 {
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    color: var(--primary-red);
+    margin-top: 0;
+    margin-bottom: var(--space-md);
+}
+
+.order-summary-section p {
+    font-size: var(--font-size-sm);
+    color: var(--medium-gray);
+    line-height: 1.6;
+    margin: 0 0 var(--space-xs) 0;
+}
+
+.order-items-list-summary {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: var(--font-size-sm);
+}
+.order-items-list-summary li {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-xs) 0;
+}
+.order-items-list-summary li.item-notes-summary {
+    justify-content: flex-start;
+    color: var(--medium-gray);
+    font-style: italic;
+    font-size: 0.9em;
+    padding-left: 10px;
+}
+
+.order-totals-summary > div {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-sm);
+    padding: var(--space-xs) 0;
+}
+.order-totals-summary .grand-total-summary {
+    font-size: var(--font-size-md);
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--border-color);
+}
+
+/* Estilo para o novo botão 'Ver Pedido' */
+.btn-view-order {
+    background-color: var(--light-gray);
+    color: var(--dark-gray);
+    border: 1px solid var(--border-color);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: 8px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+}
