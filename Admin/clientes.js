@@ -1,11 +1,12 @@
 // Arquivo: clientes.js
-// VERSÃO FINAL COM CÁLCULO DE QUANTIDADE E DATA DO ÚLTIMO PEDIDO E EDIÇÃO CORRIGIDA
+// VERSÃO FINAL COM EDIÇÃO DE ENDEREÇO E EXCLUSÃO DE CLIENTE
 
 let customersSectionInitialized = false;
 
 async function initializeCustomersSection() {
     if (customersSectionInitialized) return;
     customersSectionInitialized = true;
+    console.log("Módulo Clientes.js: Inicializando...");
 
     // Seletores de Elementos do DOM
     const customersListContainer = document.getElementById('customers-list-container');
@@ -49,7 +50,8 @@ async function initializeCustomersSection() {
             const customerRef = doc(window.db, "customer", customerId);
             await updateDoc(customerRef, customerData);
             window.showToast("Cliente salvo com sucesso!");
-        } catch (error) {
+        } catch (error)
+        {
             console.error("Erro ao salvar cliente no Firestore:", error);
             window.showToast("Erro ao salvar cliente.", "error");
         }
@@ -118,14 +120,19 @@ async function initializeCustomersSection() {
 
     async function openEditModal(customerId) {
         if (!editCustomerModal || !editCustomerForm) return;
-        const { doc, getDoc } = window.firebaseFirestore;
-        const customerRef = doc(window.db, "customer", customerId);
+
+        const { doc, getDoc, deleteDoc } = window.firebaseFirestore;
+        const db = window.db;
+        const customerRef = doc(db, "customer", customerId);
         const customerSnap = await getDoc(customerRef);
+
         if (!customerSnap.exists()) {
             window.showToast("Cliente não encontrado!", "error");
             return;
         }
         const customer = customerSnap.data();
+        const address = customer.address || {};
+
         const formContent = `
             <div class="modal-body">
                 <input type="hidden" id="edit-customer-id" value="${customerId}">
@@ -144,18 +151,61 @@ async function initializeCustomersSection() {
                     <input type="tel" id="edit-customer-whatsapp-display" class="form-control" value="${customer.whatsapp || ''}">
                 </div>
                 <hr>
+                <h4>Endereço</h4>
+                <div class="form-row">
+                     <div class="form-group" style="flex-grow: 3;">
+                        <label for="edit-customer-street">Rua/Avenida</label>
+                        <input type="text" id="edit-customer-street" class="form-control" value="${address.street || ''}">
+                    </div>
+                     <div class="form-group" style="flex-grow: 1;">
+                        <label for="edit-customer-number">Número</label>
+                        <input type="text" id="edit-customer-number" class="form-control" value="${address.number || ''}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit-customer-neighborhood">Bairro</label>
+                    <input type="text" id="edit-customer-neighborhood" class="form-control" value="${address.neighborhood || ''}">
+                </div>
+                <div class="form-group">
+                    <label for="edit-customer-complement">Complemento</label>
+                    <input type="text" id="edit-customer-complement" class="form-control" value="${address.complement || ''}">
+                </div>
+                 <div class="form-group">
+                    <label for="edit-customer-reference">Ponto de Referência</label>
+                    <input type="text" id="edit-customer-reference" class="form-control" value="${address.reference || ''}">
+                </div>
+                <hr>
                 <h4>Pontos de Fidelidade</h4>
                 <div class="form-group">
                     <label for="edit-customer-points">Pontos Atuais</label>
                     <input type="number" id="edit-customer-points" class="form-control" value="${customer.points || 0}" step="1">
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary close-modal-btn">Cancelar</button>
-                <button type="submit" class="btn btn-success">Salvar Alterações</button>
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button type="button" id="delete-customer-btn" class="btn btn-danger-outline">Excluir Cliente</button>
+                <div>
+                    <button type="button" class="btn btn-secondary close-modal-btn">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Salvar Alterações</button>
+                </div>
             </div>
         `;
+
         editCustomerForm.innerHTML = formContent;
+
+        editCustomerForm.querySelector('#delete-customer-btn').addEventListener('click', async () => {
+            if (confirm(`Tem certeza que deseja excluir o cliente "${customer.firstName || ''}"? Esta ação não pode ser desfeita.`)) {
+                try {
+                    await deleteDoc(doc(db, "customer", customerId));
+                    window.showToast("Cliente excluído com sucesso!", "success");
+                    closeEditCustomerModal();
+                    main();
+                } catch (error) {
+                    console.error("Erro ao excluir cliente:", error);
+                    window.showToast("Ocorreu um erro ao excluir o cliente.", "error");
+                }
+            }
+        });
+
         editCustomerForm.querySelector('.close-modal-btn').addEventListener('click', closeEditCustomerModal);
         editCustomerModal.classList.add('show');
     }
@@ -183,14 +233,17 @@ async function initializeCustomersSection() {
             renderCustomersList(allCustomers, e.target.value);
         });
     }
+
     if (closeEditCustomerModalBtn) {
         closeEditCustomerModalBtn.addEventListener('click', closeEditCustomerModal);
     }
+    
     if (editCustomerModal) {
         editCustomerModal.addEventListener('click', (e) => {
             if (e.target === editCustomerModal) closeEditCustomerModal();
         });
     }
+
     if (editCustomerForm) {
         editCustomerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -202,6 +255,13 @@ async function initializeCustomersSection() {
                 lastName: editCustomerForm.querySelector('#edit-customer-lastname').value.trim(),
                 whatsapp: editCustomerForm.querySelector('#edit-customer-whatsapp-display').value.trim(),
                 points: parseInt(editCustomerForm.querySelector('#edit-customer-points').value, 10) || 0,
+                address: {
+                    street: editCustomerForm.querySelector('#edit-customer-street').value.trim(),
+                    number: editCustomerForm.querySelector('#edit-customer-number').value.trim(),
+                    neighborhood: editCustomerForm.querySelector('#edit-customer-neighborhood').value.trim(),
+                    complement: editCustomerForm.querySelector('#edit-customer-complement').value.trim(),
+                    reference: editCustomerForm.querySelector('#edit-customer-reference').value.trim()
+                }
             };
             
             await saveCustomerToFirestore(customerId, updatedData);
