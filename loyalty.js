@@ -1,4 +1,4 @@
-// loyalty.js - VERSÃO CORRIGIDA E ROBUSTA
+// loyalty.js - VERSÃO FINAL COMPLETA E CORRIGIDA
 
 // =========================================================================
 // CONSTANTES E FUNÇÕES GLOBAIS DO MÓDULO
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateGlobalCustomerState({ id: user.uid, ...newCustomer }, user.email);
             }
 
-            closeLoyaltyModal();
+            closeModal(loyaltyModal);
             alert(`Bem-vindo, ${user.displayName}! Login realizado com sucesso.`);
 
         } catch (error) {
@@ -112,14 +112,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const auth = window.firebaseAuth.getAuth();
         try {
             await auth.signOut();
-            closeLoyaltyModal();
+            closeModal(loyaltyModal);
             alert("Você saiu da sua conta.");
         } catch (error) {
             console.error("Erro ao fazer logout:", error);
             alert("Não foi possível sair. Tente novamente.");
         }
     }
-
 
     // =========================================================================
     // LÓGICA DE DADOS (FIRESTORE E ESTADO GLOBAL)
@@ -284,12 +283,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let rulesHtml = DISCOUNT_TIERS.map(tier => `<li style="margin-bottom: 8px;"><strong>${tier.points} pontos</strong> = ${tier.percentage * 100}% de desconto em pizzas</li>`).join('');
             loyaltyResultsArea.innerHTML = `
                 <p style="margin-bottom: 10px;">Olá, <strong>${window.currentCustomerDetails.firstName}</strong>!</p>
-                ${showNotificationFeature ? `<div id="notification-button-area" style="text-align:center; margin-bottom: 25px;">...</div>` : ''}
-                <div class="points-display-banner">...</div>
-                <div class="loyalty-rules-section">...</div>
-                <button id="logout-button" class="button-link-style">Sair da conta</button>`;
+                ${showNotificationFeature ? `<div id="notification-button-area" style="text-align:center; margin-bottom: 25px;"></div>` : ''}
+                <div class="points-display-banner"></div>
+                <div class="loyalty-rules-section"></div>
+                <button id="logout-button" class="button-link-style" style="margin-top: 20px; color: var(--medium-gray);">Sair da conta</button>`;
             
-            // Re-preenche o conteúdo dinâmico que foi abreviado
             loyaltyResultsArea.querySelector('.points-display-banner').innerHTML = `<p class="points-banner-text">Você tem</p><span class="points-banner-value">${window.currentCustomerDetails.points || 0}</span><p class="points-banner-label">pontos</p>`;
             loyaltyResultsArea.querySelector('.loyalty-rules-section').innerHTML = `<h4 style="font-size: 1.1em; margin-bottom: 10px; color: var(--dark-gray);">Como Resgatar:</h4><ul style="list-style: none; padding-left: 0; font-size: 0.9em; color: var(--medium-gray);">${rulesHtml}</ul><p style="font-size: 0.8em; color: #888; margin-top: 15px; text-align: center; font-style: italic;">O maior desconto disponível para seus pontos será oferecido no seu carrinho.</p>`;
 
@@ -330,11 +328,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let detailsHtml = `
-            <div class="order-summary-section"><h4>Pedido #${(order.orderId || order.id).substring(0, 8)}</h4><p><strong>Data:</strong> ${formattedDate}</p><p><strong>Status:</strong> <span class="order-status ${getOrderStatusClass(order.status)}">${order.status || 'Status N/A'}</span></p></div>
-            <div class="order-summary-section"><h4>Itens do Pedido</h4><ul class="order-items-list-summary">${order.items.map(item => `<li><span>${item.quantity}x ${item.name}</span><span>${formatPrice(item.unitPrice * item.quantity)}</span></li>${item.notes ? `<li class="item-notes-summary">Obs: ${item.notes}</li>` : ''}`).join('')}</ul></div>
-            <div class="order-summary-section"><h4>Resumo Financeiro</h4><div class="order-totals-summary"><div><span>Subtotal</span> <span>${formatPrice(order.totals.subtotal)}</span></div>${order.totals.discount > 0 ? `<div><span style="color: var(--green-status);">Desconto</span> <span style="color: var(--green-status);">- ${formatPrice(order.totals.discount)}</span></div>` : ''}<div><span>Taxa de Entrega</span> <span>${formatPrice(order.totals.deliveryFee)}</span></div><div class="grand-total-summary"><strong>Total Pago</strong> <strong>${formatPrice(order.totals.grandTotal)}</strong></div></div></div>
-            <div class="order-summary-section"><h4>Endereço de Entrega</h4><p>${order.delivery.address}<br>Bairro: ${order.delivery.neighborhood}<br>${order.delivery.complement ? `Complemento: ${order.delivery.complement}<br>` : ''}${order.delivery.reference ? `Referência: ${order.delivery.reference}` : ''}</p></div>
-            <div class="order-summary-section"><h4>Pagamento</h4><p>Forma de Pagamento: ${order.payment.method}</p></div>`;
+            <div class="order-summary-section">
+                <h4>Pedido #${(order.orderId || order.id).substring(0, 8)}</h4>
+                <p><strong>Data:</strong> ${formattedDate}</p>
+                <p><strong>Status:</strong> <span class="order-status ${getOrderStatusClass(order.status)}">${order.status || 'Status N/A'}</span></p>
+            </div>
+            <div class="order-summary-section">
+                <h4>Itens do Pedido</h4>
+                <ul class="order-items-list-summary">
+                    ${order.items.map(item => `<li><span>${item.quantity}x ${item.name}</span><span>${formatPrice(item.unitPrice * item.quantity)}</span></li>${item.notes ? `<li class="item-notes-summary">Obs: ${item.notes}</li>` : ''}`).join('')}
+                </ul>
+            </div>
+            <div class="order-summary-section">
+                <h4>Resumo Financeiro</h4>
+                <div class="order-totals-summary">
+                    <div><span>Subtotal</span> <span>${formatPrice(order.totals.subtotal)}</span></div>
+                    ${(() => {
+                        if (order.totals.discount > 0) {
+                            let discountLabel = 'Desconto';
+                            if (order.coupon && order.coupon.code) {
+                                discountLabel = `Desconto (${order.coupon.code})`;
+                            } else if (order.loyalty && order.loyalty.pointsUsed > 0) {
+                                discountLabel = 'Desconto Fidelidade';
+                            } else if (order.roulettePrize) {
+                                discountLabel = `Prêmio Roleta (${order.roulettePrize.description})`;
+                            }
+                            return `<div><span style="color: var(--green-status);">${discountLabel}</span> <span style="color: var(--green-status);">- ${formatPrice(order.totals.discount)}</span></div>`;
+                        }
+                        return '';
+                    })()}
+                    <div><span>Taxa de Entrega</span> <span>${formatPrice(order.totals.deliveryFee)}</span></div>
+                    <div class="grand-total-summary"><strong>Total Pago</strong> <strong>${formatPrice(order.totals.grandTotal)}</strong></div>
+                </div>
+            </div>
+            <div class="order-summary-section">
+                <h4>Endereço de Entrega</h4>
+                <p>${order.delivery.address}<br>
+                Bairro: ${order.delivery.neighborhood}<br>
+                ${order.delivery.complement ? `Complemento: ${order.delivery.complement}<br>` : ''}
+                ${order.delivery.reference ? `Referência: ${order.delivery.reference}` : ''}</p>
+            </div>
+            <div class="order-summary-section">
+                <h4>Pagamento</h4>
+                <p>Forma de Pagamento: ${order.payment.method}</p>
+            </div>
+        `;
 
         contentDiv.innerHTML = detailsHtml;
         openModal(orderDetailsModal);
@@ -352,8 +390,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         openModal(lastOrdersModal);
-
-        lastOrdersListDiv.innerHTML = '<p>Buscando seu histórico de pedidos...</p>';
+        if (lastOrdersListDiv) {
+            lastOrdersListDiv.innerHTML = '<p>Buscando seu histórico de pedidos...</p>';
+        }
         const orders = await fetchLastOrders(window.currentCustomerDetails.id);
         renderLastOrders(orders);
     }
