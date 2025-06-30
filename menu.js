@@ -545,6 +545,41 @@ function initializeSiteLogic() {
   if (loadingIndicator) loadingIndicator.style.display = 'none';
 }
 
+// Função para configurar o toggle do horário de funcionamento
+function setupOperatingHoursToggle() {
+    const toggleButton = document.querySelector('.operating-hours');
+    const detailsContainer = document.querySelector('.operating-hours-details');
+
+    if (!toggleButton || !detailsContainer || !window.appSettings || !window.appSettings.operatingHours) {
+        console.warn("Não foi possível inicializar a seção de horários de funcionamento.");
+        return;
+    }
+
+    // Preenche os horários dinamicamente
+    const hours = window.appSettings.operatingHours;
+    const daysOrder = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+    
+    let hoursHtml = '<ul>';
+    daysOrder.forEach(day => {
+        if (hours[day]) {
+            hoursHtml += `
+                <li>
+                    <span class="day">${day}</span>
+                    <span class="time">${hours[day]}</span>
+                </li>
+            `;
+        }
+    });
+    hoursHtml += '</ul>';
+    detailsContainer.innerHTML = hoursHtml;
+
+    // Adiciona o evento de clique para expandir/recolher
+    toggleButton.addEventListener('click', () => {
+        toggleButton.classList.toggle('expanded');
+        detailsContainer.classList.toggle('show');
+    });
+}
+
 // ======================================================================
 // BLOCO DE INICIALIZAÇÃO SINCRONIZADO
 // ======================================================================
