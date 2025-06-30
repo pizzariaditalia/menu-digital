@@ -336,6 +336,8 @@ function initializeSiteLogic() {
 
   generateCategoryUI();
 
+  setupOperatingHoursToggle();
+
   const tabs = document.querySelectorAll('.tab-button');
   const restaurantStatusDiv = document.querySelector('.status');
   const daysOfWeek = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
