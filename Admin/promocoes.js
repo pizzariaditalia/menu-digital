@@ -1,6 +1,7 @@
-// promocoes.js - VERSÃO COMPLETA COM EDIÇÃO E VISIBILIDADE
+// promocoes.js - VERSÃO COM CORREÇÃO DE ESCOPO DE VARIÁVEL
 
 let promotionsSectionInitialized = false;
+let allPromotions = []; // Variável agora no escopo do módulo
 
 async function initializePromotionsSection() {
     if (promotionsSectionInitialized) {
@@ -24,7 +25,7 @@ async function initializePromotionsSection() {
 
     const PROMOTIONS_COLLECTION = "promotions";
     let allItems = [];
-    let allPromotions = [];
+    // A declaração de 'allPromotions' foi movida para o topo do arquivo
 
     // --- Funções de Dados (Firestore) ---
     async function fetchPromotions() {
@@ -41,11 +42,8 @@ async function initializePromotionsSection() {
 
     async function saveOrUpdatePromotion(promotionData, isUpdating) {
         const { doc, setDoc, updateDoc } = window.firebaseFirestore;
-        // O ID do documento é o ID do item, para garantir que não haja duas promoções para o mesmo item
         const promotionDocRef = doc(window.db, PROMOTIONS_COLLECTION, promotionData.itemId);
         try {
-            // Se estiver atualizando, usa updateDoc. Se for novo, usa setDoc.
-            // setDoc com merge:true também funcionaria para ambos os casos.
             if (isUpdating) {
                 await updateDoc(promotionDocRef, promotionData);
             } else {
@@ -101,17 +99,17 @@ async function initializePromotionsSection() {
     
     function openPromotionForm(promoId = null) {
         promotionForm.reset();
-        populateItemsSelect(); // Popula o select primeiro
+        populateItemsSelect();
         const promo = promoId ? allPromotions.find(p => p.id === promoId) : null;
         
-        if (promo) { // Modo de Edição
+        if (promo) {
             if (formTitle) formTitle.textContent = "Editar Promoção";
             itemSelect.value = promo.itemId;
-            itemSelect.disabled = true; // Impede a troca do item na edição
+            itemSelect.disabled = true;
             originalPriceInput.value = promo.originalPrice.toFixed(2);
             newPriceInput.value = promo.newPrice;
             if(hiddenPromoIdInput) hiddenPromoIdInput.value = promo.id;
-        } else { // Modo de Criação
+        } else {
             if (formTitle) formTitle.textContent = "Criar Nova Promoção";
             itemSelect.disabled = false;
             originalPriceInput.value = '';
@@ -122,7 +120,7 @@ async function initializePromotionsSection() {
     }
     
     function renderPromotionsList(promotions) {
-        if (promotions.length === 0) {
+        if (!promotions || promotions.length === 0) {
             promotionsListContainer.innerHTML = '<p class="empty-list-message">Nenhuma promoção criada no momento.</p>';
             return;
         }
@@ -237,9 +235,7 @@ async function initializePromotionsSection() {
                 image: selectedItem.image || '',
                 originalPrice: selectedItem.price,
                 newPrice: newPrice,
-                // Mantém o status atual ao editar, ou define como true se for nova
                 active: isUpdating ? allPromotions.find(p => p.id === promoId).active !== false : true, 
-                // Mantém a data de criação original ao editar
                 createdAt: isUpdating ? allPromotions.find(p => p.id === promoId).createdAt : new Date().toISOString()
             };
 
