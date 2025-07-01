@@ -1,4 +1,4 @@
-// checkout.js - VERSÃO COM CORREÇÃO NO CÁLCULO DE DESCONTO DE ENTREGA
+// checkout.js - VERSÃO FINAL COM TODAS AS CORREÇÕES
 
 async function saveOrderToFirestore(orderData) {
     if (!window.db || !window.firebaseFirestore) {
@@ -99,7 +99,6 @@ function showCustomConfirm(whatsappUrl) {
     }, { once: true });
 }
 
-
 document.addEventListener('DOMContentLoaded', () => {
     let deliveryFeesData = {};
     let currentDeliveryFee = 0;
@@ -144,15 +143,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const loyaltyDiscount = window.getAppliedLoyaltyDiscountInfo ? window.getAppliedLoyaltyDiscountInfo() : null;
         const couponDiscount = window.getAppliedCouponInfo ? window.getAppliedCouponInfo() : null;
         
-        let subtotalDiscountAmount = 0; // Desconto sobre o subtotal
-        let reportedDiscountAmount = 0; // Desconto a ser mostrado
+        let subtotalDiscountAmount = 0;
+        let reportedDiscountAmount = 0;
         let discountLabel = '';
 
-        if (roulettePrize) {
-            // ... Lógica para desconto da roleta ...
-        } else if (loyaltyDiscount) {
+        if (loyaltyDiscount) {
             subtotalDiscountAmount = loyaltyDiscount.discountAmount;
-            reportedDiscountAmount = loyaltyDiscount.discountAmount;
+            reportedDiscountAmount = subtotalDiscountAmount;
             discountLabel = `Desconto Fidelidade: - ${formatPriceLocal(reportedDiscountAmount)}`;
         } else if (couponDiscount) {
             if (couponDiscount.type === 'free_delivery') {
@@ -172,6 +169,17 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const effectiveDeliveryFee = (couponDiscount?.type === 'free_delivery') ? 0 : currentDeliveryFee;
         const grandTotal = cartSubtotal - subtotalDiscountAmount + effectiveDeliveryFee;
+        
+        const selectedNeighborhood = checkoutNeighborhoodSelect.value;
+        
+        if (checkoutDeliveryFeeAmountSpan && checkoutDeliveryFeeLine) {
+            if (selectedNeighborhood && deliveryFeesData.hasOwnProperty(selectedNeighborhood)) {
+                checkoutDeliveryFeeAmountSpan.textContent = formatPriceLocal(currentDeliveryFee);
+                checkoutDeliveryFeeLine.style.display = 'block';
+            } else {
+                checkoutDeliveryFeeLine.style.display = 'none';
+            }
+        }
 
         if (checkoutAppliedDiscountInfoDiv) {
             if (reportedDiscountAmount > 0) {
@@ -179,15 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 checkoutAppliedDiscountInfoDiv.style.display = 'block';
             } else {
                 checkoutAppliedDiscountInfoDiv.style.display = 'none';
-            }
-        }
-
-        if (checkoutDeliveryFeeAmountSpan && checkoutDeliveryFeeLine) {
-            checkoutDeliveryFeeAmountSpan.textContent = formatPriceLocal(currentDeliveryFee);
-            if (selectedNeighborhoodValue && deliveryFeesData.hasOwnProperty(selectedNeighborhoodValue)) {
-                 checkoutDeliveryFeeLine.style.display = 'block';
-            } else {
-                 checkoutDeliveryFeeLine.style.display = 'none';
             }
         }
 
@@ -317,19 +316,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const loyaltyDiscount = window.getAppliedLoyaltyDiscountInfo ? window.getAppliedLoyaltyDiscountInfo() : null;
         const couponDiscount = window.getAppliedCouponInfo ? window.getAppliedCouponInfo() : null;
         
-        // =========================================================================
-        // [INÍCIO DA LÓGICA DE CÁLCULO CORRIGIDA]
-        // =========================================================================
-        
         let subtotalDiscountAmount = 0;
         let reportedDiscountAmount = 0;
+        let pointsUsed = 0;
 
         if (loyaltyDiscount) {
             subtotalDiscountAmount = loyaltyDiscount.discountAmount;
             reportedDiscountAmount = subtotalDiscountAmount;
-            customerData.points -= loyaltyDiscount.pointsUsed;
-        } else if (roulettePrize) {
-            // Lógica para desconto da roleta
+            pointsUsed = loyaltyDiscount.pointsUsed;
+            customerData.points -= pointsUsed;
         } else if (couponDiscount) {
             if (couponDiscount.type === 'free_delivery') {
                 subtotalDiscountAmount = 0;
@@ -352,10 +347,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const pointsEarned = Math.floor(finalGrandTotal / 50);
         customerData.points += pointsEarned;
-        
-        // =========================================================================
-        // [FIM DA LÓGICA DE CÁLCULO CORRIGIDA]
-        // =========================================================================
 
         await saveCustomerProfile(customerData);
 
@@ -376,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 deliveryFee: currentDeliveryFee, 
                 grandTotal: finalGrandTotal 
             },
-            loyalty: { pointsUsed: loyaltyDiscount?.pointsUsed || 0, pointsEarned, finalPointsBalance: customerData.points },
+            loyalty: { pointsUsed, pointsEarned, finalPointsBalance: customerData.points },
             coupon: couponDiscount,
             roulettePrize: roulettePrize
         };
@@ -405,7 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 window.openPixInfoModal(pixData);
             } else {
-                alert("Erro ao carregar o módulo de pagamento Pix.");
                 console.error("A função 'openPixInfoModal' não foi encontrada.");
             }
         } else {
@@ -469,8 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (paymentMethodSelect) paymentMethodSelect.addEventListener('change', (e) => { changeForGroupDiv.classList.toggle('hidden', e.target.value !== 'Dinheiro'); });
     if (checkoutNeighborhoodSelect) {
         checkoutNeighborhoodSelect.addEventListener('change', (e) => {
-            const selectedNeighborhood = e.target.value;
-            currentDeliveryFee = deliveryFeesData[selectedNeighborhood] || 0;
+            currentDeliveryFee = deliveryFeesData[e.target.value] || 0;
             updateCheckoutTotalDisplay();
         });
     }
