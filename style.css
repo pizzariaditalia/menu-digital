@@ -2142,3 +2142,12 @@ body {
 .operating-hours-details ul li .day {
     font-weight: 500; 
 }
+
+/* Ajuste para o modal de notificação centralizado */
+#notification-prompt-modal {
+    align-items: center; /* Alinha verticalmente */
+}
+
+#notification-prompt-modal .modal-content {
+    animation: scaleUpModal 0.4s ease-out; /* Usa a animação de "zoom" */
+}
