@@ -338,6 +338,8 @@ function initializeSiteLogic() {
 
   setupOperatingHoursToggle();
 
+  initializeNotificationPrompt();
+
   const tabs = document.querySelectorAll('.tab-button');
   const restaurantStatusDiv = document.querySelector('.status');
   const daysOfWeek = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
@@ -351,7 +353,6 @@ function initializeSiteLogic() {
     minOrderValueSpan.textContent = formatPrice(minOrderValue);
     minOrderLine.style.display = 'flex';
 
-    initializeNotificationPrompt();
   }
 
   function createMenuItemHTML(item) {
