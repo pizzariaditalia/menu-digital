@@ -1,71 +1,91 @@
-// DENTRO DE notifications.js (VERSÃO COMPLETA DE DEPURAÇÃO)
+// notifications.js - VERSÃO ATUALIZADA PARA LIDAR COM TOKEN PENDENTE
 
-// Função principal que inicia o processo de permissão
-async function requestNotificationPermission() {
-    // console.log('Requesting notification permission...');
-    
-    // Pede a permissão ao usuário
-    const permission = await Notification.requestPermission();
+/**
+ * Salva o token de notificação no Firestore se o usuário estiver logado,
+ * ou no localStorage se não estiver logado.
+ * @param {string} fcmToken O token FCM gerado pelo Firebase.
+ */
+async function getAndSaveToken(fcmToken) {
+    if (!fcmToken) {
+        console.warn("getAndSaveToken foi chamado sem um token.");
+        return;
+    }
 
-    if (permission === 'granted') {
-       // console.log('Notification permission granted.');
-        // Se a permissão for concedida, pega o token
-        await getAndSaveToken();
-    } else {
-       // console.log('Unable to get permission to notify.');
-       // alert('Você não permitiu as notificações. Se mudar de ideia, pode alterar nas configurações do seu navegador.');
+    const customerId = window.currentCustomerDetails?.id;
+
+    // Se não houver cliente logado, salva o token temporariamente
+    if (!customerId) {
+        console.log("Usuário não logado. O token será salvo temporariamente no localStorage.");
+        localStorage.setItem('pendingFCMToken', fcmToken);
+        return;
+    }
+
+    // Se o cliente estiver logado, salva o token no Firestore
+    console.log(`Salvando token para o cliente logado: ${customerId}...`);
+    const { doc, updateDoc, arrayUnion } = window.firebaseFirestore;
+    const db = window.db;
+    const customerDocRef = doc(db, "customer", customerId);
+
+    try {
+        await updateDoc(customerDocRef, {
+            notificationTokens: arrayUnion(fcmToken)
+        });
+        console.log("Token salvo no Firestore com sucesso.");
+        // Limpa o token pendente do localStorage se ele existir, pois agora está salvo permanentemente
+        localStorage.removeItem('pendingFCMToken');
+    } catch (error) {
+        console.error("Erro ao salvar token no Firestore:", error);
     }
 }
 
-// Função que pega o token do Firebase e salva no Firestore
-async function getAndSaveToken() {
-   // console.log("PASSO 1: Iniciando getAndSaveToken.");
-    if (!window.firebaseMessaging || !window.currentCustomerDetails) {
-       // console.error('ERRO FATAL: Firebase Messaging ou dados do cliente não estão disponíveis no momento da chamada.');
+/**
+ * Inicia o processo de pedido de permissão de notificação para o usuário.
+ */
+async function requestNotificationPermission() {
+    // Verifica se o navegador suporta a API de Notificação
+    if (!('Notification' in window)) {
+        alert('Este navegador não suporta notificações.');
         return;
     }
-    
-   // console.log("PASSO 2: Instâncias do Firebase e do cliente OK.");
-    const { getToken, messagingInstance } = window.firebaseMessaging;
-    const { doc, updateDoc, arrayUnion } = window.firebaseFirestore;
-    const db = window.db;
 
     try {
-        const vapidKey = 'BEu5mwSdY7ci-Tl8lUJcrq12Ct1w62_2ywucGfPq0FanERTxEUk7wB9PK37dxxles-9jpbN2nsrv3S2xnzelqYU';
-       // console.log("PASSO 3: Usando Vapid Key: ", vapidKey);
+        // Pede a permissão ao usuário
+        const permission = await Notification.requestPermission();
         
-       // console.log("PASSO 4: Aguardando o Service Worker ficar pronto (navigator.serviceWorker.ready)...");
-        const swRegistration = await navigator.serviceWorker.ready;
-       // console.log("PASSO 5: Service Worker está pronto!", swRegistration);
-
-       // console.log("PASSO 6: Chamando getToken() do Firebase...");
-        const fcmToken = await getToken(messagingInstance, { 
-            vapidKey: vapidKey,
-            serviceWorkerRegistration: swRegistration
-        });
-        
-       // console.log("PASSO 7: Chamada para getToken() concluída. O resultado do token é:", fcmToken);
-
-        if (fcmToken) {
-           // console.log('PASSO 8: Token recebido com sucesso! Salvando no Firestore...');
+        if (permission === 'granted') {
+            console.log('Permissão de notificação concedida pelo usuário.');
             
-            const customerId = window.currentCustomerDetails.id;
-            const customerDocRef = doc(db, "customer", customerId);
+            // Pega as ferramentas do Firebase Messaging
+            const { getToken, messagingInstance } = window.firebaseMessaging;
+            const vapidKey = 'BEu5mwSdY7ci-Tl8lUJcrq12Ct1w62_2ywucGfPq0FanERTxEUk7wB9PK37dxxles-9jpbN2nsrv3S2xnzelqYU';
+            
+            // Garante que o Service Worker está pronto
+            const swRegistration = await navigator.serviceWorker.ready;
 
-            await updateDoc(customerDocRef, {
-                notificationTokens: arrayUnion(fcmToken)
+            // Pega o token FCM
+            const fcmToken = await getToken(messagingInstance, {
+                vapidKey: vapidKey,
+                serviceWorkerRegistration: swRegistration
             });
-            
-           // console.log("PASSO 9: Token salvo no Firestore com sucesso.");
-            alert('Notificações ativadas com sucesso!');
-            document.getElementById('notification-button-area').innerHTML = '<p style="color:var(--green-status); font-weight:bold;">Notificações ativadas!</p>';
-            
+
+            if (fcmToken) {
+                // Chama a função para salvar o token (no Firestore ou localStorage)
+                await getAndSaveToken(fcmToken);
+                
+                // Atualiza a UI e informa o usuário
+                const notificationArea = document.getElementById('notification-button-area');
+                if (notificationArea) {
+                    notificationArea.innerHTML = '<p style="color:var(--green-status); font-weight:bold;">Notificações ativadas!</p>';
+                }
+                alert('Notificações ativadas com sucesso!');
+
+            } else {
+                alert('Não foi possível obter o token de notificação. Tente novamente.');
+            }
         } else {
-           // console.log('PASSO 8 (FALHA): O token retornado pelo Firebase é nulo ou vazio. O processo para aqui.');
-            alert('Não foi possível obter o token de notificação. Verifique as configurações de permissão do seu navegador.');
+            console.log('Permissão de notificação não concedida pelo usuário.');
         }
     } catch (err) {
-       // console.error('ERRO FATAL no bloco try/catch. A execução falhou em algum ponto.', err);
-        alert('Ocorreu um erro inesperado ao ativar as notificações.');
+        console.error('Ocorreu um erro ao solicitar a permissão de notificação.', err);
     }
 }
