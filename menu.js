@@ -1,4 +1,4 @@
-// menu.js - VERSÃO COMPLETA COM FUNÇÃO DE TESTE PARA O POP-UP
+// menu.js - VERSÃO COMPLETA E ATUALIZADA
 
 // --- CONSTANTES DE COLEÇÕES DO FIRESTORE ---
 const FIRESTORE_MENU_COLLECTION_SITE = "menus";
@@ -304,39 +304,40 @@ function setupOperatingHoursToggle() {
     });
 }
 
-// VERSÃO DE TESTE - Função para controlar o pop-up de ativação de notificações
+// Função para controlar o pop-up de ativação de notificações
 function initializeNotificationPrompt() {
     const promptModal = document.getElementById('notification-prompt-modal');
+    if (!promptModal) return;
 
-    if (!promptModal) {
-        console.error("DEBUG: Modal de notificação com id 'notification-prompt-modal' não foi encontrado no HTML.");
-        return;
+    // Condição atualizada: só mostra se a permissão for 'default' (usuário ainda não decidiu)
+    const permissionStatus = Notification.permission;
+    const hasBeenShown = sessionStorage.getItem('notificationPromptShown');
+
+    if ('Notification' in window && permissionStatus === 'default' && !hasBeenShown) {
+        // Mostra o pop-up após 5 segundos
+        setTimeout(() => {
+            promptModal.classList.add('show');
+            sessionStorage.setItem('notificationPromptShown', 'true'); // Marca como mostrado nesta sessão
+        }, 5000);
     }
-
-    console.log("DEBUG: Forçando a exibição do pop-up em 3 segundos...");
-
-    // Ignorando todas as condições e forçando a exibição para teste
-    setTimeout(() => {
-        console.log("DEBUG: O tempo acabou. Tentando mostrar o modal agora.");
-        promptModal.classList.add('show');
-    }, 3000); // Reduzido para 3 segundos para um teste mais rápido
 
     const activateBtn = document.getElementById('prompt-activate-notifications-btn');
     const declineBtn = document.getElementById('prompt-decline-notifications-btn');
     
-    const closeModalFunc = () => promptModal.classList.remove('show');
+    const closeModal = () => promptModal.classList.remove('show');
 
     if (activateBtn) {
         activateBtn.addEventListener('click', () => {
-            if (typeof requestNotificationPermission === 'function') {
+            // Reutiliza a função principal que já temos para pedir a permissão
+            if(typeof requestNotificationPermission === 'function') {
                 requestNotificationPermission();
             }
-            closeModalFunc();
+            closeModal();
         });
     }
 
     if (declineBtn) {
-        declineBtn.addEventListener('click', closeModalFunc);
+        declineBtn.addEventListener('click', closeModal);
     }
 }
 
