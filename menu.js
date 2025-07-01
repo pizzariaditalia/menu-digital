@@ -350,6 +350,8 @@ function initializeSiteLogic() {
     const minOrderValue = window.appSettings.storeInfo.minOrderValue;
     minOrderValueSpan.textContent = formatPrice(minOrderValue);
     minOrderLine.style.display = 'flex';
+
+    initializeNotificationPrompt();
   }
 
   function createMenuItemHTML(item) {
@@ -580,6 +582,48 @@ function setupOperatingHoursToggle() {
         toggleButton.classList.toggle('expanded');
         detailsContainer.classList.toggle('show');
     });
+}
+
+// Função para controlar o pop-up de ativação de notificações
+function initializeNotificationPrompt() {
+    const promptModal = document.getElementById('notification-prompt-modal');
+    if (!promptModal) return;
+
+    // Condições para mostrar o pop-up:
+    // 1. O navegador suporta notificações.
+    // 2. A permissão ainda não foi concedida.
+    // 3. O pop-up ainda não foi mostrado nesta sessão.
+    const isNotificationSupported = 'Notification' in window;
+    const isPermissionGranted = Notification.permission === 'granted';
+    const hasBeenShown = sessionStorage.getItem('notificationPromptShown');
+
+    if (isNotificationSupported && !isPermissionGranted && !hasBeenShown) {
+        // Mostra o pop-up após 5 segundos
+        setTimeout(() => {
+            promptModal.classList.add('show');
+            sessionStorage.setItem('notificationPromptShown', 'true'); // Marca como mostrado
+        }, 5000);
+    }
+
+    const activateBtn = document.getElementById('prompt-activate-notifications-btn');
+    const declineBtn = document.getElementById('prompt-decline-notifications-btn');
+
+    // Função para fechar o modal
+    const closeModal = () => promptModal.classList.remove('show');
+
+    if(activateBtn) {
+        activateBtn.addEventListener('click', () => {
+            // Reutiliza a função que já temos para pedir a permissão
+            if(typeof requestNotificationPermission === 'function') {
+                requestNotificationPermission();
+            }
+            closeModal();
+        });
+    }
+
+    if(declineBtn) {
+        declineBtn.addEventListener('click', closeModal);
+    }
 }
 
 // ======================================================================
