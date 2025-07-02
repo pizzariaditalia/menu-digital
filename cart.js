@@ -1,4 +1,4 @@
-// cart.js - VERSÃO FINAL COMPLETA E ROBUSTA COM UPSELLING
+// cart.js - VERSÃO ATUALIZADA COM UPSELLING INTELIGENTE
 
 document.addEventListener('DOMContentLoaded', () => {
   let cart = [];
@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Seletores de Elementos do DOM
   const cartIconWrapper = document.querySelector('.cart-icon-wrapper');
   const cartModal = document.getElementById('cart-modal');
+  const closeCartModalButton = cartModal?.querySelector('.close-button');
   const viewCartButton = document.getElementById('view-cart-button');
   const cartItemsList = document.getElementById('cart-items-list');
   const cartCountSpan = document.querySelector('.cart-count');
@@ -20,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const cartCouponSection = document.getElementById('cart-coupon-section');
   const cartDiscountLine = document.getElementById('cart-discount-line');
   const cartDiscountAmountSpan = document.getElementById('cart-discount-amount');
-  const upsellContainer = document.getElementById('upsell-suggestion-container');
+  const upsellContainer = document.getElementById('upsell-suggestion-container'); // <-- NOVO SELETOR
 
   const formatPrice = (price) => price && typeof price === 'number' ? price.toLocaleString('pt-BR', {
     style: 'currency',
@@ -42,10 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function handleUpsellSuggestion(addedItem) {
     if (!upsellContainer || !window.menuData) return;
 
+    // --- Regras de Upsell ---
     const upsellRules = {
         triggerCategories: ["pizzas-tradicionais", "pizzas-especiais", "pizzas-doces"],
-        suggestionItemId: 'coca-cola-2l', // <<< LEMBRE-SE DE TROCAR PELO ID CORRETO DO SEU PRODUTO
-        suggestionCategory: 'bebidas'      // <<< VERIFIQUE SE ESTA É A CATEGORIA CORRETA
+        suggestionItemId: 'coca-cola-2l', // <<< LEMBRE-SE DE TROCAR PELO ID CORRETO
+        suggestionCategory: 'bebidas'
     };
 
     const shouldSuggest = upsellRules.triggerCategories.includes(addedItem.category);
@@ -110,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     updateCartUI();
-    handleUpsellSuggestion(item);
+    handleUpsellSuggestion(item); // <-- ADIÇÃO DA CHAMADA
   };
 
   window.getAppliedRoulettePrize = () => activeRoulettePrize ? JSON.parse(JSON.stringify(activeRoulettePrize)) : null;
@@ -131,16 +133,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const removeItemFromCart = (index) => {
     if (!cart[index]) return;
-    const removedItem = cart.splice(index, 1)[0];
+    cart.splice(index, 1);
     appliedLoyaltyDiscount = null;
     appliedCoupon = null;
-    
-    const upsellRules = { triggerCategories: ["pizzas-tradicionais", "pizzas-especiais", "pizzas-doces"] };
-    const hasTriggerItem = cart.some(item => upsellRules.triggerCategories.includes(item.category));
-    if (!hasTriggerItem && upsellContainer) {
-        upsellContainer.innerHTML = '';
-    }
-
     updateCartUI();
   };
 
@@ -216,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function validateAndApplyCoupon(code) {
     const couponMessageDiv = document.getElementById('coupon-message');
     if (!code) return { success: false, message: "Código inválido." };
-    if (activeRoulettePrize) return { success: false, message: "Apenas um tipo de desconto pode ser usado." };
+    if (activeRoulettePrize) return { success: false, message: "Apenas um tipo de desconto pode ser usado. O prêmio da roleta já está ativo." };
     if (appliedLoyaltyDiscount) return { success: false, message: "Remova o desconto de fidelidade para aplicar um cupom." };
     if (cart.some(item => item.isPromotion)) return { success: false, message: "Cupons não são válidos para itens em promoção." };
 
@@ -224,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const { doc, getDoc } = window.firebaseFirestore;
       const couponRef = doc(window.db, "coupons", code);
       const couponSnap = await getDoc(couponRef);
-      if (!couponSnap.exists() || !couponSnap.data().active) return { success: false, message: "Cupom inválido ou inativo." };
+      if (!couponSnap.exists() || !couponSnap.data().active) return { success: false, message: "Cupom inválido, expirado ou inativo." };
       
       const coupon = { id: couponSnap.id, ...couponSnap.data() };
       const { subtotal } = calculateCartTotals();
@@ -240,11 +235,11 @@ document.addEventListener('DOMContentLoaded', () => {
         couponMessageDiv.className = 'success';
       }
       updateCartUI();
-      return { success: true, message: "Cupom aplicado!" };
+      return { success: true, message: "Cupom aplicado com sucesso!" };
 
     } catch (error) {
       console.error("Erro ao aplicar cupom:", error);
-      return { success: false, message: "Erro ao verificar o cupom." };
+      return { success: false, message: "Erro ao verificar o cupom. Tente novamente." };
     }
   }
   window.validateAndApplyCoupon = validateAndApplyCoupon;
@@ -260,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyCouponButton.disabled = true;
     applyCouponButton.textContent = 'Verificando...';
     const result = await validateAndApplyCoupon(code);
-    if (!result.success && couponMessageDiv) {
+    if (!result.success) {
       couponMessageDiv.textContent = result.message;
       couponMessageDiv.className = 'error';
     }
@@ -285,19 +280,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let discountAmount = 0;
 
     if (activeRoulettePrize) {
-        if (activeRoulettePrize.type === 'percent') {
-            discountAmount = subtotal * (activeRoulettePrize.value / 100);
-        } else if (activeRoulettePrize.type === 'free_item') {
-            const freeItemInCart = cart.find(item => item.name === activeRoulettePrize.value);
-            if (freeItemInCart) discountAmount = freeItemInCart.unitPrice;
-        } else if (activeRoulettePrize.type === 'free_extra') {
-            for (const item of cart) {
-                if (item.stuffedCrust && item.stuffedCrust.price > 0) {
-                    discountAmount += item.stuffedCrust.price;
-                    break;
-                }
+      if (activeRoulettePrize.type === 'percent') {
+        discountAmount = subtotal * (activeRoulettePrize.value / 100);
+      } else if (activeRoulettePrize.type === 'free_item') {
+        const freeItemInCart = cart.find(item => item.name === activeRoulettePrize.value);
+        if (freeItemInCart) discountAmount = freeItemInCart.unitPrice;
+      } else if (activeRoulettePrize.type === 'free_extra') {
+        for (const item of cart) {
+            if (item.stuffedCrust && item.stuffedCrust.price > 0) {
+                discountAmount += item.stuffedCrust.price;
+                break;
             }
         }
+      }
     } else if (appliedLoyaltyDiscount) {
       discountAmount = appliedLoyaltyDiscount.discountAmount;
     } else if (appliedCoupon) {
@@ -321,7 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (emptyCartMessageElement) {
         const placeholder = document.createElement('div');
         const emptyMessageClone = emptyCartMessageElement.cloneNode(true);
-        if (emptyMessageClone) {
+        if(emptyMessageClone) {
             emptyMessageClone.style.display = 'block';
             placeholder.appendChild(emptyMessageClone);
             cartItemsList.innerHTML = placeholder.innerHTML;
@@ -420,7 +415,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const removeBtn = document.getElementById('remove-coupon-button');
             if(applyBtn) applyBtn.addEventListener('click', applyCoupon);
             if(removeBtn) removeBtn.addEventListener('click', removeCoupon);
-
             const couponInputArea = document.getElementById('coupon-input-area');
             const appliedCouponInfo = document.getElementById('applied-coupon-info');
             const appliedCouponText = document.getElementById('applied-coupon-text');
@@ -486,16 +480,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const updateCartUI = () => {
     setTimeout(renderCart, 0);
-  }
+  };
 
   if (viewCartButton) viewCartButton.addEventListener('click', window.openCartModal);
-  
+  if (closeCartModalButton) closeCartModalButton.addEventListener('click', closeCartModal);
+  if (cartModal) cartModal.addEventListener('click', (event) => {
+    if (event.target === cartModal) closeCartModal();
+  });
+
   document.body.addEventListener('click', function(event) {
     if (event.target && event.target.id === 'remove-loyalty-discount-button') {
       removeLoyaltyDiscount();
     }
   });
-
 
   const checkoutButtonInCartModal = document.querySelector('#cart-modal .checkout-button');
   if (checkoutButtonInCartModal) {
