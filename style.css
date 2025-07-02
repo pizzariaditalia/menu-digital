@@ -2189,7 +2189,7 @@ body {
     transform: scale(1.1);
 }
 
-/* ESTILOS PARA A SUGESTÃO DE UPSELL NO CARRINHO */
+/* ESTILOS PARA A SUGESTÃO DE UPSELL NO CARRINHO 
 
 #upsell-suggestion-container {
     padding: 15px 0;
@@ -2197,7 +2197,7 @@ body {
 }
 
 .upsell-suggestion-box {
-    background-color: #f0f8ff; /* Um azul bem claro */
+    background-color: #f0f8ff;  Um azul bem claro 
     border: 1px solid #cce5ff;
     border-radius: 8px;
     padding: 15px;
@@ -2241,4 +2241,4 @@ body {
 .upsell-item .btn-add-upsell {
     flex-shrink: 0;
     padding: 8px 12px;
-}
+} */
