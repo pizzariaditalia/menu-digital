@@ -1,4 +1,4 @@
-// cart.js - VERSÃO FINAL COMPLETA COM LÓGICA DE CUPOM REATORADA
+// cart.js - VERSÃO ATUALIZADA COM UPSELLING INTELIGENTE
 
 document.addEventListener('DOMContentLoaded', () => {
   let cart = [];
@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const cartCouponSection = document.getElementById('cart-coupon-section');
   const cartDiscountLine = document.getElementById('cart-discount-line');
   const cartDiscountAmountSpan = document.getElementById('cart-discount-amount');
+  const upsellContainer = document.getElementById('upsell-suggestion-container');
 
   const formatPrice = (price) => price && typeof price === 'number' ? price.toLocaleString('pt-BR', {
     style: 'currency',
@@ -36,6 +37,48 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cartModal) cartModal.classList.remove('show');
     document.body.style.overflow = '';
   };
+
+  // NOVA FUNÇÃO PARA LIDAR COM A SUGESTÃO DE UPSELL
+  function handleUpsellSuggestion(addedItem) {
+    if (!upsellContainer || !window.menuData) return;
+
+    // --- Regras de Upsell ---
+    const upsellRules = {
+        triggerCategories: ["pizzas-tradicionais", "pizzas-especiais", "pizzas-doces"],
+        suggestionItemId: 'coca-cola-2l', // <<< LEMBRE-SE DE TROCAR PELO ID CORRETO DO SEU PRODUTO
+        suggestionCategory: 'bebidas'      // <<< VERIFIQUE SE ESTA É A CATEGORIA CORRETA
+    };
+
+    const shouldSuggest = upsellRules.triggerCategories.includes(addedItem.category);
+    const suggestionAlreadyInCart = cart.some(item => item.id === upsellRules.suggestionItemId);
+
+    if (shouldSuggest && !suggestionAlreadyInCart) {
+        const suggestionItemData = window.menuData[upsellRules.suggestionCategory]?.items.find(item => item.id === upsellRules.suggestionItemId);
+
+        if (suggestionItemData) {
+            const imagePath = (suggestionItemData.image || 'img/placeholder.png').replace('../', '');
+            upsellContainer.innerHTML = `
+            <div class="upsell-suggestion-box">
+                <h5>Que tal adicionar também?</h5>
+                <div class="upsell-item">
+                    <img src="${imagePath}" alt="${suggestionItemData.name}">
+                    <div class="upsell-item-details">
+                        <div class="name">${suggestionItemData.name}</div>
+                        <div class="price">${formatPrice(suggestionItemData.price)}</div>
+                    </div>
+                    <button class="btn btn-sm btn-success btn-add-upsell">Adicionar</button>
+                </div>
+            </div>`;
+
+            upsellContainer.querySelector('.btn-add-upsell').addEventListener('click', () => {
+                addToCart({ ...suggestionItemData, quantity: 1, unitPrice: suggestionItemData.price, category: upsellRules.suggestionCategory });
+                upsellContainer.innerHTML = ''; 
+            });
+        }
+    } else if (!shouldSuggest) {
+        upsellContainer.innerHTML = '';
+    }
+  }
 
   window.addToCart = (item) => {
     const existingItem = cart.find(cartItem =>
@@ -65,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     updateCartUI();
+    handleUpsellSuggestion(item);
   };
 
   window.getAppliedRoulettePrize = () => activeRoulettePrize ? JSON.parse(JSON.stringify(activeRoulettePrize)) : null;
@@ -73,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.getCartSubtotalAmount = () => calculateCartTotals().subtotal;
   window.getAppliedLoyaltyDiscountInfo = () => appliedLoyaltyDiscount ? JSON.parse(JSON.stringify(appliedLoyaltyDiscount)) : null;
   window.getAppliedCouponInfo = () => appliedCoupon ? JSON.parse(JSON.stringify(appliedCoupon)) : null;
+  
   window.clearCartAndUI = () => {
     cart = [];
     appliedLoyaltyDiscount = null;
@@ -110,10 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const calculateEligibleItemsTotal = () => {
-    const eligibleCategories = ["pizzas-tradicionais",
-      "pizzas-especiais",
-      "pizzas-doces"
-    ];
+    const eligibleCategories = ["pizzas-tradicionais", "pizzas-especiais", "pizzas-doces"];
     return cart.reduce((total, item) => {
       if (item.category && eligibleCategories.includes(item.category)) {
         return total + (item.unitPrice * item.quantity);
@@ -300,12 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const renderCart = () => {
     if (!cartItemsList) return;
     cartItemsList.innerHTML = '';
-    const {
-      subtotal,
-      totalPrice,
-      totalItems,
-      discountAmount
-    } = calculateCartTotals();
+    const { subtotal, totalPrice, totalItems, discountAmount } = calculateCartTotals();
     const hasPromotionalItems = cart.some(item => item.isPromotion);
 
     if (totalItems === 0) {
@@ -319,6 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (cartLoyaltySection) cartLoyaltySection.style.display = 'none';
       if (cartCouponSection) cartCouponSection.style.display = 'none';
       if (cartDiscountLine) cartDiscountLine.style.display = 'none';
+      if (upsellContainer) upsellContainer.innerHTML = '';
     } else {
       if (emptyCartMessageElement) emptyCartMessageElement.style.display = 'none';
       cart.forEach((item, index) => {
@@ -375,17 +413,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const bestDiscount = window.getApplicableDiscount ? window.getApplicableDiscount(customerPoints) : null;
             if (appliedLoyaltyDiscount) {
               loyaltyDiscountInfoDiv.innerHTML = `<p>Desconto de <strong>${appliedLoyaltyDiscount.percentage * 100}%</strong> aplicado.</p>`;
-              applyLoyaltyDiscountButton.style.display = 'none';
-              removeLoyaltyDiscountButton.style.display = 'inline-block';
-              loyaltyDiscountAppliedMessage.textContent = `Você economizou ${formatPrice(appliedLoyaltyDiscount.discountAmount)}!`;
-              loyaltyDiscountAppliedMessage.style.display = 'block';
+              if(applyLoyaltyDiscountButton) applyLoyaltyDiscountButton.style.display = 'none';
+              if(removeLoyaltyDiscountButton) removeLoyaltyDiscountButton.style.display = 'inline-block';
+              if(loyaltyDiscountAppliedMessage) {
+                  loyaltyDiscountAppliedMessage.textContent = `Você economizou ${formatPrice(appliedLoyaltyDiscount.discountAmount)}!`;
+                  loyaltyDiscountAppliedMessage.style.display = 'block';
+              }
               cartLoyaltySection.style.display = 'block';
             } else if (bestDiscount && calculateEligibleItemsTotal() > 0) {
               loyaltyDiscountInfoDiv.innerHTML = `<p>Você tem <strong>${customerPoints}</strong> pontos. ${bestDiscount.label}.</p>`;
-              applyLoyaltyDiscountButton.style.display = 'inline-block';
-              applyLoyaltyDiscountButton.onclick = () => applyLoyaltyDiscount(bestDiscount);
-              removeLoyaltyDiscountButton.style.display = 'none';
-              loyaltyDiscountAppliedMessage.style.display = 'none';
+              if(applyLoyaltyDiscountButton) {
+                  applyLoyaltyDiscountButton.style.display = 'inline-block';
+                  applyLoyaltyDiscountButton.onclick = () => applyLoyaltyDiscount(bestDiscount);
+              }
+              if(removeLoyaltyDiscountButton) removeLoyaltyDiscountButton.style.display = 'none';
+              if(loyaltyDiscountAppliedMessage) loyaltyDiscountAppliedMessage.style.display = 'none';
               cartLoyaltySection.style.display = 'block';
             } else {
               cartLoyaltySection.style.display = 'none';
