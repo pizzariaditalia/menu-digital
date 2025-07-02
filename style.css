@@ -1665,3 +1665,526 @@ body {
 
 /* Garante que o padding e a borda não aumentem o tamanho dos elementos, 
    facilitando a criação de layouts responsivos. */
+* {
+    box-sizing: border-box;
+}
+
+/* --- Ajustes para Telas PEQUENAS (Ex: iPhone 5/SE) --- */
+@media (max-width: 380px) {
+    
+    /* Reduz o padding do conteúdo principal para dar mais espaço */
+    .main-content {
+        padding: var(--space-md);
+        padding-bottom: 100px;
+    }
+
+    /* Diminui um pouco o texto dos botões de ação no cabeçalho */
+    .action-buttons .icon-button {
+        padding: 6px 10px;
+        font-size: 0.8em; /* 12.8px */
+    }
+
+    /* Reduz o padding dos itens de menu */
+    .menu-item {
+        padding: var(--space-sm);
+        gap: var(--space-sm);
+    }
+    
+    .menu-item .item-image {
+        width: 70px;
+        height: 70px;
+    }
+
+    /* Ajusta a barra do carrinho para não espremer os itens */
+    .cart-bar {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    .view-cart-button {
+        font-size: 0.8em;
+    }
+    
+    .cart-total {
+        font-size: 1em; /* 16px */
+    }
+
+    /* Ajusta o padding dos modais para não ficarem colados na borda */
+    .modal .modal-content .modal-scrollable-content {
+        padding: var(--space-md);
+        padding-top: calc(var(--space-md) + var(--space-xxl) + var(--space-sm));
+    }
+}
+
+
+/* --- Ajustes para Telas de TABLET (a partir de 768px) --- */
+/* Esta regra já existe no seu CSS, mas vamos garantir que o conteúdo do modal
+   fique bem ajustado também. */
+@media (min-width: 768px) {
+    .app-container {
+        border-radius: 12px;
+        margin: var(--space-lg) auto;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        min-height: calc(100vh - (2 * var(--space-lg)));
+    }
+
+    .modal .modal-content {
+        border-radius: 12px;
+        width: auto;
+        max-width: 500px; /* Um bom tamanho padrão para modais em telas maiores */
+        animation: fadeInModal 0.3s ease, scaleUpModal 0.3s ease-out;
+    }
+    
+    #checkout-modal .modal-content {
+        max-width: 600px;
+    }
+}
+
+/* --- Ajustes para todos os Modais para evitar overflow em telas curtas --- */
+.modal .modal-content {
+    max-height: 95vh; /* Garante que o modal nunca seja maior que a tela */
+}
+
+.modal .modal-content .modal-scrollable-content {
+    /* Esta regra é crucial para que o conteúdo dentro do modal possa rolar
+       caso seja maior que a altura disponível */
+    overflow-y: auto;
+}
+
+/* ==========================================================================
+   25. ESTILOS PARA O NOVO MODAL DE CUPONS
+   ========================================================================== */
+
+.coupon-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.coupon-info {
+    flex-grow: 1;
+}
+
+.coupon-actions {
+    flex-shrink: 0;
+}
+
+.btn-apply-coupon {
+    background-color: var(--primary-red);
+    color: var(--white);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-apply-coupon:hover {
+    background-color: #c71926;
+}
+
+/* Estilos para a notificação de sucesso do cupom */
+.notification-area {
+    position: fixed; /* Ou absolute, dependendo do seu layout */
+    top: 20px; /* Ajuste a distância do topo */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4CAF50; /* Verde */
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    z-index: 1000; /* Garante que fique acima de outros elementos */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    font-weight: bold;
+}
+
+.notification-area p {
+    margin: 0;
+}
+
+/* ==========================================================================
+   27. ESTILOS PARA O CARROSSEL DE VÍDEOS (VERSÃO 3.0 - CORRIGIDA)
+   ========================================================================== */
+
+.video-carousel-container {
+    position: relative;
+    width: 95%; /* Ocupa 95% da largura da tela, deixando uma margem */
+    max-width: 500px; /* Define uma largura máxima para telas maiores */
+    margin: var(--space-xl) auto; /* Centraliza o carrossel na página */
+    border-radius: 16px;
+    overflow: hidden; /* Essencial para que o vídeo não "vaze" das bordas arredondadas */
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    
+    /* A CORREÇÃO PRINCIPAL: Força o contêiner a ser um quadrado perfeito */
+    aspect-ratio: 1 / 1; 
+}
+
+.carousel-slides {
+    width: 100%;
+    height: 100%;
+}
+
+.video-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+}
+
+.video-slide.active {
+    opacity: 1;
+    z-index: 2;
+}
+
+.video-slide video {
+    width: 100%;
+    height: 100%;
+    /* Garante que o vídeo cubra toda a área quadrada, cortando o excesso */
+    object-fit: cover; 
+    /* Centraliza o vídeo dentro do corte */
+    object-position: center center; 
+}
+
+.carousel-dots {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 3;
+    padding: 5px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.dot {
+    width: 24px;
+    height: 4px; 
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.4s ease;
+    border: none;
+}
+
+.dot.active {
+    background-color: white;
+    width: 36px; 
+}
+
+/* ==========================================================================
+   ESTILOS PARA A BARRA DE BUSCA
+   ========================================================================== */
+.search-container {
+    position: relative;
+    margin: var(--space-lg) var(--space-lg) 0 var(--space-lg);
+}
+
+.search-container .search-icon {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    color: var(--medium-gray);
+}
+
+#search-bar {
+    width: 100%;
+    padding: 12px 15px 12px 40px; /* Espaço para o ícone à esquerda */
+    border-radius: 25px; /* Bordas arredondadas */
+    border: 1px solid var(--border-color);
+    font-size: 1em;
+    box-sizing: border-box;
+    transition: box-shadow 0.2s;
+}
+
+#search-bar:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, .25); /* Destaque azul ao focar */
+    border-color: var(--primary-red);
+}
+
+/* ==========================================================================
+   ESTILOS PARA O STATUS DO PEDIDO
+   ========================================================================== */
+.order-status {
+    font-weight: bold;
+    font-size: 0.9em;
+    text-transform: uppercase;
+}
+
+.status-aguardando {
+    color: var(--warning-yellow); /* Amarelo para aguardando */
+}
+
+.status-preparando {
+    color: var(--primary-red); /* Vermelho/Laranja para em preparo */
+}
+
+.status-a-caminho {
+    color: var(--info-blue); /* Azul para a caminho */
+}
+
+.status-entregue {
+    color: var(--green-status); /* Verde para entregue */
+}
+
+.status-cancelado {
+    color: var(--danger-red); /* Vermelho escuro para cancelado */
+}
+
+.status-desconhecido {
+    color: var(--medium-gray); /* Cinza para status desconhecido */
+}
+
+/* ==========================================================================
+   ESTILOS PARA O STATUS DO PEDIDO (CORES)
+   ========================================================================== */
+.order-status {
+    font-weight: bold;
+    font-size: 0.9em;
+    text-transform: uppercase;
+}
+
+/* Usando as variáveis de cor que já definimos no seu CSS */
+.status-aguardando {
+    color: #ffc107; /* Amarelo/Ouro */
+}
+
+.status-preparando {
+    color: var(--primary-red); /* Vermelho principal do site */
+}
+
+.status-a-caminho {
+    color: #0d6efd; /* Um tom de azul para "a caminho" */
+}
+
+.status-entregue {
+    color: var(--green-status); /* Verde que já usamos */
+}
+
+.status-cancelado {
+    color: var(--medium-gray); /* Cinza para não chamar muita atenção */
+}
+
+.status-desconhecido {
+    color: var(--dark-gray);
+}
+
+/* CLASSE PARA TRAVAR O SCROLL DO BODY QUANDO UM MODAL ESTIVER ABERTO */
+.body-no-scroll {
+    overflow: hidden;
+}
+
+/* Estilo para o Textarea do Modal de Calzone */
+#calzone-notes.form-control {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1em;
+    padding: 10px;
+    background-color: var(--light-gray);
+    resize: vertical;
+}
+
+/* ==========================================================================
+   ESTILOS PARA O MODAL DE DETALHES DO PEDIDO
+   ========================================================================== */
+
+#order-details-modal .modal-content h3 {
+    text-align: center;
+    color: var(--dark-gray);
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.order-summary-section {
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.order-summary-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.order-summary-section h4 {
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    color: var(--primary-red);
+    margin-top: 0;
+    margin-bottom: var(--space-md);
+}
+
+.order-summary-section p {
+    font-size: var(--font-size-sm);
+    color: var(--medium-gray);
+    line-height: 1.6;
+    margin: 0 0 var(--space-xs) 0;
+}
+
+.order-items-list-summary {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: var(--font-size-sm);
+}
+.order-items-list-summary li {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-xs) 0;
+}
+.order-items-list-summary li.item-notes-summary {
+    justify-content: flex-start;
+    color: var(--medium-gray);
+    font-style: italic;
+    font-size: 0.9em;
+    padding-left: 10px;
+}
+
+.order-totals-summary > div {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-sm);
+    padding: var(--space-xs) 0;
+}
+.order-totals-summary .grand-total-summary {
+    font-size: var(--font-size-md);
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--border-color);
+}
+
+/* Estilo para o novo botão 'Ver Pedido' */
+.btn-view-order {
+    background-color: var(--light-gray);
+    color: var(--dark-gray);
+    border: 1px solid var(--border-color);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: 8px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   ESTILOS PARA A SEÇÃO DE HORÁRIO DE FUNCIONAMENTO
+   ========================================================================== */
+
+.operating-hours { 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--dark-gray); /* Cor mais escura para melhor leitura */
+    font-weight: 500; 
+    font-size: var(--font-size-sm); /* Mesmo tamanho das outras infos */
+    cursor: pointer;
+    margin-top: var(--space-md); /* Espaçamento do topo */
+    padding: var(--space-md) 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.operating-hours span i {
+    margin-right: var(--space-sm);
+    color: var(--primary-red);
+}
+
+.operating-hours .fa-chevron-down {
+    transition: transform 0.3s ease-out; 
+}
+
+.operating-hours.expanded .fa-chevron-down {
+    transform: rotate(180deg); 
+}
+
+.operating-hours-details {
+    background-color: var(--light-gray); 
+    padding: 0 var(--space-md);
+    border-radius: 8px;
+    margin-top: var(--space-sm); 
+    font-size: var(--font-size-sm); 
+    color: var(--dark-gray);
+    max-height: 0; /* Começa escondido */
+    overflow: hidden; 
+    transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+}
+
+.operating-hours-details.show {
+    max-height: 300px; /* Altura suficiente para mostrar todos os dias */
+    padding: var(--space-md); 
+}
+
+.operating-hours-details ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.operating-hours-details ul li {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-sm) 0; 
+    border-bottom: 1px solid var(--border-color);
+}
+
+.operating-hours-details ul li:last-child {
+    border-bottom: none; 
+}
+
+.operating-hours-details ul li .day {
+    font-weight: 500; 
+}
+
+/* Ajuste para o modal de notificação centralizado */
+#notification-prompt-modal {
+    align-items: center; /* Alinha verticalmente */
+}
+
+#notification-prompt-modal .modal-content {
+    animation: scaleUpModal 0.4s ease-out; /* Usa a animação de "zoom" */
+}
+
+/* Estilos para o Ícone de Favorito */
+.menu-item {
+    position: relative; /* Necessário para posicionar o ícone */
+}
+
+.favorite-icon-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.favorite-icon {
+    font-size: 18px;
+    color: #ccc; /* Cor do coração vazio */
+    transition: color 0.2s, transform 0.2s;
+}
+
+.favorite-icon.fas {
+    color: var(--primary-red); /* Cor do coração preenchido (favoritado) */
+    transform: scale(1.1);
+}
