@@ -1,0 +1,2190 @@
+/* ==========================================================================
+   style.css - Folha de Estilo Principal para D'Italia Pizzaria Delivery
+   ========================================================================== */
+
+/* ==========================================================================
+   1. Variáveis Globais (Custom Properties)
+   ========================================================================== */
+:root {
+    --primary-red: #ea1d2c; 
+    --light-gray: #f7f7f7;
+    --dark-gray: #3f3f3f;
+    --medium-gray: #757575;
+    --border-color: #eeeeee;
+    --white: #ffffff;
+    --green-status: #3cb464; 
+    --gold: #FFD700;
+    --promo-bg: #fff8e1;
+    --promo-border: #ffecb3;
+    --promo-text: #856404;
+    --font-size-xs: 0.75em;
+    --font-size-sm: 0.875em;
+    --font-size-md: 1em;
+    --font-size-lg: 1.125em;
+    --font-size-xl: 1.25em;
+    --font-size-xxl: 1.5em;
+    --font-size-xxxl: 1.875em;
+    --font-size-xxxxl: 2.5em;
+    --space-xxs: 2px; 
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 20px;
+    --space-xxl: 24px;
+    --space-xxxl: 32px; 
+}
+
+/* ==========================================================================
+   2. Estilos Base e Estrutura Principal da Aplicação
+   ========================================================================== */
+body {
+    font-family: 'Roboto', sans-serif; 
+    margin: 0;
+    padding: 0;
+    background-color: var(--light-gray);
+    min-height: 100vh; 
+    display: flex;
+    flex-direction: column; 
+    font-size: var(--font-size-md); 
+    line-height: 1.5; 
+    color: var(--dark-gray);
+}
+
+.app-container {
+    width: 100%; 
+    max-width: 768px;
+    margin: 0 auto;
+    background-color: var(--light-gray);
+    border-radius: 0; 
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ==========================================================================
+   3. Estilos do Cabeçalho da Aplicação (Header)
+   ========================================================================== */
+.app-header {
+    position: relative;
+    background-color: transparent;
+    padding-bottom: 0;
+    height: 250px;
+}
+
+.header-banner {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.banner-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.header-actions {
+    position: absolute;
+    top: var(--space-md);
+    left: var(--space-lg);
+    right: var(--space-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 10;
+}
+
+.status {
+    background-color: var(--primary-red);
+    color: var(--white);
+    padding: var(--space-xs) var(--space-md);
+    border-radius: 6px;
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.action-buttons {
+    display: flex; /* Alinha os botões lado a lado */
+    gap: 8px;      /* Adiciona um espaço entre eles */
+}
+
+.action-buttons .icon-button {
+    background-color: var(--white);
+    color: var(--dark-gray);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.action-buttons .icon-button .fa-heart {
+    color: var(--primary-red);
+}
+
+.restaurant-logo-wrapper {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--white);
+    border-radius: 50%;
+    padding: 6px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    z-index: 30;
+}
+
+.restaurant-logo {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+}
+
+/* ==========================================================================
+   4. Estilos do Conteúdo Principal (Main Content)
+   ========================================================================== */
+.main-content {
+    padding: var(--space-lg);
+    flex-grow: 1; 
+    padding-bottom: 100px;
+    margin-top: -200px;
+    position: relative;
+    z-index: 10;
+}
+
+.restaurant-info-card {
+    background-color: var(--white);
+    padding: var(--space-xl);
+    padding-top: 65px;
+    border-radius: 20px;
+    position: relative;
+    text-align: center;
+    margin-top: 50px;
+}
+
+.customer-welcome-info {
+/*.restaurant-info-card p.details a {*/
+    display: none !important;
+}
+
+.restaurant-info-card h2 { 
+    margin-top: 0;
+    margin-bottom: var(--space-md); 
+    color: var(--dark-gray);
+    font-size: 1.8rem;
+    font-weight: 700; 
+}
+
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg); 
+}
+
+.icon-circle {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--border-color);
+    background-color: var(--light-gray);
+    color: var(--primary-red);
+    font-size: 1.3rem; 
+    text-decoration: none;
+}
+
+.details, .address { 
+    font-size: var(--font-size-sm); 
+    line-height: 1.6;
+}
+
+.details {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-xl);
+    align-items: center;
+    margin-bottom: var(--space-xs);
+}
+
+.details i {
+    margin-right: var(--space-xs); 
+    color: var(--primary-red);
+}
+
+.address {
+    margin-top: var(--space-md);
+    padding-bottom: var(--space-sm);
+}
+
+.operating-hours { 
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--primary-red);
+    font-weight: 500; 
+    font-size: var(--font-size-md); 
+    cursor: pointer;
+    margin-top: var(--space-xl); 
+    padding: var(--space-md) 0;
+    border-top: 1px solid var(--border-color);
+}
+
+.operating-hours.expanded i {
+    transform: rotate(180deg); 
+}
+
+.operating-hours i {
+    transition: transform 0.3s ease-out; 
+}
+
+.operating-hours-details {
+    background-color: var(--light-gray); 
+    padding: 0 var(--space-md);
+    border-radius: 8px;
+    margin-top: var(--space-sm); 
+    font-size: var(--font-size-sm); 
+    color: var(--dark-gray);
+    max-height: 0;
+    overflow: hidden; 
+    transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+}
+
+.operating-hours-details.show {
+    max-height: 300px;
+    padding: var(--space-md); 
+}
+
+.operating-hours-details ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.operating-hours-details ul li {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-sm) 0; 
+    border-bottom: 1px solid var(--border-color);
+}
+
+.operating-hours-details ul li:last-child {
+    border-bottom: none; 
+}
+
+.operating-hours-details ul li .day {
+    font-weight: 500; 
+}
+
+/* ==========================================================================
+   5. Estilos da Navegação por Abas (Tabs) e Conteúdo das Categorias
+   ========================================================================== */
+.tabs {
+    display: flex;
+    margin-top: var(--space-xl);
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto; 
+    white-space: nowrap;
+    position: sticky; 
+    top: 0;
+    background-color: var(--white);
+    z-index: 25;
+    height: 64px;
+    border-radius: 8px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: var(--space-md) var(--space-lg); 
+    font-size: 0.9em;
+    font-weight: 500;
+    color: var(--medium-gray);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.3s ease;
+    flex-shrink: 0; 
+}
+
+.tab-button.active {
+    color: var(--primary-red);
+    font-weight: 600;
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 10%;
+    width: 80%;
+    height: 3px;
+    background-color: var(--primary-red);
+    border-radius: 3px 3px 0 0;
+}
+
+.menu-content-wrapper {
+    position: relative;
+}
+
+.menu-content-inner {
+    /* Não precisa mais de estilos especiais */
+}
+
+.category-content {
+    padding: var(--space-lg) 0;
+    display: none; 
+}
+
+
+.points-promo {
+    background-color: var(--promo-bg);
+    color: var(--promo-text);
+    padding: var(--space-md) var(--space-lg);
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+    margin-top: 15px;
+    margin-bottom: var(--space-xl);
+    font-size: var(--font-size-sm);
+    border: 1px solid var(--promo-border);
+}
+
+.points-promo::before {
+    content: "⭐ ";
+}
+
+/* ==========================================================================
+   6. Estilos dos Itens de Menu e Promoções
+   ========================================================================== */
+.menu-item, .promo-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background-color: var(--white);
+    padding: var(--space-md);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    margin-bottom: var(--space-lg);
+    gap: var(--space-md);
+}
+
+.menu-item .item-image, .promo-item .promo-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+.menu-item .item-details, .promo-item .promo-details {
+    flex-grow: 1;
+    text-align: left;
+    width: auto;
+}
+
+.menu-item h4, .promo-item h4 {
+    margin: 0 0 var(--space-xs) 0;
+    color: var(--dark-gray);
+    font-size: var(--font-size-md);
+    font-weight: 600;
+}
+
+.menu-item .item-description {
+    font-size: var(--font-size-sm);
+    color: var(--medium-gray);
+    margin-bottom: var(--space-sm);
+}
+
+.menu-item .item-price, .promo-item .promo-price {
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    color: var(--dark-gray);
+    margin: 0;
+}
+
+.menu-item .original-price-text, .promo-item .original-price-text {
+    font-size: var(--font-size-sm);
+    color: var(--medium-gray);
+    text-decoration: line-through;
+    display: inline-block;
+    margin-left: var(--space-sm);
+}
+
+/* DENTRO DE style.css */
+
+.add-to-cart-button {
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--primary-red);
+    cursor: pointer;
+
+    /* ALTERAÇÕES ABAIXO */
+    position: absolute; /* Posição flutuante como o coração */
+    bottom: 10px;       /* Alinha na parte de baixo */
+    right: 10px;        /* Alinha na direita */
+    z-index: 2;         /* Garante que fique visível */
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.add-to-cart-button:hover {
+    background-color: var(--primary-red);
+    color: var(--white);
+}
+
+/* ==========================================================================
+   7. Estilos da Barra de Carrinho (Rodapé Fixo)
+   ========================================================================== */
+.cart-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--white);
+    color: var(--dark-gray);
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 100;
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+}
+
+.cart-icon-wrapper {
+    position: relative;
+    margin-right: var(--space-sm);
+}
+
+.cart-icon-wrapper .fa-shopping-basket {
+    font-size: var(--font-size-xl);
+}
+
+.cart-count {
+    background-color: var(--primary-red);
+    color: var(--white);
+    border-radius: 50%;
+    padding: var(--space-xxs) var(--space-xs);
+    font-size: var(--font-size-xs);
+    font-weight: bold;
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 14px;
+    text-align: center;
+    line-height: 1.5;
+    display: none;
+    border: 1px solid var(--white);
+}
+
+.view-cart-button {
+    background-color: var(--primary-red);
+    color: var(--white);
+    border: none;
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    flex-grow: 1;
+    margin: 0 var(--space-sm);
+}
+
+.cart-total {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   8. Estilos Gerais para Modais
+   ========================================================================== */
+.modal {
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    justify-content: center;
+    align-items: flex-end;
+    backdrop-filter: blur(3px);
+    z-index: 200;
+}
+
+.modal.show {
+    display: flex;
+    animation: fadeInModal 0.3s ease;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal .modal-content {
+    background-color: var(--white);
+    padding: 0;
+    border-radius: 16px 16px 0 0;
+    width: 100%;
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUpModal 0.4s ease-out;
+}
+
+@keyframes slideUpModal {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+.modal .modal-content .close-button {
+    color: var(--medium-gray);
+    font-size: var(--font-size-xxl);
+    font-weight: bold;
+    position: absolute;
+    top: var(--space-sm);
+    right: var(--space-md);
+    cursor: pointer;
+    background: none;
+    border: none;
+    z-index: 2;
+    padding: var(--space-xs);
+}
+
+.modal .modal-content .close-button:hover,
+.modal .modal-content .close-button:focus {
+    color: var(--primary-red);
+}
+
+.modal .modal-content .modal-scrollable-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: var(--space-lg);
+    padding-top: calc(var(--space-lg) + var(--space-xxl) + var(--space-sm));
+    transition: min-height 0.3s ease;
+}
+
+/* ==========================================================================
+   9. Estilos Específicos do Modal de Produto e Carrinho
+   ========================================================================== */
+#product-modal { z-index: 200; }
+#product-modal .modal-content { max-width: 768px; }
+#product-modal .modal-fixed-bottom { flex-shrink: 0; padding: var(--space-md); border-top: 1px solid var(--border-color); background-color: var(--white); }
+.notes-section { margin-top: 0; border-top: none; padding: 0 var(--space-lg) var(--space-md) var(--space-lg); }
+#product-notes { width: 100%; box-sizing: border-box; min-height: 60px; padding: var(--space-sm); border: 1px solid var(--border-color); border-radius: 5px; font-family: 'Roboto', sans-serif; font-size: var(--font-size-sm); resize: vertical; background-color: var(--light-gray); }
+.add-to-cart-button-modal { background-color: var(--primary-red); color: var(--white); border: none; padding: var(--space-md); border-radius: 8px; font-size: var(--font-size-md); font-weight: 500; width: 100%; cursor: pointer; margin-top: 0; transition: background-color 0.2s ease; }
+.modal-image { width: 100%; height: 180px; object-fit: cover; border-radius: 16px 16px 0 0; margin-bottom: var(--space-md); }
+#product-modal h3 { font-size: var(--font-size-xl); font-weight: 600; color: var(--dark-gray); margin: 0 var(--space-lg); line-height: 1.3; padding-top: var(--space-xxxl); }
+#product-modal p#modal-product-description { font-size: var(--font-size-sm); color: var(--medium-gray); margin: var(--space-sm) var(--space-lg) var(--space-lg) var(--space-lg); line-height: 1.5; }
+.options-section { margin-bottom: var(--space-lg); border-top: 1px solid var(--border-color); padding-top: var(--space-lg); }
+.options-section:first-of-type { border-top: none; padding-top: 0; }
+.options-section h4, .options-section h5 { font-size: var(--font-size-md); font-weight: 600; color: var(--dark-gray); margin-top: 0; margin-bottom: var(--space-md); }
+.option-group { margin-bottom: var(--space-sm); }
+
+.option-label {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.75em;
+    background-color: var(--light-gray);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    font-size: var(--font-size-sm);
+}
+
+.option-label:hover { background-color: #e0e0e0; }
+.option-label input[type="radio"] { margin-right: var(--space-sm); accent-color: var(--primary-red); }
+.option-price { font-weight: bold; color: var(--primary-red); }
+.hidden { display: none !important; }
+#second-half-list { max-height: 450px; overflow-y: auto; padding-right: var(--space-xs); }
+.second-half-item { display: flex; align-items: center; background-color: var(--white); padding: var(--space-sm); border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); margin-bottom: var(--space-sm); gap: var(--space-sm); cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; border: 1px solid transparent; }
+.second-half-item:last-child { margin-bottom: 0; }
+.second-half-item:hover { background-color: var(--light-gray); }
+.second-half-item.selected { border-color: var(--primary-red); background-color: #fceceb; }
+.second-half-item .item-image { width: 50px; height: 50px; border-radius: 5px; object-fit: cover; flex-shrink: 0; }
+.second-half-item .item-details { flex-grow: 1; }
+.second-half-item h5 { margin: 0; font-size: var(--font-size-sm); font-weight: 500; color: var(--dark-gray); }
+.second-half-item .item-price { font-size: var(--font-size-xs); }
+.error-message { color: var(--primary-red); font-size: var(--font-size-sm); margin-top: var(--space-sm); }
+#stuffed-crust-fillings-container { border-top: none; padding-top: var(--space-sm); margin-bottom: 0; }
+#stuffed-crust-filling-error { margin-top: var(--space-xs); }
+
+/* ==========================================================================
+   10. Estilos Específicos do Modal do Carrinho
+   ========================================================================== */
+#cart-modal { z-index: 210; }
+#cart-modal h3 { text-align: center; color: var(--dark-gray); margin-bottom: 0; font-size: var(--font-size-lg); font-weight: 600; padding: var(--space-lg); border-bottom: 1px solid var(--border-color); }
+.cart-items-list { overflow-y: auto; margin-bottom: var(--space-md); padding: 0 var(--space-lg); }
+.empty-cart-message { text-align: center; color: var(--medium-gray); font-style: italic; padding: var(--space-xl) 0; font-size: var(--font-size-sm); }
+.cart-item { display: flex; align-items: flex-start; margin-bottom: var(--space-md); padding: var(--space-md) 0; border-bottom: 1px dashed var(--border-color); gap: var(--space-md); }
+.cart-item:first-child { padding-top: var(--space-lg); }
+.cart-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.cart-item-image { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+.cart-item-details { flex-grow: 1; }
+.cart-item-details h4 { margin: 0 0 var(--space-xs) 0; font-size: var(--font-size-md); font-weight: 600; color: var(--dark-gray); line-height: 1.3; }
+.cart-item-details .item-description { font-size: var(--font-size-xs); color: var(--medium-gray); margin-bottom: var(--space-xs); line-height: 1.3; }
+.cart-item-details .item-notes { font-size: var(--font-size-xs); color: var(--medium-gray); font-style: italic; margin-top: var(--space-xs); }
+.cart-item-price { font-weight: bold; color: var(--dark-gray); font-size: var(--font-size-sm); flex-shrink: 0; margin-left: var(--space-xs); text-align: right; padding-top: var(--space-xxs); }
+.cart-item-quantity-controls { display: flex; align-items: center; gap: var(--space-sm); margin-top: var(--space-sm); }
+.quantity-button { background-color: var(--light-gray); color: var(--dark-gray); border: 1px solid var(--border-color); border-radius: 50%; width: 28px; height: 28px; font-size: var(--font-size-md); display: flex; justify-content: center; align-items: center; cursor: pointer; transition: background-color 0.2s ease; line-height: 1; }
+.quantity-button:hover { background-color: #e0e0e0; }
+.item-quantity { font-weight: bold; font-size: var(--font-size-sm); min-width: 18px; text-align: center; }
+.cart-loyalty-section { border-top: 1px dashed var(--border-color); padding: var(--space-md) var(--space-lg); margin-bottom: var(--space-md); }
+.cart-loyalty-section h4 { font-size: var(--font-size-lg); font-weight: 600; margin-top: 0; margin-bottom: var(--space-sm); }
+#loyalty-discount-info p { font-size: var(--font-size-sm); color: var(--medium-gray); margin-bottom: var(--space-sm); }
+#loyalty-discount-info strong { color: var(--primary-red); font-weight: 600; }
+.button-link-style { background: none; border: none; color: var(--primary-red); text-decoration: underline; cursor: pointer; padding: var(--space-xs) 0; font-size: var(--font-size-sm); font-weight: 500; }
+.button-link-style:hover { color: #c71926; }
+.cart-summary { border-top: 1px solid var(--border-color); padding: var(--space-md) var(--space-lg) 0 var(--space-lg); margin-top: var(--space-sm); }
+.summary-line { display: flex; justify-content: space-between; font-size: var(--font-size-md); margin-bottom: var(--space-sm); }
+#cart-discount-line span:first-child { color: var(--green-status); }
+.summary-line.total-line { font-weight: bold; font-size: var(--font-size-lg); color: var(--dark-gray); }
+.summary-line.total-line span:first-child { color: var(--dark-gray); }
+.summary-line.total-line span:last-child { color: var(--primary-red); }
+.checkout-button { background-color: var(--primary-red); color: var(--white); border: none; padding: var(--space-md); border-radius: 8px; font-size: var(--font-size-md); font-weight: 500; width: calc(100% - (2 * var(--space-lg))); cursor: pointer; margin: var(--space-lg); display: block; }
+.checkout-button:hover { background-color: #c71926; }
+
+/* ==========================================================================
+   11. Estilos Específicos do Modal de Checkout
+   ========================================================================== */
+#checkout-modal { z-index: 220; }
+#checkout-modal .modal-content { max-width: 768px; }
+#checkout-modal h3 { text-align: center; color: var(--dark-gray); margin-bottom: 0; font-size: var(--font-size-lg); font-weight: 600; padding: var(--space-lg); border-bottom: 1px solid var(--border-color); }
+#checkout-modal h4 { font-size: var(--font-size-lg); font-weight: 600; color: var(--dark-gray); margin-top: var(--space-lg); margin-bottom: var(--space-md); border-bottom: 1px solid var(--border-color); padding-bottom: var(--space-sm); }
+#checkout-modal h4:first-of-type { margin-top: 0; }
+#checkout-order-summary ul { list-style: none; padding: 0; margin: 0 0 var(--space-md) 0; font-size: var(--font-size-sm); }
+#checkout-order-summary li { padding: var(--space-xs) 0; color: var(--medium-gray); line-height: 1.4; }
+#checkout-order-summary li em { color: #888; font-size: 0.85em; }
+#checkout-applied-discount-info { font-size: var(--font-size-sm); margin-bottom: var(--space-sm); }
+#checkout-modal p { font-size: var(--font-size-sm); }
+#checkout-grand-total { font-weight: bold; font-size: var(--font-size-md); }
+#checkout-delivery-fee-line { font-size: var(--font-size-sm); margin-bottom: var(--space-md); }
+.form-group { margin-bottom: var(--space-md); }
+.form-group label { display: block; margin-bottom: var(--space-xs); font-weight: 500; font-size: var(--font-size-sm); color: var(--dark-gray); }
+.form-group input[type="text"], .form-group input[type="tel"], .form-group input[type="number"], .form-group select { width: 100%; box-sizing: border-box; padding: var(--space-sm) var(--space-md); border: 1px solid var(--border-color); border-radius: 5px; font-size: var(--font-size-sm); font-family: 'Roboto', sans-serif; background-color: var(--light-gray); }
+.form-group input[type="tel"]::placeholder { font-size: 0.9em; color: #aaa; }
+#checkout-form .add-to-cart-button-modal { margin-top: var(--space-lg); }
+
+/* ==========================================================================
+   12. Estilos Específicos do Modal de Fidelidade
+   ========================================================================== */
+#loyalty-modal { z-index: 230; }
+#loyalty-modal .modal-content { max-width: 768px; }
+#loyalty-modal h3 { text-align: center; color: var(--dark-gray); margin-bottom: 0; font-size: var(--font-size-lg); font-weight: 600; padding: var(--space-lg); border-bottom: 1px solid var(--border-color); }
+#loyalty-modal p { font-size: var(--font-size-sm); color: var(--medium-gray); margin-bottom: var(--space-md); line-height: 1.5; }
+#loyalty-results-area { margin-top: var(--space-md); padding: var(--space-md); background-color: var(--light-gray); border-radius: 5px; min-height: 30px; text-align: center; }
+#loyalty-results-area p { margin: 0; font-size: var(--font-size-md); color: var(--dark-gray); }
+#loyalty-results-area .customer-name { font-weight: 600; color: var(--primary-red); }
+
+/* ==========================================================================
+   13. ESTILOS PARA O MODAL DE INFORMAÇÕES DO PIX
+   ========================================================================== */
+.pix-info-modal { z-index: 250; }
+.pix-info-modal .modal-content { max-width: 768px; }
+.pix-info-modal h3 { text-align: center; color: var(--dark-gray); font-size: var(--font-size-lg); font-weight: 600; margin-bottom: 0; padding: var(--space-lg); border-bottom: 1px solid var(--border-color); }
+.pix-info-modal .modal-scrollable-content p { font-size: var(--font-size-sm); line-height: 1.5; margin-bottom: var(--space-md); }
+.pix-info-modal .modal-scrollable-content p strong { font-weight: 600; }
+.pix-details-container { background-color: var(--promo-bg); padding: var(--space-md); border-radius: 8px; margin-top: var(--space-sm); border: 1px solid var(--promo-border); }
+.pix-details-container p { margin-bottom: var(--space-sm); font-size: var(--font-size-sm); line-height: 1.4; }
+.pix-details-container p:last-child { margin-bottom: 0; }
+.pix-details-container p strong { color: var(--promo-text); font-weight: 500; }
+.pix-details-container #pix-payment-amount { font-weight: 700; color: var(--primary-red); font-size: var(--font-size-lg); }
+.pix-key-wrapper { display: flex; align-items: center; gap: var(--space-sm); margin-top: var(--space-xs); }
+#pix-key-display { flex-grow: 1; padding: var(--space-sm); font-size: var(--font-size-sm); font-family: monospace; border: 1px solid var(--border-color); border-radius: 4px; background-color: var(--white); color: var(--dark-gray); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.button-simple { background-color: var(--white); border: 1px solid var(--border-color); color: var(--primary-red); padding: var(--space-sm) var(--space-md); border-radius: 4px; cursor: pointer; font-size: var(--font-size-sm); font-weight: 500; display: inline-flex; align-items: center; gap: var(--space-xs); transition: background-color 0.2s ease; }
+.button-simple:hover { background-color: #dcdcdc; }
+.button-simple i { font-size: 0.9em; }
+.pix-info-modal .modal-fixed-bottom { padding: var(--space-md); border-top: 1px solid var(--border-color); }
+
+@media (min-width: 768px) {
+    .modal { align-items: center; }
+    .modal .modal-content { border-radius: 12px; width: auto; max-width: 500px; animation: fadeInModal 0.3s ease, scaleUpModal 0.3s ease-out; }
+    @keyframes scaleUpModal { from { transform: scale(0.95); } to { transform: scale(1); } }
+    #checkout-modal .modal-content { max-width: 600px; }
+}
+
+#loyalty-results-area .points-display-banner {
+    background-color: #FFF8E1;
+    border: 1px solid #FFECB3;
+    border-radius: 12px;
+    padding: var(--space-lg);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+#loyalty-results-area .points-display-banner::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 100px;
+    height: 100px;
+    background-color: rgba(255, 224, 130, 0.5);
+    border-radius: 50%;
+}
+
+#loyalty-results-area .points-banner-text {
+    font-size: var(--font-size-md);
+    color: var(--promo-text);
+    margin: 0 0 var(--space-md) 0;
+    position: relative;
+    z-index: 2;
+}
+
+#loyalty-results-area .points-banner-value {
+    display: block;
+    font-size: 2.5em;
+    font-weight: 700;
+    color: var(--primary-red);
+    line-height: 1;
+    position: relative;
+    z-index: 2;
+}
+
+#loyalty-results-area .points-banner-label {
+    display: block;
+    font-size: var(--font-size-sm);
+    color: var(--dark-gray);
+    margin-top: var(--space-xs);
+    position: relative;
+    z-index: 2;
+}
+
+#promo-popup-modal {
+    align-items: center;
+    justify-content: center;
+}
+
+#promo-popup-modal .promo-popup-content {
+    background-color: transparent;
+    width: 90%;
+    max-width: 380px;
+    padding: 0;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    animation: scaleUpModal 0.4s ease-out;
+}
+
+#promo-popup-modal .promo-popup-image {
+    display: block;
+    width: 100%;
+    border-radius: 16px;
+}
+
+#promo-popup-modal .close-button {
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    background-color: var(--white);
+    color: var(--dark-gray);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 2rem;
+    font-weight: 300;
+    line-height: 36px;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+/* ==========================================================================
+   14. Estilos da Nova Seção de Promoções Horizontais
+   ========================================================================== */
+.promo-section-container {
+    padding-top: var(--space-lg);
+    margin-top: var(--space-xl);
+}
+
+.promo-section-container h3 {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--dark-gray);
+    margin: 0 var(--space-lg) var(--space-md) var(--space-lg);
+}
+
+.horizontal-scroll-list {
+    display: flex;
+    overflow-x: auto;
+    gap: var(--space-md);
+    padding: 0 var(--space-lg) var(--space-md) var(--space-lg);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.horizontal-scroll-list::-webkit-scrollbar {
+    display: none;
+}
+
+.promo-card-horizontal {
+    flex: 0 0 240px;
+    background-color: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease-out;
+    position: relative;
+}
+
+.promo-card-horizontal:hover {
+    transform: translateY(-4px);
+}
+
+.promo-discount-tag {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: var(--primary-red);
+    color: var(--white);
+    padding: 3px 8px;
+    border-radius: var(--border-radius-md);
+    font-size: var(--font-size-xs);
+    font-weight: bold;
+    z-index: 2;
+}
+
+.promo-card-horizontal .promo-card-image {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    display: block;
+}
+
+.promo-card-horizontal .promo-card-details {
+    padding: var(--space-sm);
+}
+
+.promo-card-horizontal h4 {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--dark-gray);
+    margin: 0 0 var(--space-xs) 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.promo-card-horizontal .promo-card-description {
+    font-size: 0.8em;
+    color: var(--medium-gray);
+    margin: 0 0 var(--space-sm) 0;
+    min-height: 18px;
+}
+
+.promo-card-horizontal .promo-card-pricing {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-sm);
+}
+
+.promo-card-horizontal .promo-price {
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    color: var(--primary-red);
+}
+
+.promo-card-horizontal .original-price-text {
+    font-size: var(--font-size-xs);
+    color: var(--medium-gray);
+    text-decoration: line-through;
+}
+
+/* ==========================================================================
+   15. ESTILOS PARA FAIXA E MODAL DE CUPONS
+   ========================================================================== */
+.coupons-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #fceceb;
+    border: 2px dashed var(--primary-red);
+    border-radius: 8px;
+    padding: 8px;
+    margin: 16px 16px 0 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.coupons-banner:hover {
+    background-color: #f9e0de;
+}
+
+.coupons-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.coupons-banner-content i {
+    font-size: 1.2rem;
+    color: var(--primary-red);
+}
+
+.coupons-banner-text {
+    font-weight: 500;
+    color: var(--dark-gray);
+    font-size: 0.95em;
+}
+
+.coupons-banner-button {
+    background-color: var(--primary-red);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.coupons-modal .modal-content {
+    max-width: 768px;
+}
+
+.coupons-modal h3 {
+    text-align: center;
+    color: var(--dark-gray);
+    margin-bottom: 0;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.coupons-list {
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.coupon-card {
+    background-color: var(--light-gray);
+    border: 1px solid var(--border-color);
+    border-left: 5px solid var(--primary-red);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.coupon-header {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: var(--primary-red);
+    margin-bottom: 8px;
+}
+
+.coupon-code {
+    font-size: 0.9em;
+}
+
+.coupon-code strong {
+    background-color: #e0e0e0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+}
+
+.coupon-expiry {
+    font-size: 0.85em;
+    color: var(--medium-gray);
+    margin-top: 4px;
+}
+
+.coupon-details-toggle {
+    font-size: 0.8em;
+    color: var(--dark-gray);
+    text-decoration: underline;
+    cursor: pointer;
+    margin-top: 8px;
+    display: inline-block;
+}
+
+/* ==========================================================================
+   16. ESTILOS PARA O ALERTA FLUTUANTE DE LOJA FECHADA
+   ========================================================================== */
+
+.store-status-alert {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background-color: var(--primary-red);
+    color: var(--white);
+    padding: 14px;
+    font-weight: 500;
+    font-size: 0.95em;
+    
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    
+    opacity: 0;
+    transform: translate(-50%, -150%);
+    transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+    pointer-events: none;
+}
+
+.store-status-alert.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+}
+
+/* ==========================================================================
+   17. ESTILOS PARA SEÇÃO DE CUPOM NO CARRINHO
+   ========================================================================== */
+.coupon-input-wrapper {
+    display: flex;
+    width: 100%;
+}
+
+#coupon-code-input {
+    flex-grow: 1;
+    min-width: 0;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    border-right: none;
+    font-size: 1em;
+}
+
+#apply-coupon-button {
+    background-color: var(--primary-red);
+    color: var(--white);
+    border: none;
+    padding: 0 16px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+#cart-modal .cart-header {
+    padding: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.cart-scrollable-content {
+    padding: 0 16px;
+}
+
+.cart-footer-wrapper {
+    padding: 16px;
+}
+
+.cart-scrollable-content .cart-discount-section:first-of-type {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+/* ==========================================================================
+   ESTILOS PARA O MODAL DE ÚLTIMOS PEDIDOS (NOVO)
+   ========================================================================== */
+
+#last-orders-modal .modal-content h3 {
+    text-align: center;
+    color: var(--dark-gray);
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+#last-orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.order-history-card {
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.order-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--light-gray);
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.order-history-header .order-id {
+    font-weight: 700;
+    color: var(--primary-red);
+}
+
+.order-history-header .order-status {
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background-color: var(--promo-bg);
+    color: var(--promo-text);
+    text-transform: uppercase;
+}
+
+.order-history-body {
+    padding: var(--space-md);
+}
+
+.order-history-body .order-date {
+    font-size: var(--font-size-sm);
+    color: var(--medium-gray);
+    margin: 0 0 var(--space-md) 0;
+}
+
+.order-history-body ul {
+    list-style: none;
+    padding-left: 15px;
+    margin: 0;
+    font-size: var(--font-size-sm);
+}
+
+.order-history-body ul li {
+    position: relative;
+    margin-bottom: var(--space-xs);
+}
+
+.order-history-body ul li::before {
+    content: '🍕';
+    position: absolute;
+    left: -20px;
+    top: 0;
+}
+
+.order-history-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background-color: var(--light-gray);
+    border-top: 1px solid var(--border-color);
+}
+
+.order-history-footer .order-total {
+    font-weight: 700;
+    font-size: var(--font-size-md);
+}
+
+.order-history-footer .btn-reorder {
+    background-color: var(--primary-red);
+    color: var(--white);
+    border: none;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: 8px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.order-history-footer .btn-reorder:disabled {
+    background-color: var(--medium-gray);
+    cursor: not-allowed;
+}
+
+/* ==========================================================================
+   18. ESTILOS PARA O POP-UP DE BOAS-VINDAS COM PONTOS (NOVO)
+   ========================================================================== */
+   
+.points-popup {
+    position: absolute;
+    top: 115%; /* Posição inicial abaixo dos botões */
+    right: 0;
+    background-color: var(--promo-bg);
+    color: var(--promo-text);
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--promo-border);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    white-space: nowrap;
+
+    /* Estado inicial para a animação */
+    opacity: 0;
+    transform: translateY(-20px); /* Começa 20px ACIMA da sua posição final */
+    visibility: hidden; /* Começa totalmente invisível e sem ocupar espaço */
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out, visibility 0s 0.4s;
+}
+
+.points-popup .fa-star {
+    color: #ffc107;
+}
+
+/* Classe 'show' ativa a animação de entrada (desliza para baixo) */
+.points-popup.show {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+    transition: opacity 0.4s ease-out, transform 0.4s ease-out, visibility 0s 0s;
+}
+
+/* ==========================================================================
+   19. ANIMAÇÃO DE PULSO PARA O CARRINHO (NOVO)
+   ========================================================================== */
+
+/* Define a animação de "pulo" ou "pulso" */
+@keyframes pulse-cart {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Classe que será adicionada via JavaScript para ativar a animação */
+.cart-icon-wrapper.pulse {
+  animation: pulse-cart 0.6s ease-in-out;
+}
+
+/* ==========================================================================
+   20. ANIMAÇÃO DE SUCESSO DO PEDIDO (VERSÃO COM "PULO")
+   ========================================================================== */
+
+#order-success-animation-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s 0.3s;
+}
+
+#order-success-animation-overlay.show {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0s 0s;
+}
+
+.success-animation-container {
+    position: relative;
+    z-index: 10000;
+}
+
+.success-content {
+    background-color: var(--white);
+    padding: 30px 40px;
+    border-radius: 16px;
+    text-align: center;
+    color: var(--dark-gray);
+    transform: scale(0.5);
+    opacity: 0;
+}
+
+#order-success-animation-overlay.show .success-content {
+    animation: jump-in-box 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.success-content h2 {
+    margin: 0 0 10px 0;
+    font-size: 2em;
+    color: var(--primary-red);
+}
+
+.success-content p {
+    margin: 0;
+    font-size: 1.1em;
+}
+
+.success-content strong {
+    font-size: 1.2em;
+    color: var(--green-status);
+}
+
+@keyframes jump-in-box {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+    80% {
+        transform: scale(0.95);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+
+/* ==========================================================================
+   21. MODAL DE CONFIRMAÇÃO CUSTOMIZADO (ATUALIZADO)
+   ========================================================================== */
+
+#custom-confirm-modal .modal-content {
+    max-width: 340px; /* Um bom tamanho para diálogos */
+    border-radius: 16px;
+    padding: 35px; /* AUMENTADO PARA DAR MAIS ESPAÇO INTERNO */
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    /* Remove a animação de zoom-in daqui para aplicar no overlay */
+}
+
+#custom-confirm-modal .modal-content {
+    animation: zoom-in-content 0.4s ease-out;
+}
+
+
+.confirm-modal-content h3 {
+    margin: 0 0 12px 0;
+    color: var(--dark-gray);
+    font-size: 1.4em;
+}
+
+.confirm-modal-content p {
+    margin: 0 0 24px 0;
+    color: var(--medium-gray);
+    line-height: 1.6;
+    font-size: 1em;
+}
+
+.confirm-modal-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.confirm-modal-actions button {
+    flex: 1;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1em;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.confirm-modal-actions button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.btn-confirm-cancel {
+    background-color: var(--light-gray);
+    color: var(--medium-gray);
+    border: 1px solid var(--border-color);
+}
+
+.btn-confirm-ok {
+    background-color: var(--primary-red);
+    color: var(--white);
+}
+
+/* ==========================================================================
+   Estilos da Splash Screen
+   ========================================================================== */
+#splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #ea1d2c; /* Usa a cor principal do seu site */
+  z-index: 9999; /* Garante que fique acima de tudo */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  transition: opacity 0.5s ease-out; /* Animação de fade-out */
+}
+
+.splash-logo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  animation: pulse-logo 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse-logo {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Classe para esconder a splash screen com a animação */
+#splash-screen.hidden {
+  opacity: 0;
+  visibility: hidden; /* Remove da tela após a transição */
+  pointer-events: none; /* Impede cliques */
+}
+
+/* Estilos para o texto da splash screen */
+#splash-text {
+  color: #ffffff;
+  font-size: 1.5em; /* 24px */
+  font-weight: 500;
+  font-family: 'Courier New', Courier, monospace; /* Fonte monoespaçada para o efeito */
+  margin: 0;
+  height: 30px; /* Altura fixa para evitar "pulos" no layout */
+}
+
+/* Estilo para o cursor piscando */
+.typing-cursor {
+  display: inline-block;
+  background-color: #ffffff;
+  width: 2px;
+  height: 1.2em;
+  margin-left: 5px;
+  animation: blink-cursor 0.8s infinite;
+  position: relative;
+  top: 4px;
+}
+
+@keyframes blink-cursor {
+  0%, 100% { background-color: #ffffff; }
+  50% { background-color: transparent; }
+}
+
+/* ==========================================================================
+
+/* ==========================================================================
+   22. ESTILOS PARA A ROLETA DE PRÊMIOS (VERSÃO CORRIGIDA)
+   ========================================================================== */
+
+#roulette-modal .modal-content {
+    /* Garante que o conteúdo não vaze para fora do modal */
+    overflow: hidden;
+}
+
+#wheel-container {
+    position: relative;
+    width: 280px;  /* Reduzido um pouco para caber melhor no modal */
+    height: 280px; /* Reduzido um pouco para caber melhor no modal */
+    margin: 20px auto;
+    display: flex; /* Adicionado para centralizar o canvas */
+    justify-content: center; /* Adicionado para centralizar o canvas */
+    align-items: center; /* Adicionado para centralizar o canvas */
+    perspective: 1000px;
+}
+
+#wheel-pointer {
+    position: absolute;
+    top: -15px; /* Posição ajustada */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px; /* Tamanho da seta corrigido */
+    height: 60px; /* Tamanho da seta corrigido */
+    z-index: 10;
+    filter: drop-shadow(0px 7px 5px rgba(0, 0, 0, 0.3));
+    animation: pulse-pointer 2s infinite ease-in-out;
+}
+
+#prize-wheel {
+    width: 100%;
+    height: 100%;
+    box-shadow: 
+        0 5px 15px rgba(0, 0, 0, 0.2),
+        inset 0 0 25px rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    transition: transform 0.5s ease-out;
+}
+
+/* Animação para o ponteiro "pulsar" */
+@keyframes pulse-pointer {
+    0% {
+        transform: translateX(-50%) scale(1);
+    }
+    50% {
+        transform: translateX(-50%) scale(1.05);
+    }
+    100% {
+        transform: translateX(-50%) scale(1);
+    }
+}
+
+/* ==========================================================================
+   23. ESTILOS AVANÇADOS PARA A ROLETA (EFEITO 3D)
+   ========================================================================== */
+
+/* Adiciona uma perspectiva ao contêiner para o efeito 3D funcionar */
+#wheel-container {
+    perspective: 1000px;
+}
+
+/* Aplica o efeito 3D e de profundidade na roleta (canvas) */
+#prize-wheel {
+    box-shadow: 
+        0 5px 15px rgba(0, 0, 0, 0.2), /* Sombra principal para profundidade */
+        inset 0 0 25px rgba(0, 0, 0, 0.1); /* Sombra interna para dar aspecto de concavidade */
+    border-radius: 50%;
+    transition: transform 0.5s ease-out; /* Animação suave */
+}
+
+/* Opcional: Efeito de inclinação ao passar o mouse (para desktop) */
+@media (hover: hover) {
+    #prize-wheel:hover {
+        transform: rotateY(10deg) rotateX(5deg);
+    }
+}
+
+/* Melhora o ponteiro com uma sombra para parecer que está "flutuando" */
+#wheel-pointer {
+    /* O filter: drop-shadow é melhor que box-shadow para imagens com transparência */
+    filter: drop-shadow(0px 7px 5px rgba(0, 0, 0, 0.3));
+    /* Animação sutil para o ponteiro "pulsar" um pouco */
+    animation: pulse-pointer 2s infinite ease-in-out;
+}
+
+@keyframes pulse-pointer {
+    0% {
+        transform: translateX(-50%) scale(1);
+    }
+    50% {
+        transform: translateX(-50%) scale(1.05);
+    }
+    100% {
+        transform: translateX(-50%) scale(1);
+    }
+}
+
+/* Estiliza o botão para combinar com o novo visual */
+#spin-button {
+    background: linear-gradient(145deg, #ef3442, #c71926); /* Gradiente no botão */
+    border: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#spin-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+}
+
+#spin-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* ==========================================================================
+   24. MELHORIAS DE RESPONSIVIDADE GERAL
+   Adicione este bloco inteiro no final do seu arquivo style.css
+   ========================================================================== */
+
+/* Garante que o padding e a borda não aumentem o tamanho dos elementos, 
+   facilitando a criação de layouts responsivos. */
+* {
+    box-sizing: border-box;
+}
+
+/* --- Ajustes para Telas PEQUENAS (Ex: iPhone 5/SE) --- */
+@media (max-width: 380px) {
+    
+    /* Reduz o padding do conteúdo principal para dar mais espaço */
+    .main-content {
+        padding: var(--space-md);
+        padding-bottom: 100px;
+    }
+
+    /* Diminui um pouco o texto dos botões de ação no cabeçalho */
+    .action-buttons .icon-button {
+        padding: 6px 10px;
+        font-size: 0.8em; /* 12.8px */
+    }
+
+    /* Reduz o padding dos itens de menu */
+    .menu-item {
+        padding: var(--space-sm);
+        gap: var(--space-sm);
+    }
+    
+    .menu-item .item-image {
+        width: 70px;
+        height: 70px;
+    }
+
+    /* Ajusta a barra do carrinho para não espremer os itens */
+    .cart-bar {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    .view-cart-button {
+        font-size: 0.8em;
+    }
+    
+    .cart-total {
+        font-size: 1em; /* 16px */
+    }
+
+    /* Ajusta o padding dos modais para não ficarem colados na borda */
+    .modal .modal-content .modal-scrollable-content {
+        padding: var(--space-md);
+        padding-top: calc(var(--space-md) + var(--space-xxl) + var(--space-sm));
+    }
+}
+
+
+/* --- Ajustes para Telas de TABLET (a partir de 768px) --- */
+/* Esta regra já existe no seu CSS, mas vamos garantir que o conteúdo do modal
+   fique bem ajustado também. */
+@media (min-width: 768px) {
+    .app-container {
+        border-radius: 12px;
+        margin: var(--space-lg) auto;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        min-height: calc(100vh - (2 * var(--space-lg)));
+    }
+
+    .modal .modal-content {
+        border-radius: 12px;
+        width: auto;
+        max-width: 500px; /* Um bom tamanho padrão para modais em telas maiores */
+        animation: fadeInModal 0.3s ease, scaleUpModal 0.3s ease-out;
+    }
+    
+    #checkout-modal .modal-content {
+        max-width: 600px;
+    }
+}
+
+/* --- Ajustes para todos os Modais para evitar overflow em telas curtas --- */
+.modal .modal-content {
+    max-height: 95vh; /* Garante que o modal nunca seja maior que a tela */
+}
+
+.modal .modal-content .modal-scrollable-content {
+    /* Esta regra é crucial para que o conteúdo dentro do modal possa rolar
+       caso seja maior que a altura disponível */
+    overflow-y: auto;
+}
+
+/* ==========================================================================
+   25. ESTILOS PARA O NOVO MODAL DE CUPONS
+   ========================================================================== */
+
+.coupon-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.coupon-info {
+    flex-grow: 1;
+}
+
+.coupon-actions {
+    flex-shrink: 0;
+}
+
+.btn-apply-coupon {
+    background-color: var(--primary-red);
+    color: var(--white);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-apply-coupon:hover {
+    background-color: #c71926;
+}
+
+/* Estilos para a notificação de sucesso do cupom */
+.notification-area {
+    position: fixed; /* Ou absolute, dependendo do seu layout */
+    top: 20px; /* Ajuste a distância do topo */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #4CAF50; /* Verde */
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    z-index: 1000; /* Garante que fique acima de outros elementos */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    font-weight: bold;
+}
+
+.notification-area p {
+    margin: 0;
+}
+
+/* ==========================================================================
+   27. ESTILOS PARA O CARROSSEL DE VÍDEOS (VERSÃO 3.0 - CORRIGIDA)
+   ========================================================================== */
+
+.video-carousel-container {
+    position: relative;
+    width: 95%; /* Ocupa 95% da largura da tela, deixando uma margem */
+    max-width: 500px; /* Define uma largura máxima para telas maiores */
+    margin: var(--space-xl) auto; /* Centraliza o carrossel na página */
+    border-radius: 16px;
+    overflow: hidden; /* Essencial para que o vídeo não "vaze" das bordas arredondadas */
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    
+    /* A CORREÇÃO PRINCIPAL: Força o contêiner a ser um quadrado perfeito */
+    aspect-ratio: 1 / 1; 
+}
+
+.carousel-slides {
+    width: 100%;
+    height: 100%;
+}
+
+.video-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.8s ease-in-out;
+}
+
+.video-slide.active {
+    opacity: 1;
+    z-index: 2;
+}
+
+.video-slide video {
+    width: 100%;
+    height: 100%;
+    /* Garante que o vídeo cubra toda a área quadrada, cortando o excesso */
+    object-fit: cover; 
+    /* Centraliza o vídeo dentro do corte */
+    object-position: center center; 
+}
+
+.carousel-dots {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 3;
+    padding: 5px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.dot {
+    width: 24px;
+    height: 4px; 
+    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: all 0.4s ease;
+    border: none;
+}
+
+.dot.active {
+    background-color: white;
+    width: 36px; 
+}
+
+/* ==========================================================================
+   ESTILOS PARA A BARRA DE BUSCA
+   ========================================================================== */
+.search-container {
+    position: relative;
+    margin: var(--space-lg) var(--space-lg) 0 var(--space-lg);
+}
+
+.search-container .search-icon {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    color: var(--medium-gray);
+}
+
+#search-bar {
+    width: 100%;
+    padding: 12px 15px 12px 40px; /* Espaço para o ícone à esquerda */
+    border-radius: 25px; /* Bordas arredondadas */
+    border: 1px solid var(--border-color);
+    font-size: 1em;
+    box-sizing: border-box;
+    transition: box-shadow 0.2s;
+}
+
+#search-bar:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, .25); /* Destaque azul ao focar */
+    border-color: var(--primary-red);
+}
+
+/* ==========================================================================
+   ESTILOS PARA O STATUS DO PEDIDO
+   ========================================================================== */
+.order-status {
+    font-weight: bold;
+    font-size: 0.9em;
+    text-transform: uppercase;
+}
+
+.status-aguardando {
+    color: var(--warning-yellow); /* Amarelo para aguardando */
+}
+
+.status-preparando {
+    color: var(--primary-red); /* Vermelho/Laranja para em preparo */
+}
+
+.status-a-caminho {
+    color: var(--info-blue); /* Azul para a caminho */
+}
+
+.status-entregue {
+    color: var(--green-status); /* Verde para entregue */
+}
+
+.status-cancelado {
+    color: var(--danger-red); /* Vermelho escuro para cancelado */
+}
+
+.status-desconhecido {
+    color: var(--medium-gray); /* Cinza para status desconhecido */
+}
+
+/* ==========================================================================
+   ESTILOS PARA O STATUS DO PEDIDO (CORES)
+   ========================================================================== */
+.order-status {
+    font-weight: bold;
+    font-size: 0.9em;
+    text-transform: uppercase;
+}
+
+/* Usando as variáveis de cor que já definimos no seu CSS */
+.status-aguardando {
+    color: #ffc107; /* Amarelo/Ouro */
+}
+
+.status-preparando {
+    color: var(--primary-red); /* Vermelho principal do site */
+}
+
+.status-a-caminho {
+    color: #0d6efd; /* Um tom de azul para "a caminho" */
+}
+
+.status-entregue {
+    color: var(--green-status); /* Verde que já usamos */
+}
+
+.status-cancelado {
+    color: var(--medium-gray); /* Cinza para não chamar muita atenção */
+}
+
+.status-desconhecido {
+    color: var(--dark-gray);
+}
+
+/* CLASSE PARA TRAVAR O SCROLL DO BODY QUANDO UM MODAL ESTIVER ABERTO */
+.body-no-scroll {
+    overflow: hidden;
+}
+
+/* Estilo para o Textarea do Modal de Calzone */
+#calzone-notes.form-control {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 1em;
+    padding: 10px;
+    background-color: var(--light-gray);
+    resize: vertical;
+}
+
+/* ==========================================================================
+   ESTILOS PARA O MODAL DE DETALHES DO PEDIDO
+   ========================================================================== */
+
+#order-details-modal .modal-content h3 {
+    text-align: center;
+    color: var(--dark-gray);
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.order-summary-section {
+    margin-bottom: var(--space-lg);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.order-summary-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.order-summary-section h4 {
+    font-size: var(--font-size-md);
+    font-weight: 700;
+    color: var(--primary-red);
+    margin-top: 0;
+    margin-bottom: var(--space-md);
+}
+
+.order-summary-section p {
+    font-size: var(--font-size-sm);
+    color: var(--medium-gray);
+    line-height: 1.6;
+    margin: 0 0 var(--space-xs) 0;
+}
+
+.order-items-list-summary {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: var(--font-size-sm);
+}
+.order-items-list-summary li {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-xs) 0;
+}
+.order-items-list-summary li.item-notes-summary {
+    justify-content: flex-start;
+    color: var(--medium-gray);
+    font-style: italic;
+    font-size: 0.9em;
+    padding-left: 10px;
+}
+
+.order-totals-summary > div {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-sm);
+    padding: var(--space-xs) 0;
+}
+.order-totals-summary .grand-total-summary {
+    font-size: var(--font-size-md);
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--border-color);
+}
+
+/* Estilo para o novo botão 'Ver Pedido' */
+.btn-view-order {
+    background-color: var(--light-gray);
+    color: var(--dark-gray);
+    border: 1px solid var(--border-color);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: 8px;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   ESTILOS PARA A SEÇÃO DE HORÁRIO DE FUNCIONAMENTO
+   ========================================================================== */
+
+.operating-hours { 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--dark-gray); /* Cor mais escura para melhor leitura */
+    font-weight: 500; 
+    font-size: var(--font-size-sm); /* Mesmo tamanho das outras infos */
+    cursor: pointer;
+    margin-top: var(--space-md); /* Espaçamento do topo */
+    padding: var(--space-md) 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.operating-hours span i {
+    margin-right: var(--space-sm);
+    color: var(--primary-red);
+}
+
+.operating-hours .fa-chevron-down {
+    transition: transform 0.3s ease-out; 
+}
+
+.operating-hours.expanded .fa-chevron-down {
+    transform: rotate(180deg); 
+}
+
+.operating-hours-details {
+    background-color: var(--light-gray); 
+    padding: 0 var(--space-md);
+    border-radius: 8px;
+    margin-top: var(--space-sm); 
+    font-size: var(--font-size-sm); 
+    color: var(--dark-gray);
+    max-height: 0; /* Começa escondido */
+    overflow: hidden; 
+    transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+}
+
+.operating-hours-details.show {
+    max-height: 300px; /* Altura suficiente para mostrar todos os dias */
+    padding: var(--space-md); 
+}
+
+.operating-hours-details ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.operating-hours-details ul li {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-sm) 0; 
+    border-bottom: 1px solid var(--border-color);
+}
+
+.operating-hours-details ul li:last-child {
+    border-bottom: none; 
+}
+
+.operating-hours-details ul li .day {
+    font-weight: 500; 
+}
+
+/* Ajuste para o modal de notificação centralizado */
+#notification-prompt-modal {
+    align-items: center; /* Alinha verticalmente */
+}
+
+#notification-prompt-modal .modal-content {
+    animation: scaleUpModal 0.4s ease-out; /* Usa a animação de "zoom" */
+}
+
+/* Estilos para o Ícone de Favorito */
+.menu-item {
+    position: relative; /* Necessário para posicionar o ícone */
+}
+
+.favorite-icon-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.favorite-icon {
+    font-size: 18px;
+    color: #ccc; /* Cor do coração vazio */
+    transition: color 0.2s, transform 0.2s;
+}
+
+.favorite-icon.fas {
+    color: var(--primary-red); /* Cor do coração preenchido (favoritado) */
+    transform: scale(1.1);
+}

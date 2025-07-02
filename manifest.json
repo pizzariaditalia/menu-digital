@@ -1,0 +1,22 @@
+{
+  "name": "D'Italia Pizzaria",
+  "short_name": "D'Italia Pizzaria",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f7f7f7",
+  "theme_color": "#ea1d2c",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "img/icons/icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "img/icons/icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "gcm_sender_id": "103953800507"
+}
