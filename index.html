@@ -9,10 +9,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ea1d2c" />
-<!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
 <script>
   eruda.init();
-</script> -->
+</script>
 </head>
 <body>
 
@@ -73,9 +73,9 @@ Cupom aplicado com sucesso!
 <i class="fas fa-dollar-sign" style="color: red"></i> Pedido Mínimo <span id="min-order-value"></span>
 <i class="fas fa-bicycle" style="color: red; margin-left: 16px;"></i> 30-60 min
 </p>
-  <div class="operating-hours">
-    <span><i class="fas fa-clock"></i> Horário de Funcionamento</span>
-    <i class="fas fa-chevron-down"></i>
+<div class="operating-hours">
+<span><i class="fas fa-clock"></i> Horário de Funcionamento</span>
+<i class="fas fa-chevron-down"></i>
 </div>
 <div class="operating-hours-details">
 </div>
@@ -453,66 +453,66 @@ Gire uma vez por semana e ganhe prêmios!
 </div>
 </div>
 
-  <div id="google-reviews-modal" class="modal">
-    <div class="modal-content" style="max-width: 500px; max-height: 80vh; background-color: transparent; box-shadow: none;">
-        <button class="close-button" style="color: white; text-shadow: 0 1px 3px black;">&times;</button>
-        <div class="modal-body" style="padding: 0; overflow-y: auto;">
+<div id="google-reviews-modal" class="modal">
+<div class="modal-content" style="max-width: 500px; max-height: 80vh; background-color: transparent; box-shadow: none;">
+<button class="close-button" style="color: white; text-shadow: 0 1px 3px black;">&times;</button>
+<div class="modal-body" style="padding: 0; overflow-y: auto;">
 
-            <script src="https://static.elfsight.com/platform/platform.js" async></script>
-            <div class="elfsight-app-c222126b-c790-427a-849e-a2b0c304faea" data-elfsight-app-lazy></div>
+<script src="https://static.elfsight.com/platform/platform.js" async></script>
+<div class="elfsight-app-c222126b-c790-427a-849e-a2b0c304faea" data-elfsight-app-lazy></div>
 
-        </div>
-    </div>
+</div>
+</div>
 </div>
 
 <div id="calzone-notes-modal" class="modal">
-    <div class="modal-content" style="max-width: 450px;">
-        <button class="close-button">&times;</button>
-        <div class="modal-body" style="padding: 25px;">
-            <h3 id="calzone-modal-name" style="margin-top: 0;">Nome do Calzone</h3>
-            <p style="font-size: 0.9em; color: var(--medium-gray); margin-top: -10px; margin-bottom: 20px;">
-                Deseja adicionar alguma observação?
-            </p>
-            <div class="form-group">
-                <textarea id="calzone-notes" class="form-control" rows="4" placeholder="Ex: Sem azeitona, bem passado, etc."></textarea>
-            </div>
-            <div class="form-actions" style="margin-top: 20px;">
-                <button id="add-calzone-to-cart-btn" class="add-to-cart-button-modal" style="width: 100%;">Adicionar ao Carrinho</button>
-            </div>
-        </div>
-    </div>
+<div class="modal-content" style="max-width: 450px;">
+<button class="close-button">&times;</button>
+<div class="modal-body" style="padding: 25px;">
+<h3 id="calzone-modal-name" style="margin-top: 0;">Nome do Calzone</h3>
+<p style="font-size: 0.9em; color: var(--medium-gray); margin-top: -10px; margin-bottom: 20px;">
+Deseja adicionar alguma observação?
+</p>
+<div class="form-group">
+<textarea id="calzone-notes" class="form-control" rows="4" placeholder="Ex: Sem azeitona, bem passado, etc."></textarea>
+</div>
+<div class="form-actions" style="margin-top: 20px;">
+<button id="add-calzone-to-cart-btn" class="add-to-cart-button-modal" style="width: 100%;">Adicionar ao Carrinho</button>
+</div>
+</div>
+</div>
 </div>
 
 <div id="order-details-modal" class="modal">
-    <div class="modal-content">
-        
-        <button class="close-button">&times;</button>
-        
-        <h3>Detalhes do Pedido</h3>
-        <div class="modal-scrollable-content" style="padding: 20px;">
-            <div id="order-details-content">
-                ...
-            </div>
-        </div>
-    </div>
+<div class="modal-content">
+
+<button class="close-button">&times;</button>
+
+<h3>Detalhes do Pedido</h3>
+<div class="modal-scrollable-content" style="padding: 20px;">
+<div id="order-details-content">
+...
+</div>
+</div>
+</div>
 </div>
 
 <div id="notification-prompt-modal" class="modal">
-    <div class="modal-content" style="max-width: 420px; border-radius: 16px;">
-        <div class="modal-body" style="padding: 30px; text-align: center;">
-            <i class="fas fa-bell" style="font-size: 2.5em; color: var(--primary-red); margin-bottom: 15px;"></i>
-            <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 1.4em;">Fique por Dentro!</h3>
-            <p style="color: var(--medium-gray); line-height: 1.6;">
-                Ative as notificações para receber cupons exclusivos, saber o status do seu pedido em tempo real e não perder nenhuma promoção!
-            </p>
-            <div class="form-actions" style="margin-top: 25px; flex-direction: column; gap: 10px;">
-                <button id="prompt-activate-notifications-btn" class="btn btn-primary" style="width: 100%; padding: 12px;">Sim, quero ativar!</button>
-                <button id="prompt-decline-notifications-btn" class="btn btn-secondary-outline" style="width: 100%; padding: 12px; border: none;">Agora não</button>
-            </div>
-        </div>
-    </div>
-</div>  
-  
+<div class="modal-content" style="max-width: 420px; border-radius: 16px;">
+<div class="modal-body" style="padding: 30px; text-align: center;">
+<i class="fas fa-bell" style="font-size: 2.5em; color: var(--primary-red); margin-bottom: 15px;"></i>
+<h3 style="margin-top: 0; margin-bottom: 10px; font-size: 1.4em;">Fique por Dentro!</h3>
+<p style="color: var(--medium-gray); line-height: 1.6;">
+Ative as notificações para receber cupons exclusivos, saber o status do seu pedido em tempo real e não perder nenhuma promoção!
+</p>
+<div class="form-actions" style="margin-top: 25px; flex-direction: column; gap: 10px;">
+<button id="prompt-activate-notifications-btn" class="btn btn-primary" style="width: 100%; padding: 12px;">Sim, quero ativar!</button>
+<button id="prompt-decline-notifications-btn" class="btn btn-secondary-outline" style="width: 100%; padding: 12px; border: none;">Agora não</button>
+</div>
+</div>
+</div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
 <script src="./libs/Winwheel.min.js"></script>
 
@@ -520,8 +520,8 @@ Gire uma vez por semana e ganhe prêmios!
     // Importando módulos do App, Firestore e Autenticação
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     
-    // GARANTIMOS QUE 'increment' E 'arrayUnion' ESTÃO AQUI
-    import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    // CORREÇÃO: Adicionamos 'arrayRemove' à lista de imports
+    import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     
     import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
@@ -547,8 +547,8 @@ Gire uma vez por semana e ganhe prêmios!
     window.firebaseApp = app;
     window.db = db;
     
-    // E GARANTIMOS QUE 'increment' E 'arrayUnion' ESTÃO AQUI TAMBÉM
-    window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, increment };
+    // CORREÇÃO: Adicionamos 'arrayRemove' ao objeto global também
+    window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, arrayRemove, increment };
     
     window.firebaseAuth = { getAuth, GoogleAuthProvider, signInWithPopup }; 
     window.firebaseMessaging = { getMessaging, getToken, onMessage, messagingInstance: messaging };
