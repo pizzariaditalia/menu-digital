@@ -1,6 +1,8 @@
 // cart.js - VERSÃO FINAL COMPLETA COM LÓGICA DE CUPOM REATORADA
 
 document.addEventListener('DOMContentLoaded', () => {
+  alert("DEBUG: cart.js INICIOU");
+
   let cart = [];
   let appliedLoyaltyDiscount = null;
   let appliedCoupon = null;
