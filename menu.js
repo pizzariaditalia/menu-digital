@@ -1,5 +1,5 @@
 // menu.js - VERSÃO COMPLETA COM FAVORITOS E OUTRAS FUNCIONALIDADES
-alert("DEBUG: menu.js INICIOU");
+
 // --- CONSTANTES DE COLEÇÕES DO FIRESTORE ---
 const FIRESTORE_MENU_COLLECTION_SITE = "menus";
 const FIRESTORE_MENU_DOC_ID_SITE = "principal";
@@ -573,6 +573,7 @@ function initializeSiteLogic() {
 // BLOCO DE INICIALIZAÇÃO SINCRONIZADO
 // ======================================================================
 document.addEventListener('DOMContentLoaded', () => {
+  alert("DEBUG: menu.js INICIOU");
   const splashScreen = document.getElementById('splash-screen');
   const typingAnimationPromise = startTypingAnimation();
   const dataLoadingPromise = loadDataFromFirestore();
