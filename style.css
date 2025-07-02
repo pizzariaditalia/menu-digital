@@ -444,13 +444,17 @@ body {
     font-size: 1.5rem;
     font-weight: 300;
     color: var(--primary-red);
-    margin-left: auto;
-    margin-top: 0;
-    align-self: center;
+    cursor: pointer;
+
+    /* ALTERAÇÕES ABAIXO */
+    position: absolute; /* Posiçãobcomo o coração */
+    bottom: 10px;       /* Alinha na parte de baixo */
+    right: 10px;        /* Alinha na direita */
+    z-index: 2;         /* Garante que fique visível */
+
     display: flex;
     justify-content: center;
     align-items: center;
-    cursor: pointer;
 }
 
 .add-to-cart-button:hover {
@@ -2150,4 +2154,35 @@ body {
 
 #notification-prompt-modal .modal-content {
     animation: scaleUpModal 0.4s ease-out; /* Usa a animação de "zoom" */
+}
+
+/* Estilos para o Ícone de Favorito */
+.menu-item {
+    position: relative; /* Necessário para posicionar o ícone */
+}
+
+.favorite-icon-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    background-color: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.favorite-icon {
+    font-size: 18px;
+    color: #ccc; /* Cor do coração vazio */
+    transition: color 0.2s, transform 0.2s;
+}
+
+.favorite-icon.fas {
+    color: var(--primary-red); /* Cor do coração preenchido (favoritado) */
+    transform: scale(1.1);
 }
