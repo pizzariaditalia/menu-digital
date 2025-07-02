@@ -30,6 +30,7 @@ window.getApplicableDiscount = (customerPoints) => {
 // =========================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+  alert("DEBUG: loyalty.js INICIOU");
 
     // --- Seletores de Elementos do DOM ---
     const loyaltyButton = document.getElementById('loyalty-button');
