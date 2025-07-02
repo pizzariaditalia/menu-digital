@@ -167,6 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (typeof window.checkSpinEligibility === 'function') {
            window.checkSpinEligibility();
         }
+        
+        if (typeof window.updateFavoriteIcons === 'function') {
+           window.updateFavoriteIcons();
+        }
     }
 
     function showWelcomePointsPopup(points) {
