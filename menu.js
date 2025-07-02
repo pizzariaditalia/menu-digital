@@ -1,4 +1,4 @@
-// menu.js - VERSÃO COMPLETA E ATUALIZADA
+// menu.js - VERSÃO COMPLETA COM FAVORITOS E OUTRAS FUNCIONALIDADES
 
 // --- CONSTANTES DE COLEÇÕES DO FIRESTORE ---
 const FIRESTORE_MENU_COLLECTION_SITE = "menus";
@@ -152,8 +152,9 @@ async function loadDataFromFirestore() {
 }
 
 // ======================================================================
-// FUNÇÕES DE GERAÇÃO DE INTERFACE
+// FUNÇÕES DE GERAÇÃO DE INTERFACE E NOVAS FUNCIONALIDADES
 // ======================================================================
+
 function generateCategoryUI() {
   const tabsContainer = document.querySelector('.tabs');
   const contentContainer = document.querySelector('.menu-content-inner');
@@ -199,9 +200,7 @@ function generateCategoryUI() {
 
 function renderDynamicCarousel() {
   const carouselContainer = document.getElementById('video-carousel-container');
-  if (!carouselContainer || !window.carouselVideos || window.carouselVideos.length === 0) {
-    return;
-  }
+  if (!carouselContainer || !window.carouselVideos || window.carouselVideos.length === 0) return;
   const slidesContainer = carouselContainer.querySelector('.carousel-slides');
   if (!slidesContainer) return;
   slidesContainer.innerHTML = '';
@@ -230,65 +229,55 @@ function findItemAcrossCategories(itemId) {
 }
 
 function createPromoCardHTML(promo) {
-  const formatPrice = (price) => price && typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : String(price);
-  const imagePath = (promo.image || 'img/placeholder.png').replace('../', '');
-  const discountPercentage = Math.round(((promo.originalPrice - promo.newPrice) / promo.originalPrice) * 100);
-  return `
-  <div class="promo-card-horizontal" data-item-id="${promo.itemId}">
-    ${discountPercentage > 0 ? `<div class="promo-discount-tag">-${discountPercentage}%</div>`: ''}
-    <img src="${imagePath}" alt="${promo.name}" class="promo-card-image" onerror="this.onerror=null;this.src='img/placeholder.png';">
-    <div class="promo-card-details">
-      <h4>${promo.name}</h4>
-      <p class="promo-card-description">${promo.description || ''}</p>
-      <div class="promo-card-pricing">
-        <span class="promo-price">${formatPrice(promo.newPrice)}</span>
-        <span class="original-price-text">${formatPrice(promo.originalPrice)}</span>
-      </div>
-    </div>
-  </div>`;
+    const formatPrice = (price) => price && typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : String(price);
+    const imagePath = (promo.image || 'img/placeholder.png').replace('../', '');
+    const discountPercentage = Math.round(((promo.originalPrice - promo.newPrice) / promo.originalPrice) * 100);
+    return `
+    <div class="promo-card-horizontal" data-item-id="${promo.itemId}">
+        ${discountPercentage > 0 ? `<div class="promo-discount-tag">-${discountPercentage}%</div>`: ''}
+        <img src="${imagePath}" alt="${promo.name}" class="promo-card-image" onerror="this.onerror=null;this.src='img/placeholder.png';">
+        <div class="promo-card-details">
+        <h4>${promo.name}</h4>
+        <p class="promo-card-description">${promo.description || ''}</p>
+        <div class="promo-card-pricing">
+            <span class="promo-price">${formatPrice(promo.newPrice)}</span>
+            <span class="original-price-text">${formatPrice(promo.originalPrice)}</span>
+        </div>
+        </div>
+    </div>`;
 }
 
 function renderPromotions() {
-  const promoSection = document.getElementById('horizontal-promos-section');
-  const promoListDiv = document.getElementById('horizontal-promos-list');
-  if (!promoSection || !promoListDiv) return;
-
-  const visiblePromotions = window.promoData.filter(p => p.active !== false && findItemAcrossCategories(p.itemId)?.isVisible !== false);
-
-  if (visiblePromotions && visiblePromotions.length > 0) {
-    promoListDiv.innerHTML = visiblePromotions.map(p => createPromoCardHTML(p)).join('');
-    promoSection.style.display = 'block';
-    promoListDiv.querySelectorAll('.promo-card-horizontal').forEach(card => {
-      card.addEventListener('click', () => {
-        const promotion = visiblePromotions.find(p => p.itemId === card.dataset.itemId);
-        const originalItem = findItemAcrossCategories(card.dataset.itemId);
-        if (originalItem && promotion && window.openProductModal) {
-          window.openProductModal({ ...originalItem, price: promotion.newPrice, originalPrice: promotion.originalPrice, isPromotion: true });
-        }
-      });
-    });
-  } else {
-    promoSection.style.display = 'none';
-  }
+    const promoSection = document.getElementById('horizontal-promos-section');
+    const promoListDiv = document.getElementById('horizontal-promos-list');
+    if (!promoSection || !promoListDiv) return;
+    const visiblePromotions = window.promoData.filter(p => p.active !== false && findItemAcrossCategories(p.itemId)?.isVisible !== false);
+    if (visiblePromotions && visiblePromotions.length > 0) {
+        promoListDiv.innerHTML = visiblePromotions.map(p => createPromoCardHTML(p)).join('');
+        promoSection.style.display = 'block';
+        promoListDiv.querySelectorAll('.promo-card-horizontal').forEach(card => {
+            card.addEventListener('click', () => {
+                const promotion = visiblePromotions.find(p => p.itemId === card.dataset.itemId);
+                const originalItem = findItemAcrossCategories(card.dataset.itemId);
+                if (originalItem && promotion && window.openProductModal) {
+                    window.openProductModal({ ...originalItem, price: promotion.newPrice, originalPrice: promotion.originalPrice, isPromotion: true });
+                }
+            });
+        });
+    } else {
+        promoSection.style.display = 'none';
+    }
 }
 
-// ======================================================================
-// NOVAS FUNÇÕES ADICIONADAS
-// ======================================================================
-
-// Função para configurar o toggle do horário de funcionamento
 function setupOperatingHoursToggle() {
     const toggleButton = document.querySelector('.operating-hours');
     const detailsContainer = document.querySelector('.operating-hours-details');
-
     if (!toggleButton || !detailsContainer || !window.appSettings || !window.appSettings.operatingHours) {
         console.warn("Não foi possível inicializar a seção de horários de funcionamento.");
         return;
     }
-
     const hours = window.appSettings.operatingHours;
     const daysOrder = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
-    
     let hoursHtml = '<ul>';
     daysOrder.forEach(day => {
         if (hours[day]) {
@@ -297,50 +286,98 @@ function setupOperatingHoursToggle() {
     });
     hoursHtml += '</ul>';
     detailsContainer.innerHTML = hoursHtml;
-
     toggleButton.addEventListener('click', () => {
         toggleButton.classList.toggle('expanded');
         detailsContainer.classList.toggle('show');
     });
 }
 
-// Função para controlar o pop-up de ativação de notificações
 function initializeNotificationPrompt() {
     const promptModal = document.getElementById('notification-prompt-modal');
     if (!promptModal) return;
-
-    // Condição atualizada: só mostra se a permissão for 'default' (usuário ainda não decidiu)
     const permissionStatus = Notification.permission;
     const hasBeenShown = sessionStorage.getItem('notificationPromptShown');
-
     if ('Notification' in window && permissionStatus === 'default' && !hasBeenShown) {
-        // Mostra o pop-up após 5 segundos
         setTimeout(() => {
             promptModal.classList.add('show');
-            sessionStorage.setItem('notificationPromptShown', 'true'); // Marca como mostrado nesta sessão
+            sessionStorage.setItem('notificationPromptShown', 'true');
         }, 5000);
     }
-
     const activateBtn = document.getElementById('prompt-activate-notifications-btn');
     const declineBtn = document.getElementById('prompt-decline-notifications-btn');
-    
     const closeModal = () => promptModal.classList.remove('show');
-
     if (activateBtn) {
         activateBtn.addEventListener('click', () => {
-            // Reutiliza a função principal que já temos para pedir a permissão
-            if(typeof requestNotificationPermission === 'function') {
+            if (typeof requestNotificationPermission === 'function') {
                 requestNotificationPermission();
             }
             closeModal();
         });
     }
-
     if (declineBtn) {
         declineBtn.addEventListener('click', closeModal);
     }
 }
 
+// --- LÓGICA DE FAVORITAR ITENS ---
+async function handleFavoriteClick(event) {
+    event.stopPropagation();
+    const icon = event.currentTarget;
+    const itemId = icon.dataset.itemId;
+
+    if (!window.currentCustomerDetails) {
+        alert("Você precisa fazer login para favoritar itens!");
+        return;
+    }
+
+    const customerId = window.currentCustomerDetails.id;
+    const { doc, updateDoc, arrayUnion, arrayRemove } = window.firebaseFirestore;
+    const customerRef = doc(window.db, "customer", customerId);
+
+    const isFavorited = icon.classList.contains('fas');
+
+    try {
+        if (isFavorited) {
+            await updateDoc(customerRef, { favoriteItems: arrayRemove(itemId) });
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+            window.currentCustomerDetails.favoriteItems = window.currentCustomerDetails.favoriteItems.filter(id => id !== itemId);
+        } else {
+            await updateDoc(customerRef, { favoriteItems: arrayUnion(itemId) });
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            if (!window.currentCustomerDetails.favoriteItems) {
+                window.currentCustomerDetails.favoriteItems = [];
+            }
+            window.currentCustomerDetails.favoriteItems.push(itemId);
+        }
+    } catch (error) {
+        console.error("Erro ao atualizar favoritos:", error);
+        alert("Ocorreu um erro ao salvar seu favorito. Tente novamente.");
+    }
+}
+
+function updateFavoriteIcons() {
+    if (!window.currentCustomerDetails || !window.currentCustomerDetails.favoriteItems) {
+        document.querySelectorAll('.favorite-icon').forEach(icon => {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+        });
+        return;
+    }
+    const favoriteIds = new Set(window.currentCustomerDetails.favoriteItems);
+    document.querySelectorAll('.favorite-icon').forEach(icon => {
+        const itemId = icon.dataset.itemId;
+        if (favoriteIds.has(itemId)) {
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+        } else {
+            icon.classList.remove('fas');
+            icon.classList.add('far');
+        }
+    });
+}
+window.updateFavoriteIcons = updateFavoriteIcons;
 
 // ======================================================================
 // FUNÇÃO DE LÓGICA PRINCIPAL DO SITE
@@ -375,7 +412,19 @@ function initializeSiteLogic() {
     let priceSectionHTML = item.originalPrice ? `<p class="item-description">De: <span class="original-price-text">${formatPrice(item.originalPrice)}</span></p><p class="promo-price">${formatPrice(item.price)}</p>` : `<p class="item-price">${formatPrice(item.price)}</p>`;
     let descriptionHTML = item.description ? `<p class="item-description">${item.description}</p>` : '';
     const imagePath = (item.image || 'img/placeholder.png').replace('../', '');
-    return `<div class="menu-item" data-item-id="${item.id}" data-category="${item.category || ''}"><img src="${imagePath}" alt="${item.name}" class="item-image" onerror="this.onerror=null;this.src='img/placeholder.png';"><div class="item-details"><h4>${item.name}</h4>${descriptionHTML}${priceSectionHTML}</div><button class="add-to-cart-button" data-item-id="${item.id}" data-category="${item.category || ''}">+</button></div>`;
+    return `
+    <div class="menu-item" data-item-id="${item.id}" data-category="${item.category || ''}">
+        <div class="favorite-icon-container">
+            <i class="far fa-heart favorite-icon" data-item-id="${item.id}"></i>
+        </div>
+        <img src="${imagePath}" alt="${item.name}" class="item-image" onerror="this.onerror=null;this.src='img/placeholder.png';">
+        <div class="item-details">
+            <h4>${item.name}</h4>
+            ${descriptionHTML}
+            ${priceSectionHTML}
+        </div>
+        <button class="add-to-cart-button" data-item-id="${item.id}" data-category="${item.category || ''}">+</button>
+    </div>`;
   }
 
   function renderCategory(categoryName) {
@@ -390,6 +439,8 @@ function initializeSiteLogic() {
       contentDiv.innerHTML = '<p style="text-align:center; color: #777; padding: 20px;">Nenhum item nesta categoria.</p>';
     }
     attachAddToCartButtonListeners();
+    document.querySelectorAll('.favorite-icon').forEach(icon => icon.addEventListener('click', handleFavoriteClick));
+    updateFavoriteIcons();
     if (typeof initializeSearch === 'function') {
         initializeSearch();
     }
