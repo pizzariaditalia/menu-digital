@@ -1277,12 +1277,23 @@ tr.sent::after {
 }
 
 
+.sales-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto; /* Define 4 colunas */
+    gap: 16px; /* Espaço entre as colunas */
+    align-items: center; /* Alinha tudo verticalmente */
+}
+
+.sales-card .info-status {
+    justify-self: end; /* Alinha o status à direita da sua coluna */
+}
+
+.sales-card .info-value {
+    justify-self: end; /* Alinha o valor à direita da sua coluna */
+}
+
 .sales-card .info-actions {
-    grid-area: value; /* Coloca na mesma área do valor */
-    justify-self: end; /* Alinha à direita */
-    align-self: start; /* Alinha no topo da célula */
-    position: relative; /* Para posicionar o botão corretamente */
-    top: -8px; /* Ajuste fino para subir um pouco */
+    justify-self: end; /* Alinha a lixeira à direita da sua coluna */
 }
 
 .sales-card .delete-order-btn {
@@ -1290,7 +1301,7 @@ tr.sent::after {
     border: none;
     color: var(--admin-text-light);
     cursor: pointer;
-    font-size: 1em;
+    font-size: 1.1em; /* Ícone um pouco maior */
     padding: 5px;
 }
 
