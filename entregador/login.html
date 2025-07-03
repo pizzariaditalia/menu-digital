@@ -34,11 +34,11 @@
 
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw-entregador.js')
-        .then((reg) => console.log('Service Worker do Entregador registrado!', reg.scope))
-        .catch((err) => console.log('Falha ao registrar Service Worker do Entregador:', err));
-      });
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw-entregador.js')
+                .then((reg) => console.log('Service Worker do Entregador registrado!', reg.scope))
+                .catch((err) => console.log('Falha ao registrar Service Worker:', err));
+        });
     }
   </script>
 
