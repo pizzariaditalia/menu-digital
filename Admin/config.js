@@ -322,11 +322,13 @@ function initializeSettingsSection() {
         window.showToast("Por favor, preencha todos os campos do entregador.", "warning");
         return;
       }
-      const data = {
-        firstName: deliveryPersonFirstNameInput.value.trim(),
-        lastName: deliveryPersonLastNameInput.value.trim(),
-        whatsapp: whatsapp
-      };
+
+const data = {
+  firstName: deliveryPersonFirstNameInput.value.trim(),
+  lastName: deliveryPersonLastNameInput.value.trim(),
+  whatsapp: whatsapp,
+  email: document.getElementById('delivery-person-email').value.trim()
+};
       if (await saveDeliveryPerson(id, data)) {
         cancelEditDeliveryPersonBtn.click();
         await main();
