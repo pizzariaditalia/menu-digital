@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D'Italia Entregador</title>
+  <link rel="stylesheet" href="style-entregador.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+  <link rel="manifest" href="manifest-entregador.json">
+  <meta name="theme-color" content="#333333">
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>
+    eruda.init();
+  </script>
+</head>
+<body class="app-view">
+
+  <header class="app-header">
+    <div class="header-content">
+      <div class="driver-info">
+        <i class="fas fa-motorcycle"></i>
+        <span id="driver-name">Carregando...</span>
+      </div>
+      <div class="header-actions">
+        <button id="history-btn" class="header-icon-btn" title="Ver Histórico do Dia">
+          <i class="fas fa-history"></i>
+        </button>
+        <button id="logout-btn" class="header-icon-btn" title="Sair">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div id="current-deliveries-section">
+      <h3>Entregas Atuais</h3>
+      <div id="delivery-queue-list">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>
+            Aguardando novas entregas...
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div id="history-section" class="hidden">
+      <h3>Histórico de Hoje</h3>
+      <div id="history-summary" class="history-summary-card">
+        <div class="summary-item">
+          <span class="label">Total de Taxas a Receber</span>
+          <span class="value" id="total-fees-value">R$ 0,00</span>
+        </div>
+        <div class="summary-item">
+          <span class="label">Entregas Finalizadas</span>
+          <span class="value" id="total-deliveries-count">0</span>
+        </div>
+      </div>
+      <div id="history-list">
+      </div>
+    </div>
+  </main>
+
+  <div id="delivery-details-modal" class="modal-view">
+    <div class="modal-content">
+      <header class="modal-header">
+        <h3>Detalhes da Entrega</h3>
+        <button class="close-modal-btn">×</button>
+      </header>
+      <main class="modal-body">
+        <p>
+          Carregando detalhes...
+        </p>
+      </main>
+      <footer class="modal-footer">
+        <button id="btn-delivery-action" class="btn btn-primary">
+          <i class="fas fa-motorcycle"></i> Peguei o Pedido
+        </button>
+        <button id="btn-complete-delivery" class="btn btn-success">
+          <i class="fas fa-check-circle"></i> Entrega Finalizada
+        </button>
+      </footer>
+    </div>
+  </div>
+  <script type="module">
+    import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      onSnapshot,
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
+      authDomain: "app-ditalia.firebaseapp.com",
+      projectId: "app-ditalia",
+      storageBucket: "app-ditalia.firebasestorage.app",
+      messagingSenderId: "122567535166",
+      appId: "1:122567535166:web:19de7b8925042027063f6f",
+      measurementId: "G-5QW3MVGYME"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    // Disponibiliza globalmente para o app-entregador.js
+    window.db = db;
+    window.auth = auth;
+    window.firebaseAuth = {
+      onAuthStateChanged,
+      signOut
+    };
+    window.firebaseFirestore = {
+      collection,
+      query,
+      where,
+      onSnapshot,
+      doc,
+      getDoc
+    };
+  </script>
+  <script type="module" src="app-entregador.js"></script>
+  
+  <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw-entregador.js')
+                .then((reg) => console.log('Service Worker do Entregador registrado!', reg.scope))
+                .catch((err) => console.log('Falha ao registrar Service Worker do Entregador:', err));
+        });
+    }
+</script>
+
+</body>
+</html>

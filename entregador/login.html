@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D'Italia Entregador - Login</title>
+  <link rel="stylesheet" href="style-entregador.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+  <link rel="manifest" href="manifest-entregador.json">
+  <meta name="theme-color" content="#d32f2f">
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>
+    eruda.init();
+  </script>
+</head>
+<body>
+
+  <div class="login-container">
+    <img src="../img/logos/logo-entregador.png" class="logo">
+    <h1>D'Italia Entregador</h1>
+    <p class="subtitle">
+      Use sua conta Google para acessar as entregas.
+    </p>
+
+    <button id="google-login-button" class="btn btn-google">
+      <i class="fab fa-google"></i>
+      Entrar com Google
+    </button>
+
+    <p id="error-message" class="error-message"></p>
+  </div>
+
+  <script type="module" src="auth-entregador.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw-entregador.js')
+        .then((reg) => console.log('Service Worker do Entregador registrado!', reg.scope))
+        .catch((err) => console.log('Falha ao registrar Service Worker do Entregador:', err));
+      });
+    }
+  </script>
+
+</body>
+</html>

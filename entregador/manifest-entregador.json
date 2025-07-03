@@ -1,0 +1,21 @@
+{
+  "name": "D'Italia Entregador",
+  "short_name": "D'Italia Entregador",
+  "start_url": "login.html",
+  "display": "standalone",
+  "background_color": "#333333",
+  "theme_color": "#333333",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "../img/icons/icon-entregador.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "../img/icons/icon-entregador.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
