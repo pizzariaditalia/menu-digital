@@ -2,6 +2,7 @@
 
 let salesSectionInitialized = false;
 
+// FUNÇÃO PARA DELETAR O PEDIDO
 async function deleteOrder(orderId) {
     if (!confirm(`Tem certeza que deseja excluir o pedido #${orderId.substring(0, 6)} permanentemente? Esta ação não pode ser desfeita.`)) {
         return false;
@@ -19,10 +20,8 @@ async function deleteOrder(orderId) {
     }
 }
 
-
 async function initializeVendasSection() {
     if (salesSectionInitialized) {
-        // Se já foi inicializado, apenas força uma nova busca com as datas atuais.
         document.getElementById('filter-sales-btn')?.click();
         return;
     }
@@ -77,11 +76,12 @@ async function initializeVendasSection() {
 
             const [ordersSnapshot, analyticsSnapshot] = await Promise.all([
                 getDocs(ordersQuery),
-                getDocs(analyticsSnapshot)
+                getDocs(analyticsQuery)
             ]);
             
             const allFetchedOrders = ordersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            const salesData = allFetchedOrders.filter(order => order.status !== 'Cancelado');
+            let salesData = allFetchedOrders.filter(order => order.status !== 'Cancelado');
+            
             const totalValue = salesData.reduce((sum, order) => sum + (order.totals?.grandTotal || 0), 0);
             const totalCount = salesData.length;
             const totalDeliveryFees = salesData.reduce((sum, order) => sum + (order.totals?.deliveryFee || 0), 0);
@@ -134,7 +134,7 @@ async function initializeVendasSection() {
             }
 
             if (totalCount === 0) {
-                salesListContainer.innerHTML = '<p class="empty-list-message">Nenhum pedido encontrado para o período selecionado.</p>';
+                salesListContainer.innerHTML = '<p class="empty-list-message">Nenhum pedido (não cancelado) encontrado para o período selecionado.</p>';
             } else {
                 const cardsHTML = salesData.map(order => {
                     const orderDate = order.createdAt.toDate();
@@ -195,8 +195,9 @@ async function initializeVendasSection() {
     }
 
     const today = new Date();
-    startDateInput.valueAsDate = today;
-    endDateInput.valueAsDate = today;
+    if(startDateInput) startDateInput.valueAsDate = today;
+    if(endDateInput) endDateInput.valueAsDate = today;
+    
     fetchAndRenderSales(today, today);
 }
 window.initializeVendasSection = initializeVendasSection;
