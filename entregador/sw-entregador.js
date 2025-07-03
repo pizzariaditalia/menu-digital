@@ -1,6 +1,6 @@
 // sw-entregador.js
 
-const CACHE_NAME = 'ditalia-entregador-cache-v10';
+const CACHE_NAME = 'ditalia-entregador-cache-11';
 const URLS_TO_CACHE = [
   './',
   './login.html',
