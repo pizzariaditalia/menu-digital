@@ -1,10 +1,10 @@
-// pedidos.js - VERSÃO COMPLETA E ATUALIZADA PARA LOGIN GOOGLE DO ENTREGADOR
+// pedidos.js - VERSÃO COM ATRIBUIÇÃO INDEPENDENTE DE STATUS
 
 // --- Variáveis de estado do módulo ---
 let ordersSectionInitialized = false;
 let unsubscribeFromOrders = null;
 let allOrders = [];
-let allDeliveryPeople = []; // Armazenará os entregadores com seus UIDs
+let allDeliveryPeople = [];
 let activeTypeFilter = 'todos';
 
 // --- Funções de Dados (Firestore) ---
@@ -17,8 +17,8 @@ async function fetchDeliveryPeople() {
         const querySnapshot = await getDocs(q);
         // Mapeia os dados completos, incluindo o ID do documento e o googleUid
         allDeliveryPeople = querySnapshot.docs.map(doc => ({
-          docId: doc.id, // ID do documento (WhatsApp)
-          ...doc.data()  // Todos os campos (firstName, lastName, email, googleUid)
+          docId: doc.id,
+          ...doc.data()
         }));
         window.allDeliveryPeople = allDeliveryPeople;
     } catch (error) {
@@ -27,25 +27,29 @@ async function fetchDeliveryPeople() {
     }
 }
 
-async function updateOrderStatus(orderId, newStatus, assignedTo = null) {
+async function updateOrderStatus(orderId, newStatus) {
     const { doc, updateDoc } = window.firebaseFirestore;
     const orderRef = doc(window.db, "pedidos", orderId);
-    
-    const updateData = {
-        status: newStatus,
-        lastStatusUpdate: new Date()
-    };
-
-    if (assignedTo) {
-        updateData['delivery.assignedTo'] = assignedTo;
-    }
-
     try {
-        await updateDoc(orderRef, updateData);
+        await updateDoc(orderRef, { status: newStatus, lastStatusUpdate: new Date() });
         window.showToast(`Pedido #${orderId.substring(0,6)} atualizado para ${newStatus}!`);
+        // A notificação push para o CLIENTE será disparada pela Cloud Function
     } catch (error) {
         console.error("Erro ao atualizar status do pedido:", error);
         window.showToast("Erro ao atualizar status.", "error");
+    }
+}
+
+async function assignDriverToOrder(orderId, driverData) {
+    const { doc, updateDoc } = window.firebaseFirestore;
+    const orderRef = doc(window.db, "pedidos", orderId);
+    try {
+        // Salva apenas o ID (googleUid) e o nome do entregador no pedido
+        await updateDoc(orderRef, { 'delivery.assignedTo': driverData });
+        window.showToast(`Entregador ${driverData.name} atribuído ao pedido!`);
+    } catch (error) {
+        console.error("Erro ao atribuir entregador:", error);
+        window.showToast("Falha ao atribuir entregador.", "error");
     }
 }
 
@@ -68,11 +72,9 @@ function handleSendWppToDeliveryPerson(order) {
     }
 
     const customerName = `${order.customer.firstName} ${order.customer.lastName}`;
-    const customerWhatsapp = order.customer.whatsapp.replace(/\D/g, '');
-    const customerWhatsappLink = `https://wa.me/55${customerWhatsapp}`;
-    
+    const addressLine = order.delivery.address || `${order.delivery.street || ''}, ${order.delivery.number || ''}`;
+    const customerWhatsappLink = `https://wa.me/55${order.customer.whatsapp.replace(/\D/g, '')}`;
     const itemsList = order.items.map(item => `- ${item.quantity}x ${item.name}`).join('\n');
-    
     const grandTotal = (order.totals?.grandTotal || 0).toFixed(2).replace('.', ',');
     const paymentMethod = order.payment.method || "Não definido";
     
@@ -80,37 +82,18 @@ function handleSendWppToDeliveryPerson(order) {
     if (order.payment?.method === 'Pix') {
       paymentStatus = order.payment.pixPaid ? 'Já foi pago (Pix)' : 'Aguardando Pagamento';
     }
-    
-    const addressLine = order.delivery.address || `${order.delivery.street || ''}, ${order.delivery.number || ''}`;
 
     let message = `*Nova Entrega D'Italia Pizzaria* 🛵\n\n` +
-        `*CLIENTE:*\n` +
-        `${customerName}\n\n` +
-        `*CONTATO:*\n` +
-        `${customerWhatsappLink}\n\n` +
-        `*ENDEREÇO:*\n` +
-        `*RUA:* ${addressLine}\n` +
-        `*BAIRRO:* ${order.delivery.neighborhood || ''}\n`;
-
+        `*CLIENTE:*\n${customerName}\n\n*CONTATO:*\n${customerWhatsappLink}\n\n` +
+        `*ENDEREÇO:*\n*RUA:* ${addressLine}\n*BAIRRO:* ${order.delivery.neighborhood || ''}\n`;
     if (order.delivery.complement) message += `*COMPLEMENTO:* ${order.delivery.complement}\n`;
     if (order.delivery.reference) message += `*PONTO DE REFERÊNCIA:* ${order.delivery.reference}\n`;
-
-    message += `\n-----------------------------------\n` +
-        `*PEDIDO:*\n` +
-        `${itemsList}\n\n` +
-        `-----------------------------------\n` +
-        `*PAGAMENTO:*\n` +
-        `Valor a Receber: *R$ ${grandTotal}*\n` +
-        `Forma de Pagamento: *${paymentMethod}*\n` +
-        `Status do Pagamento: *${paymentStatus}*\n`;
-
-    if (paymentMethod === 'Dinheiro') {
-      const changeValue = parseFloat(order.payment.changeFor);
-      if (changeValue > 0) {
-        message += `*Levar troco para:* R$ ${changeValue.toFixed(2).replace('.', ',')}\n`;
-      }
+    message += `\n-----------------------------------\n*PEDIDO:*\n${itemsList}\n\n` +
+        `-----------------------------------\n*PAGAMENTO:*\n` +
+        `Valor a Receber: *R$ ${grandTotal}*\nForma de Pagamento: *${paymentMethod}*\nStatus do Pagamento: *${paymentStatus}*\n`;
+    if (paymentMethod === 'Dinheiro' && order.payment.changeFor > 0) {
+      message += `*Levar troco para:* R$ ${order.payment.changeFor.toFixed(2).replace('.', ',')}\n`;
     }
-
     message += `\nBoa entrega! 🛵💨`;
     
     const deliveryPersonWhatsappUrl = `https://wa.me/55${deliveryPersonWhatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
@@ -119,61 +102,55 @@ function handleSendWppToDeliveryPerson(order) {
 
 function openOrderDetailsModal(order) {
     const orderDetailsModal = document.getElementById('order-details-modal');
-    if (!order || !orderDetailsModal) {
-      console.error("Erro: Pedido ou modal de detalhes não encontrado."); return;
-    }
-    const formatPrice = (price) => (price != null) ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }): "R$ 0,00";
+    if (!order || !orderDetailsModal) return;
+
+    const formatPrice = (price) => (price != null) ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
     const modalBody = orderDetailsModal.querySelector('.modal-body');
     const modalTitle = orderDetailsModal.querySelector('#modal-order-title');
-    const customer = order.customer || {};
-    const delivery = order.delivery || {};
-    const payment = order.payment || {};
-    const totals = order.totals || {};
-    const items = order.items || [];
+
+    const { customer = {}, delivery = {}, payment = {}, totals = {}, items = [] } = order;
+
     modalTitle.innerHTML = `<i class="fas fa-receipt"></i> Pedido #${order.id.substring(0, 6).toUpperCase()}`;
-    let modalBodyHTML = '';
-    modalBodyHTML += `<h4 class="modal-section-title"><i class="fas fa-user"></i> Cliente</h4><div class="detail-grid"><div class="detail-item full-width"><strong>Nome</strong><span>${`${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Não informado'}</span></div><div class="detail-item full-width"><strong>WhatsApp</strong><span>${customer.whatsapp || 'Não informado'}</span></div></div>`;
     
-    const itemsHTML = items.length > 0 ? `<ul>${items.map(item => { let itemName = item.name; if (item.category && item.category.includes('calzones')) { itemName += ' (Calzone)'; } return `<li><span class="item-quantity">${item.quantity}x</span><div class="item-info"><span class="item-name">${itemName}</span>${item.notes ? `<span class="item-notes">Obs: ${item.notes}</span>`: ''}</div><span class="item-price">${formatPrice((item.unitPrice || 0) * item.quantity)}</span></li>`; }).join('')}</ul>`: '<p>Nenhum item encontrado.</p>';
-    
-    modalBodyHTML += `<h4 class="modal-section-title"><i class="fas fa-shopping-basket"></i> Itens do Pedido</h4>${itemsHTML}`;
-    
-    if (order.notes) {
-      modalBodyHTML += `<h4 class="modal-section-title"><i class="fas fa-comment-alt"></i> Observações</h4><div class="detail-item full-width notes-section"><span>${order.notes}</span></div>`;
-    }
-    const streetAndNumber = delivery.address || `${delivery.street || '--'}, ${delivery.number || 'S/N'}`;
-    const addressParts = [`<strong>Endereço:</strong> ${streetAndNumber}`, `<strong>Bairro:</strong> ${delivery.neighborhood || '--'}`, delivery.complement ? `<strong>Complemento:</strong> ${delivery.complement}`: null, delivery.reference ? `<strong>Referência:</strong> ${delivery.reference}`: null].filter(Boolean).join('<br>');
-    modalBodyHTML += `<h4 class="modal-section-title"><i class="fas fa-map-marker-alt"></i> Endereço de Entrega</h4><div class="detail-item full-width"><span>${addressParts || 'Não informado'}</span></div>`;
-    
-    let paymentDetailsHTML = `<div class="detail-item"><strong>Subtotal</strong><span>${formatPrice(totals.subtotal)}</span></div><div class="detail-item"><strong>Taxa de Entrega</strong><span>${formatPrice(totals.deliveryFee)}</span></div>${totals.discount > 0 ? `<div class="detail-item"><strong>Desconto</strong><span class="text-success">- ${formatPrice(totals.discount)}</span></div>`: ''}<div class="detail-item total full-width" style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 5px;"><strong>Total a Pagar</strong><span>${formatPrice(totals.grandTotal)}</span></div><div class="detail-item full-width"><strong>Forma de Pagamento</strong><span>${payment.method || 'Não informada'}</span></div>`;
+    const customerHTML = `<h4 class="modal-section-title"><i class="fas fa-user"></i> Cliente</h4><div class="detail-grid"><div class="detail-item full-width"><strong>Nome</strong><span>${`${customer.firstName || ''} ${customer.lastName || ''}`.trim() || 'Não informado'}</span></div><div class="detail-item full-width"><strong>WhatsApp</strong><span>${customer.whatsapp || 'Não informado'}</span></div></div>`;
+    const itemsHTML = items.length > 0 ? `<ul>${items.map(item => `<li><span class="item-quantity">${item.quantity}x</span><div class="item-info"><span class="item-name">${item.name}</span>${item.notes ? `<span class="item-notes">Obs: ${item.notes}</span>`: ''}</div><span class="item-price">${formatPrice((item.unitPrice || 0) * item.quantity)}</span></li>`).join('')}</ul>`: '<p>Nenhum item encontrado.</p>';
+    const itemsSectionHTML = `<h4 class="modal-section-title"><i class="fas fa-shopping-basket"></i> Itens do Pedido</h4>${itemsHTML}`;
+    const addressHTML = `<h4 class="modal-section-title"><i class="fas fa-map-marker-alt"></i> Endereço de Entrega</h4><div class="detail-item full-width"><span>${delivery.address || 'Não informado'}, ${delivery.neighborhood || ''}</span></div>`;
+    let paymentDetailsHTML = `<div class="detail-item"><strong>Subtotal</strong><span>${formatPrice(totals.subtotal)}</span></div><div class="detail-item"><strong>Taxa de Entrega</strong><span>${formatPrice(totals.deliveryFee)}</span></div>${totals.discount > 0 ? `<div class="detail-item"><strong>Desconto</strong><span class="text-success">- ${formatPrice(totals.discount)}</span></div>`: ''}<div class="detail-item total full-width"><strong>Total a Pagar</strong><span>${formatPrice(totals.grandTotal)}</span></div><div class="detail-item full-width"><strong>Forma de Pagamento</strong><span>${payment.method || 'Não informada'}</span></div>`;
     if (payment.method === 'Dinheiro' && payment.changeFor) { paymentDetailsHTML += `<div class="detail-item full-width"><strong>Troco para</strong><span>${formatPrice(payment.changeFor)}</span></div>`; }
-    if (payment.method === 'Pix') { const pixStatus = payment.pixPaid ? '<span class="text-success">Pago</span>': '<span class="text-danger">Não Pago</span>'; paymentDetailsHTML += `<div class="detail-item full-width"><strong>Status do Pix</strong>${pixStatus}</div>`; }
-    modalBodyHTML += `<h4 class="modal-section-title"><i class="fas fa-file-invoice-dollar"></i> Financeiro</h4><div class="detail-grid">${paymentDetailsHTML}</div>`;
-    
+    const paymentSectionHTML = `<h4 class="modal-section-title"><i class="fas fa-file-invoice-dollar"></i> Financeiro</h4><div class="detail-grid">${paymentDetailsHTML}</div>`;
+
     const deliveryPersonSelectorHTML = `
     <div class="delivery-assignment-section">
         <div class="form-group">
-            <label for="modal-delivery-person-select" style="font-weight: 500; margin-bottom: 8px;">Atribuir / Enviar para Entregador:</label>
+            <label for="modal-delivery-person-select">Atribuir Entregador:</label>
             <div class="input-with-icon right-icon">
                 <select id="modal-delivery-person-select" class="form-control">
-                    <option value="">Selecione um entregador...</option>
-                    ${allDeliveryPeople.map(p => `
-                        <option value="${p.googleUid}" data-whatsapp="${p.whatsapp}" ${delivery.assignedTo?.id === p.googleUid ? 'selected': ''}>
-                            ${p.firstName} ${p.lastName}
-                        </option>
-                    `).join('')}
+                    <option value="">-- Nenhum --</option>
+                    ${allDeliveryPeople.map(p => p.googleUid ? `<option value="${p.googleUid}" data-whatsapp="${p.whatsapp}" data-name="${p.firstName}">${p.firstName} ${p.lastName}</option>` : '').join('')}
                 </select>
-                <button id="modal-send-wpp-btn" class="pdv-icon-btn whatsapp" title="Enviar dados do pedido para o WhatsApp do entregador"><i class="fab fa-whatsapp"></i></button>
+                <button id="modal-save-driver-btn" class="btn btn-sm btn-success" style="height: 100%; border-radius: 0 4px 4px 0;">Salvar</button>
             </div>
+            <small>Ao salvar, o pedido aparecerá imediatamente para o entregador.</small>
         </div>
     </div>`;
-    modalBodyHTML += `<h4 class="modal-section-title"><i class="fas fa-motorcycle"></i> Entregador</h4>${deliveryPersonSelectorHTML}`;
     
-    modalBody.innerHTML = modalBodyHTML;
+    modalBody.innerHTML = customerHTML + itemsSectionHTML + addressHTML + paymentSectionHTML + `<h4 class="modal-section-title"><i class="fas fa-motorcycle"></i> Entregador</h4>${deliveryPersonSelectorHTML}`;
     
-    const sendWppBtn = modalBody.querySelector('#modal-send-wpp-btn');
-    if (sendWppBtn) {
-      sendWppBtn.addEventListener('click', () => handleSendWppToDeliveryPerson(order));
+    const deliveryPersonSelect = modalBody.querySelector('#modal-delivery-person-select');
+    if (delivery.assignedTo?.id && deliveryPersonSelect) {
+        deliveryPersonSelect.value = delivery.assignedTo.id;
+    }
+
+    const saveDriverBtn = modalBody.querySelector('#modal-save-driver-btn');
+    if (saveDriverBtn) {
+        saveDriverBtn.addEventListener('click', () => {
+            const selectedOption = deliveryPersonSelect.options[deliveryPersonSelect.selectedIndex];
+            if (!selectedOption.value) { return; }
+            const driverData = { id: selectedOption.value, name: selectedOption.dataset.name };
+            assignDriverToOrder(order.id, driverData);
+            closeOrderDetailsModal();
+        });
     }
 
     orderDetailsModal.classList.add('show');
@@ -208,7 +185,6 @@ function renderOrders() {
     const ordersListContainer = document.getElementById('orders-list-container');
     if (!ordersListContainer) return;
     const activeStatusFilter = document.querySelector('.order-status-filters .filter-tab.active')?.dataset.statusFilter || 'todos';
-    
     const visibleOrders = allOrders.filter(o => !['Entregue', 'Cancelado', 'Finalizado'].includes(o.status));
     const typeCounters = { balcao: 0, delivery: 0, mesas: 0 };
     visibleOrders.forEach(o => {
@@ -222,6 +198,19 @@ function renderOrders() {
     if(deliveryCountEl) deliveryCountEl.textContent = typeCounters.delivery;
     const mesasCountEl = document.querySelector('.summary-item[data-type-filter="mesas"] .count');
     if(mesasCountEl) mesasCountEl.textContent = typeCounters.mesas;
+
+    const statusCounters = { pendente: 0, 'em-preparo': 0, 'a-caminho': 0 };
+    visibleOrders.forEach(o => {
+      if(['Recebido', 'Aguardando Pagamento', 'Aguardando Comprovante'].includes(o.status)) statusCounters.pendente++;
+      else if(o.status === 'Em Preparo') statusCounters['em-preparo']++;
+      else if(o.status === 'Saiu para Entrega') statusCounters['a-caminho']++;
+    });
+    const pendenteCountEl = document.querySelector('.filter-tab[data-status-filter="pendente"] .count');
+    if(pendenteCountEl) pendenteCountEl.textContent = statusCounters.pendente;
+    const emPreparoCountEl = document.querySelector('.filter-tab[data-status-filter="em-preparo"] .count');
+    if(emPreparoCountEl) emPreparoCountEl.textContent = statusCounters['em-preparo'];
+    const aCaminhoCountEl = document.querySelector('.filter-tab[data-status-filter="a-caminho"] .count');
+    if(aCaminhoCountEl) aCaminhoCountEl.textContent = statusCounters['a-caminho'];
     
     let filteredOrders = visibleOrders;
     
@@ -251,15 +240,12 @@ function renderOrders() {
         else if (orderType === 'Mesa') { typeIcon = '<i class="fas fa-utensils"></i>'; typeText = 'Mesa'; } 
         else { typeIcon = '<i class="fas fa-store-alt"></i>'; typeText = 'Balcão'; }
         if (order.status === 'Saiu para Entrega') { typeIcon = '<i class="fas fa-shipping-fast a-caminho-icon"></i>'; typeText = 'A CAMINHO'; }
-        
         let paymentTagHTML = '';
         if (order.payment) {
             if (order.payment.method === 'Pix') { paymentTagHTML = order.payment.pixPaid ? '<span class="tag tag-payment-paid">Pago</span>' : '<span class="tag tag-payment-unpaid">Pix Não Pago</span>'; } 
             else if (order.payment.method === 'Dinheiro' || order.payment.method.includes('Cartão')) { paymentTagHTML = '<span class="tag tag-payment-delivery">Pgto na Entrega</span>'; }
         }
-        
         let actionHtml = getOrderActionHTML(order);
-        
         return `<div class="order-card" data-order-id="${order.id}"><div class="card-header"><div class="order-type-id">${typeIcon} ${typeText} #${order.id.substring(0, 6)}</div><div class="order-timestamp">${orderTimestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div></div><div class="card-body"><div class="customer-name">${order.customer.firstName} ${order.customer.lastName}</div><div class="order-tags"><span class="tag tag-status">${order.status}</span>${paymentTagHTML}</div></div><div class="card-footer"><div class="order-value">R$ ${(order.totals.grandTotal || 0).toFixed(2).replace('.', ',')}</div>${actionHtml}</div></div>`;
     }).join('');
     
@@ -287,6 +273,16 @@ function listenForRealTimeOrders() {
     });
 }
 
+function handleNewOrderButtonClick() {
+  const pdvMenuLink = document.querySelector('a[data-section-target="pdv-content"]');
+  if (pdvMenuLink) {
+    pdvMenuLink.click();
+    if (typeof window.openPdvNewOrderView === 'function') {
+      window.openPdvNewOrderView();
+    }
+  }
+}
+
 function addOrderCardEventListeners() {
     const container = document.getElementById('orders-list-container');
     if(!container) return;
@@ -305,14 +301,7 @@ function addOrderCardEventListeners() {
         select.addEventListener('change', (e) => {
             const newStatus = e.target.value;
             const orderId = select.dataset.orderId;
-            let assignedTo = null;
-
-            if (newStatus === 'Saiu para Entrega') {
-                const order = allOrders.find(o => o.id === orderId);
-                openOrderDetailsModal(order); 
-            } else {
-                updateOrderStatus(orderId, newStatus);
-            }
+            updateOrderStatus(orderId, newStatus);
         });
         select.addEventListener('click', e => e.stopPropagation());
     });
@@ -324,7 +313,11 @@ function addOrderCardEventListeners() {
 }
 
 async function initializeOrdersSection() {
-    if (ordersSectionInitialized) return;
+    if (ordersSectionInitialized) {
+        await fetchDeliveryPeople(); // Garante que a lista de entregadores está sempre atualizada
+        renderOrders();
+        return;
+    }
     ordersSectionInitialized = true;
     
     console.log("Módulo Pedidos.js: Configurando pela primeira vez...");
@@ -358,6 +351,17 @@ async function initializeOrdersSection() {
                     tab.classList.add('active');
                     activeTypeFilter = filterType;
                 }
+                renderOrders();
+            });
+        });
+    }
+
+    const statusFilterTabs = document.querySelectorAll('.order-status-filters .filter-tab');
+    if (statusFilterTabs.length > 0) {
+        statusFilterTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelector('.order-status-filters .filter-tab.active')?.classList.remove('active');
+                tab.classList.add('active');
                 renderOrders();
             });
         });
