@@ -25,37 +25,39 @@ const URLS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Cache do Admin aberto');
-        // Adiciona todas as URLs ao cache. Se uma falhar, a instalação falha.
-        return Promise.all(
-          URLS_TO_CACHE.map(url => {
-            return cache.add(new Request(url, {cache: 'reload'})).catch(err => {
-              console.warn(`Falha ao adicionar ao cache: ${url}`, err);
-            });
-          })
-        );
-      })
+    .then((cache) => {
+      console.log('Cache do Admin aberto');
+      // Adiciona todas as URLs ao cache. Se uma falhar, a instalação falha.
+      return Promise.all(
+        URLS_TO_CACHE.map(url => {
+          return cache.add(new Request(url, {
+            cache: 'reload'
+          })).catch(err => {
+            console.warn(`Falha ao adicionar ao cache: ${url}`, err);
+          });
+        })
+      );
+    })
   );
 });
 
 // Evento de fetch: intercepta as requisições
 self.addEventListener('fetch', (event) => {
-    // Não aplica o cache para requisições do Firebase
-    if (event.request.url.includes('firestore.googleapis.com')) {
-        return;
-    }
+  // Não aplica o cache para requisições do Firebase
+  if (event.request.url.includes('firestore.googleapis.com')) {
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request)
-      .then((response) => {
-        // Se o recurso for encontrado no cache, retorna ele
-        if (response) {
-          return response;
-        }
-        // Senão, faz a requisição à rede
-        return fetch(event.request);
-      })
+    .then((response) => {
+      // Se o recurso for encontrado no cache, retorna ele
+      if (response) {
+        return response;
+      }
+      // Senão, faz a requisição à rede
+      return fetch(event.request);
+    })
   );
 });
 
