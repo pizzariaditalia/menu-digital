@@ -1,7 +1,8 @@
 {
   "name": "D'Italia Entregador",
-  "short_name": "D'Italia Entregador",
-  "start_url": "login.html",
+  "short_name": "Entregador",
+  "id": "/entregador/",
+  "start_url": "/entregador/login.html",
   "display": "standalone",
   "background_color": "#333333",
   "theme_color": "#333333",
