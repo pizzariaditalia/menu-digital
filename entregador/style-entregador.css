@@ -133,7 +133,7 @@ body:not(.app-view) {
 body.app-view {
     background-color: #f0f2f5;
     display: block; 
-    padding-top: 70px;
+    padding-top: 70px; /* Espaço para o cabeçalho fixo */
 }
 
 .app-header {
@@ -228,7 +228,7 @@ body.app-view {
 
 
 /* ============================================= */
-/* --- ESTILOS DO MODAL DE DETALHES (CORRIGIDO) --- */
+/* --- ESTILOS DO MODAL DE DETALHES --- */
 /* ============================================= */
 
 .modal-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 2000; justify-content: center; align-items: center; }
