@@ -1,22 +1,24 @@
 {
   "name": "D'Italia Pizzaria",
-  "short_name": "D'Italia",
+  "short_name": "D'Italia Pizzaria",
   "id": "/",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#f7f7f7",
+  "background_color": "#d32f2f",
   "theme_color": "#ea1d2c",
   "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/img/icons/icon.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "/img/icons/icon.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ]
 }
