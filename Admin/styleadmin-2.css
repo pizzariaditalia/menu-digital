@@ -1308,3 +1308,39 @@ tr.sent::after {
 .sales-card .delete-order-btn:hover {
     color: var(--admin-danger-red);
 }
+
+/* ============================================= */
+/* --- ESTILOS PARA O TOGGLE DE PAGAMENTO --- */
+/* ============================================= */
+
+.payment-status-toggle-container {
+    padding-top: 10px;
+    margin-top: 10px;
+    border-top: 1px dashed var(--admin-border-color);
+}
+
+.payment-status-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.payment-status-wrapper .status-label {
+    font-weight: 700;
+    font-size: 1.1em;
+    color: var(--admin-danger-red);
+    transition: color 0.3s ease;
+}
+
+.payment-status-wrapper .status-label.paid {
+    color: var(--admin-success-green);
+}
+
+/* Reutilizando a classe .switch que já temos no app do entregador */
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; }
+.slider.round { border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--admin-success-green); }
+input:checked + .slider:before { transform: translateX(20px); }
