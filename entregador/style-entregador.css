@@ -121,7 +121,7 @@ body:not(.app-view) {
 .btn-primary:hover { background-color: #b71c1c; }
 .btn-google { background-color: #4285F4; color: var(--white); }
 .btn-google:hover { background-color: #357ae8; }
-.login-container .btn-google {
+.btn-google {
     margin-left: auto;
     margin-right: auto;}
 .btn-success { background-color: var(--success-green); color: var(--white); }
