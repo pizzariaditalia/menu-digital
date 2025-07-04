@@ -445,3 +445,36 @@ body.app-view {
     background-color: #e9ecef;
     transform: translateY(-2px);
 }
+
+/* Adicione no final de style-entregador.css */
+
+/* NOVO: Estilos para o cronômetro do pedido */
+.delivery-card .card-header {
+    display: flex;
+    justify-content: flex-end; /* Alinha o cronômetro à direita */
+    padding: 8px 12px 0 12px; /* Espaçamento interno */
+}
+
+.order-timer {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: 700;
+    color: white;
+    min-width: 50px;
+    text-align: center;
+}
+
+/* Classes de cor para o tempo */
+.timer-green {
+    background-color: #28a745; /* Verde */
+}
+
+.timer-yellow {
+    background-color: #ffc107; /* Amarelo */
+    color: #333; /* Texto escuro para melhor contraste */
+}
+
+.timer-red {
+    background-color: #dc3545; /* Vermelho */
+}
