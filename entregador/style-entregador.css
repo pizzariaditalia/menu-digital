@@ -102,7 +102,7 @@ body:not(.app-view) {
 }
 
 .btn {
-    width: 60%;
+    width: 100%;
     padding: 14px;
     font-size: 1.1em;
     font-weight: bold;
