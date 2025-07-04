@@ -47,6 +47,17 @@
 
     <div id="history-section" class="hidden">
       <h3>Histórico de Hoje</h3>
+      <div id="history-filter-controls" class="history-filter-card">
+    <div class="filter-group">
+        <label for="start-date">Data de Início:</label>
+        <input type="date" id="start-date" class="form-control">
+    </div>
+    <div class="filter-group">
+        <label for="end-date">Data de Fim:</label>
+        <input type="date" id="end-date" class="form-control">
+    </div>
+    <button id="filter-history-btn" class="btn">Buscar</button>
+</div>
       <div id="history-summary" class="history-summary-card">
         <div class="summary-item">
           <span class="label">Total de Taxas a Receber</span>
