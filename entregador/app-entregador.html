@@ -33,6 +33,18 @@
   </header>
 
   <main class="app-main">
+    <div id="quick-stats-panel" class="quick-stats-card">
+    <div class="stat-item">
+        <i class="fas fa-check-circle"></i>
+        <div class="stat-value" id="stats-deliveries-today">0</div>
+        <div class="stat-label">Entregas Hoje</div>
+    </div>
+    <div class="stat-item">
+        <i class="fas fa-wallet"></i>
+        <div class="stat-value" id="stats-earnings-today">R$ 0,00</div>
+        <div class="stat-label">Ganhos Hoje</div>
+    </div>
+</div>
     <div id="current-deliveries-section">
       <h3>Entregas Atuais</h3>
       <div id="delivery-queue-list">
@@ -48,16 +60,16 @@
     <div id="history-section" class="hidden">
       <h3>Histórico de Entregas</h3>
       <div id="history-filter-controls" class="history-filter-card">
-    <div class="filter-group">
-        <label for="start-date">Data de Início:</label>
-        <input type="date" id="start-date" class="form-control">
-    </div>
-    <div class="filter-group">
-        <label for="end-date">Data de Fim:</label>
-        <input type="date" id="end-date" class="form-control">
-    </div>
-    <button id="filter-history-btn" class="btn">Buscar</button>
-</div>
+        <div class="filter-group">
+          <label for="start-date">Data de Início:</label>
+          <input type="date" id="start-date" class="form-control">
+        </div>
+        <div class="filter-group">
+          <label for="end-date">Data de Fim:</label>
+          <input type="date" id="end-date" class="form-control">
+        </div>
+        <button id="filter-history-btn" class="btn">Buscar</button>
+      </div>
       <div id="history-summary" class="history-summary-card">
         <div class="summary-item">
           <span class="label">Total de Taxas </span>
@@ -144,8 +156,8 @@
     };
   </script>
   <script type="module" src="app-entregador.js"></script>
-  
-<script>
+
+  <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw-entregador.js')
@@ -153,7 +165,7 @@
         .catch((err) => console.log('Falha ao registrar Service Worker:', err));
       });
     }
-</script>
+  </script>
 
 </body>
 </html>
