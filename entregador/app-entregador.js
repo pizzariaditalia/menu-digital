@@ -1,9 +1,9 @@
-// app-entregador.js - VERSÃO FINAL COM GAMIFICAÇÃO E CORREÇÃO DE LAYOUT DO MODAL
+// app-entregador.js - VERSÃO COMPLETA COM CHAT, GAMIFICAÇÃO, FILTROS E CORREÇÕES
 
-// Importa funções do Firebase, incluindo 'doc', 'getDoc' e 'runTransaction' que serão essenciais
+// Importa funções do Firebase, incluindo as novas para o chat ('addDoc', 'serverTimestamp')
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, updateDoc, Timestamp, orderBy, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, updateDoc, Timestamp, orderBy, getDocs, runTransaction, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // --- Define a estrutura das conquistas ---
 const ACHIEVEMENTS = {
@@ -24,7 +24,6 @@ const firebaseConfig = {
     measurementId: "G-5QW3MVGYME"
 };
 
-// Inicializa os serviços do Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -33,6 +32,7 @@ const auth = getAuth(app);
 const driverNameSpan = document.getElementById('driver-name');
 const logoutBtn = document.getElementById('logout-btn');
 const historyBtn = document.getElementById('history-btn');
+const achievementsBtn = document.getElementById('achievements-btn');
 const historySection = document.getElementById('history-section');
 const currentDeliveriesSection = document.getElementById('current-deliveries-section');
 const deliveryQueueList = document.getElementById('delivery-queue-list');
@@ -50,10 +50,14 @@ const endDateInput = document.getElementById('end-date');
 const filterHistoryBtn = document.getElementById('filter-history-btn');
 const statsDeliveriesToday = document.getElementById('stats-deliveries-today');
 const statsEarningsToday = document.getElementById('stats-earnings-today');
-const achievementsBtn = document.getElementById('achievements-btn');
 const achievementsModal = document.getElementById('achievements-modal');
 const achievementsListDiv = document.getElementById('achievements-list');
 const closeAchievementsModalBtn = achievementsModal.querySelector('.close-modal-btn');
+
+// NOVO: Seletores para o chat de mensagens rápidas
+const btnSendMessage = document.getElementById('btn-send-message');
+const quickMessageModal = document.getElementById('quick-message-modal');
+const closeMessageModalBtn = quickMessageModal.querySelector('.close-modal-btn');
 
 // --- VARIÁVEIS DE ESTADO ---
 let currentDriverProfile = null;
@@ -65,8 +69,58 @@ let isFirstLoad = true;
 // --- FUNÇÕES UTILITÁRIAS ---
 const formatPrice = (price) => typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
 
-// --- LÓGICA DAS CONQUISTAS ---
+// --- LÓGICA DO CHAT DE MENSAGENS RÁPIDAS ---
+if (btnSendMessage) {
+    btnSendMessage.addEventListener('click', () => {
+        if (selectedOrder) {
+            quickMessageModal.classList.add('show');
+        } else {
+            alert("Erro: Pedido não selecionado para enviar mensagem.");
+        }
+    });
+}
 
+if (closeMessageModalBtn) {
+    closeMessageModalBtn.addEventListener('click', () => quickMessageModal.classList.remove('show'));
+}
+
+if (quickMessageModal) {
+    quickMessageModal.querySelectorAll('.quick-message-btn').forEach(button => {
+        button.addEventListener('click', async (e) => {
+            const message = e.target.dataset.message;
+            
+            if (!auth.currentUser || !selectedOrder) {
+                alert("Erro: não foi possível identificar o usuário ou o pedido.");
+                return;
+            }
+
+            e.target.disabled = true;
+            e.target.textContent = 'Enviando...';
+
+            try {
+                await addDoc(collection(db, "chat_messages"), {
+                    driverId: auth.currentUser.uid,
+                    driverName: auth.currentUser.displayName || 'Nome não definido',
+                    orderId: selectedOrder.id,
+                    message: message,
+                    timestamp: serverTimestamp(),
+                    isRead: false
+                });
+                alert("Mensagem enviada com sucesso!");
+                quickMessageModal.classList.remove('show');
+            } catch (error) {
+                console.error("Erro ao enviar mensagem:", error);
+                alert("Falha ao enviar a mensagem. Tente novamente.");
+            } finally {
+                e.target.disabled = false;
+                e.target.textContent = message;
+            }
+        });
+    });
+}
+
+
+// --- LÓGICA DAS CONQUISTAS ---
 function renderAchievements() {
     if (!achievementsListDiv || !currentDriverProfile) return;
     let achievementsHTML = '';
@@ -136,6 +190,7 @@ async function checkAndAwardAchievements(driverRef) {
     }
 }
 
+
 // --- FUNÇÕES DE RENDERIZAÇÃO E UI ---
 
 function createDeliveryCard(order) {
@@ -169,7 +224,6 @@ function openDetailsModal(order) {
     const address = order.delivery.address || `${order.delivery.street}, ${order.delivery.number}`;
     const mapLink = `https://maps.google.com/?q=${encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
     
-    // CORRIGIDO: Estilo dos botões alterado para centralizar e adicionar margens laterais.
     const customerHTML = `<div class="modal-section"><h4><i class="fas fa-user"></i> Cliente</h4><div class="detail-line"><span class="label">Nome</span><span class="value">${order.customer.firstName} ${order.customer.lastName}</span></div><a href="https://wa.me/55${order.customer.whatsapp}" target="_blank" class="btn" style="background-color:#25D366; width: 95%; margin: 10px auto 0 auto;"><i class="fab fa-whatsapp"></i> Chamar no WhatsApp</a></div><div class="modal-section"><h4><i class="fas fa-map-marker-alt"></i> Endereço</h4><div class="address-block">${address}<br>Bairro: ${order.delivery.neighborhood}<br>${order.delivery.complement ? `Comp: ${order.delivery.complement}<br>` : ''}${order.delivery.reference ? `Ref: ${order.delivery.reference}` : ''}</div><a href="${mapLink}" target="_blank" class="btn" style="background-color:#4285F4; width:95%; margin:10px auto 0 auto;"><i class="fas fa-map-signs"></i> Ver no Mapa</a></div>`;
 
     const { subtotal = 0, discount = 0, deliveryFee = 0, grandTotal = 0 } = order.totals;
@@ -179,6 +233,9 @@ function openDetailsModal(order) {
 
     modalBody.innerHTML = customerHTML + financialHTML + itemsHTML;
     
+    // Mostra o botão de mensagem apenas quando o pedido está em andamento
+    if(btnSendMessage) btnSendMessage.style.display = (order.status === "Em Preparo" || order.status === "Saiu para Entrega") ? 'grid' : 'none';
+
     if (order.status === "Entregue") {
         modalFooter.style.display = 'none';
     } else {
