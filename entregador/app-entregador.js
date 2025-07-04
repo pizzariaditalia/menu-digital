@@ -1,9 +1,9 @@
-// app-entregador.js - VERSÃO FINAL COMPLETA COM SOM DUPLO E HISTÓRICO
+// app-entregador.js - VERSÃO COMPLETA COM FILTRO DE HISTÓRICO POR DATA
 
 // Importa as funções necessárias do Firebase SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, Timestamp, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // Sua configuração do Firebase
 const firebaseConfig = {
@@ -37,6 +37,12 @@ const closeModalBtn = deliveryDetailsModal.querySelector('.close-modal-btn');
 const btnDeliveryAction = document.getElementById('btn-delivery-action');
 const btnCompleteDelivery = document.getElementById('btn-complete-delivery');
 const modalFooter = deliveryDetailsModal.querySelector('.modal-footer');
+
+// NOVO: Seletores para os controles do filtro de histórico
+const startDateInput = document.getElementById('start-date');
+const endDateInput = document.getElementById('end-date');
+const filterHistoryBtn = document.getElementById('filter-history-btn');
+
 
 // --- VARIÁVEIS DE ESTADO ---
 let currentOrders = [];
@@ -78,7 +84,7 @@ function openDetailsModal(order) {
     selectedOrder = order;
     
     const address = order.delivery.address || `${order.delivery.street}, ${order.delivery.number}`;
-    const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
+    const mapLink = `https://maps.google.com/?q=${encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
     
     const customerHTML = `<div class="modal-section"><h4><i class="fas fa-user"></i> Cliente</h4><div class="detail-line"><span class="label">Nome</span><span class="value">${order.customer.firstName} ${order.customer.lastName}</span></div><a href="https://wa.me/55${order.customer.whatsapp}" target="_blank" class="btn" style="background-color:#25D366; width: 100%; margin-top: 10px;"><i class="fab fa-whatsapp"></i> Chamar no WhatsApp</a></div><div class="modal-section"><h4><i class="fas fa-map-marker-alt"></i> Endereço</h4><div class="address-block">${address}<br>Bairro: ${order.delivery.neighborhood}<br>${order.delivery.complement ? `Comp: ${order.delivery.complement}<br>` : ''}${order.delivery.reference ? `Ref: ${order.delivery.reference}` : ''}</div><a href="${mapLink}" target="_blank" class="btn" style="background-color:#4285F4; width:100%; margin-top:10px;"><i class="fas fa-map-signs"></i> Ver no Mapa</a></div>`;
 
@@ -139,29 +145,61 @@ function renderHistory(orders) {
     totalFeesValue.textContent = formatPrice(totalFees);
     totalDeliveriesCount.textContent = orders.length;
     if (orders.length === 0) {
-        historyList.innerHTML = `<div class="loading-state"><p>Nenhuma entrega finalizada hoje.</p></div>`;
+        historyList.innerHTML = `<div class="loading-state"><p>Nenhuma entrega encontrada para o período selecionado.</p></div>`;
     } else {
         historyList.innerHTML = orders.map(createDeliveryCard).join('');
         addCardClickListeners(historyList, historicalOrders);
     }
 }
 
-function listenForHistory(driverId) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const q = query(
+// ALTERADO: Função de histórico reescrita para aceitar datas e fazer busca única
+async function listenForHistory(driverId, startDate = null, endDate = null) {
+    if (!historyList) return;
+
+    // Mostra um feedback de carregamento
+    historyList.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Buscando histórico...</p></div>`;
+
+    // Constrói a base da query
+    let historyQuery = query(
         collection(db, "pedidos"),
         where("delivery.assignedTo.id", "==", driverId),
-        where("status", "==", "Entregue"),
-        where("lastStatusUpdate", ">=", Timestamp.fromDate(today))
+        where("status", "==", "Entregue")
     );
-    onSnapshot(q, (snapshot) => {
+
+    // Adiciona os filtros de data dinamicamente
+    if (startDate) {
+        historyQuery = query(historyQuery, where("lastStatusUpdate", ">=", Timestamp.fromDate(startDate)));
+    }
+    if (endDate) {
+        // Ajustamos a data final para pegar o dia inteiro (até 23:59:59)
+        const endOfDay = new Date(endDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        historyQuery = query(historyQuery, where("lastStatusUpdate", "<=", Timestamp.fromDate(endOfDay)));
+    }
+
+    // Adiciona ordenação para mostrar os mais recentes primeiro
+    historyQuery = query(historyQuery, orderBy("lastStatusUpdate", "desc"));
+    
+    try {
+        // Executa a busca uma única vez com getDocs
+        const snapshot = await getDocs(historyQuery);
+        
         const historyOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        historyOrders.sort((a,b) => b.lastStatusUpdate.toDate() - a.lastStatusUpdate.toDate());
+        
+        // Renderiza os resultados
         renderHistory(historyOrders);
-    }, (error) => {
+
+    } catch (error) {
         console.error("Erro ao buscar histórico:", error);
-    });
+        
+        // AVISO IMPORTANTE: O erro mais comum aqui é a falta de um índice no Firestore.
+        // O próprio erro no console do navegador te dará um link para criar o índice com um clique!
+        if (error.code === 'failed-precondition') {
+            historyList.innerHTML = `<div class="loading-state error"><p><strong>Erro:</strong> O banco de dados precisa de um índice para esta busca.</p><p>Abra o console do navegador (F12), clique no link do erro para criar o índice e tente novamente em alguns minutos.</p></div>`;
+        } else {
+            historyList.innerHTML = `<div class="loading-state error"><p>Ocorreu um erro ao buscar o histórico.</p></div>`;
+        }
+    }
 }
 
 // --- LÓGICA DAS ENTREGAS ATUAIS ---
@@ -237,14 +275,44 @@ if (logoutBtn) {
     });
 }
 
+// NOVO: Evento para o botão de filtrar o histórico
+if (filterHistoryBtn) {
+    filterHistoryBtn.addEventListener('click', () => {
+        const startDateValue = startDateInput.value;
+        const endDateValue = endDateInput.value;
+
+        if (!startDateValue) {
+            alert("Por favor, selecione pelo menos a data de início.");
+            return;
+        }
+
+        // Converte as strings 'YYYY-MM-DD' para objetos Date
+        // O fuso horário é ajustado para evitar problemas de um dia a menos
+        const startDate = new Date(startDateValue + 'T00:00:00'); 
+        const endDate = endDateValue ? new Date(endDateValue + 'T00:00:00') : null;
+
+        const user = auth.currentUser;
+        if (user) {
+            listenForHistory(user.uid, startDate, endDate);
+        }
+    });
+}
+
 // --- LÓGICA PRINCIPAL DE AUTENTICAÇÃO ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         if (driverNameSpan) {
             driverNameSpan.textContent = user.displayName ? user.displayName.split(' ')[0] : "Entregador";
         }
-        listenForDeliveries(user.uid);
-        listenForHistory(user.uid);
+        
+        // Chamada para as entregas atuais (não muda)
+        listenForDeliveries(user.uid); 
+        
+        // ALTERADO: Busca o histórico de hoje ao carregar a página
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Define o início do dia de hoje
+        listenForHistory(user.uid, today, today); // Passa hoje como início e fim
+
     } else {
         window.location.href = 'login.html';
     }
