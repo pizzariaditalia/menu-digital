@@ -1,4 +1,4 @@
-// admin.js - VERSÃO COM SISTEMA DE NOTIFICAÇÃO DE CHAT INTEGRADO
+// admin.js - VERSÃO FINAL COM AS FUNÇÕES DO CHAT (CHAMADA MOVIDA PARA O HTML)
 
 // --- Variáveis globais ---
 let unreadMessages = [];
@@ -48,7 +48,7 @@ async function markMessageAsRead(messageId) {
     const msgRef = doc(window.db, "chat_messages", messageId);
     try {
         await updateDoc(msgRef, { isRead: true });
-        // A remoção da UI será feita automaticamente pelo listener onSnapshot
+        // A UI será atualizada automaticamente pelo listener onSnapshot
     } catch (error) {
         console.error("Erro ao marcar mensagem como lida:", error);
         window.showToast("Erro ao processar mensagem.", "error");
@@ -56,6 +56,7 @@ async function markMessageAsRead(messageId) {
 }
 
 function initializeChatListener() {
+    // Esta função agora será chamada pelo paineladmin.html
     console.log("Admin.js: Inicializando listener do chat...");
     const { collection, query, where, orderBy, onSnapshot } = window.firebaseFirestore;
     
@@ -66,7 +67,6 @@ function initializeChatListener() {
     );
 
     onSnapshot(q, (snapshot) => {
-        // Toca o som apenas se houver uma mudança real e não for o carregamento inicial
         if (!snapshot.metadata.hasPendingWrites && snapshot.docChanges().some(c => c.type === 'added')) {
             new Audio('../audio/notification.mp3').play().catch(e => console.warn("Áudio bloqueado pelo navegador"));
         }
@@ -75,6 +75,8 @@ function initializeChatListener() {
         renderChatDropdown();
     });
 }
+// Disponibiliza a função globalmente para que o HTML possa chamá-la
+window.initializeChatListener = initializeChatListener;
 
 
 async function startAdminPanel() {
@@ -88,7 +90,6 @@ async function startAdminPanel() {
   const drawerLinks = document.querySelectorAll('.admin-drawer ul li a');
   const adminViews = document.querySelectorAll('.admin-main-content .admin-view');
   
-  // NOVO: Seletores do Chat
   const chatNotificationBell = document.getElementById('chat-notification-bell');
   const chatDropdown = document.getElementById('chat-dropdown');
 
@@ -170,9 +171,8 @@ async function startAdminPanel() {
       }
   });
 
-  // Fecha o dropdown se clicar fora dele
   document.addEventListener('click', (e) => {
-    if (!chatDropdown.classList.contains('hidden') && !chatDropdown.contains(e.target) && !chatNotificationBell.contains(e.target)) {
+    if (chatDropdown && !chatDropdown.classList.contains('hidden') && !chatDropdown.contains(e.target) && !chatNotificationBell.contains(e.target)) {
         chatDropdown.classList.add('hidden');
     }
   });
@@ -185,12 +185,12 @@ async function startAdminPanel() {
     const firstLink = document.querySelector('.admin-drawer a[data-section-target]');
     if (firstLink) firstLink.click();
   }
-
-  // CHAMA A FUNÇÃO PARA COMEÇAR A OUVIR O CHAT
-  initializeChatListener();
-
+  
   console.log("Admin.js: Painel Carregado e Scripts Prontos!");
 }
+// Disponibiliza a função principal globalmente
+window.startAdminPanel = startAdminPanel;
+
 
 function showToast(message, type = 'success') {
   const existingToast = document.querySelector('.toast-notification');
@@ -206,5 +206,3 @@ function showToast(message, type = 'success') {
   }, 3000);
 }
 window.showToast = showToast;
-
-startAdminPanel();
