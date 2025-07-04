@@ -348,3 +348,58 @@ body.app-view {
     opacity: 0.9;
     margin-top: 4px;
 }
+
+/* Adicione este estilo ao final de style-entregador.css */
+#achievements-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+  padding: 20px;
+}
+
+.achievement-card {
+  background-color: #f7f7f7;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.achievement-card.unlocked {
+  border-color: #f1c40f;
+  background-color: #fffbeb;
+}
+
+.achievement-card.unlocked:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(241, 196, 15, 0.2);
+}
+
+.achievement-card .icon {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+  color: #cccccc; /* Cinza para bloqueado */
+}
+
+.achievement-card.unlocked .icon {
+  color: #f1c40f; /* Dourado para desbloqueado */
+  animation: pulse-gold 2s infinite;
+}
+
+.achievement-card .name {
+  font-weight: 600;
+  font-size: 0.9em;
+  margin-bottom: 5px;
+}
+
+.achievement-card .description {
+  font-size: 0.75em;
+  color: #777;
+}
+
+@keyframes pulse-gold {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
