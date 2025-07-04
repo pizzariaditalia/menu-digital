@@ -115,15 +115,14 @@ body:not(.app-view) {
     gap: 10px;
     transition: background-color 0.2s ease;
     text-decoration: none;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .btn-primary { background-color: var(--primary-red); color: var(--white); }
 .btn-primary:hover { background-color: #b71c1c; }
 .btn-google { background-color: #4285F4; color: var(--white); }
 .btn-google:hover { background-color: #357ae8; }
-.btn-google {
-    margin-left: auto;
-    margin-right: auto;}
 .btn-success { background-color: var(--success-green); color: var(--white); }
 .error-message { color: var(--primary-red); font-weight: 500; margin-top: 15px; min-height: 20px; }
 .hidden { display: none !important; }
