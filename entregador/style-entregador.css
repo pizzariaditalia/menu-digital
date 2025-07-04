@@ -316,3 +316,35 @@ body.app-view {
         width: auto;
     }
 }
+
+/* Adicione este estilo ao final de style-entregador.css */
+.quick-stats-card {
+    background: linear-gradient(135deg, var(--dark-text) 0%, #4a4a4a 100%);
+    color: var(--white);
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Duas colunas */
+    gap: 15px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.stat-item i {
+    font-size: 1.8em;
+    margin-bottom: 8px;
+    opacity: 0.7;
+}
+
+.stat-item .stat-value {
+    font-size: 2em;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.stat-item .stat-label {
+    font-size: 0.8em;
+    opacity: 0.9;
+    margin-top: 4px;
+}
