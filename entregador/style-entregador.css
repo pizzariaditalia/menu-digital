@@ -405,3 +405,43 @@ body.app-view {
   50% { transform: scale(1.1); }
   100% { transform: scale(1); }
 }
+
+/* Adicione este estilo ao final de style-entregador.css */
+.modal-footer {
+    display: grid;
+    /* Ajustado para 3 colunas se todos os botões estiverem visíveis */
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+/* Estilo para o botão secundário de mensagens */
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Estilos para o modal de mensagens rápidas */
+#quick-message-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+}
+
+.quick-message-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 1em;
+    font-weight: 500;
+    text-align: left;
+    background-color: var(--light-gray-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.quick-message-btn:hover {
+    background-color: #e9ecef;
+    transform: translateY(-2px);
+}
