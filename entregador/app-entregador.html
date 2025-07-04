@@ -88,20 +88,21 @@
     </div>
   </main>
 
-  <div id="delivery-details-modal" class="modal-view">
+ <div id="delivery-details-modal" class="modal-view">
     <div class="modal-content">
       <header class="modal-header">
         <h3>Detalhes da Entrega</h3>
         <button class="close-modal-btn">×</button>
       </header>
       <main class="modal-body">
-        <p>
-          Carregando detalhes...
-        </p>
+        <p>Carregando detalhes...</p>
       </main>
       <footer class="modal-footer">
+        <button id="btn-send-message" class="btn btn-secondary">
+            <i class="fas fa-comment-dots"></i> Enviar Mensagem
+        </button>
         <button id="btn-delivery-action" class="btn btn-primary">
-          <i class="fas fa-motorcycle"></i> Saindo com a entrega
+          <i class="fas fa-motorcycle"></i> Peguei o Pedido
         </button>
         <button id="btn-complete-delivery" class="btn btn-success">
           <i class="fas fa-check-circle"></i> Entrega Finalizada
@@ -124,18 +125,6 @@
     </main>
   </div>
 </div>
-
-<footer class="modal-footer">
-  <button id="btn-send-message" class="btn btn-secondary">
-    <i class="fas fa-comment-dots"></i> Enviar Mensagem
-  </button>
-  <button id="btn-delivery-action" class="btn btn-primary">
-    <i class="fas fa-motorcycle"></i> Peguei o Pedido
-  </button>
-  <button id="btn-complete-delivery" class="btn btn-success">
-    <i class="fas fa-check-circle"></i> Entrega Finalizada
-  </button>
-</footer>
 
 <div id="quick-message-modal" class="modal-view">
   <div class="modal-content">
