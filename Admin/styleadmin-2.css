@@ -1344,3 +1344,106 @@ tr.sent::after {
 .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
 input:checked + .slider { background-color: var(--admin-success-green); }
 input:checked + .slider:before { transform: translateX(20px); }
+
+/* Adicione no final de styleadmin-2.css */
+
+/* --- ESTILOS PARA NOTIFICAÇÃO DE CHAT --- */
+.admin-top-bar .header-actions-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#chat-notification-bell {
+    position: relative;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: var(--admin-danger-red);
+    color: white;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    font-size: 0.7em;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--admin-primary-blue);
+}
+
+.notification-badge.hidden {
+    display: none;
+}
+
+.chat-dropdown-container {
+    position: absolute;
+    top: 55px;
+    right: 20px;
+    width: 320px;
+    max-height: 400px;
+    background-color: var(--admin-white);
+    border: 1px solid var(--admin-border-color);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--box-shadow-md);
+    z-index: 1031;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-dropdown-container.hidden {
+    display: none;
+}
+
+.chat-dropdown-header {
+    padding: 12px;
+    font-weight: 500;
+    border-bottom: 1px solid var(--admin-border-color);
+}
+
+.chat-dropdown-body {
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.chat-dropdown-body .empty-message {
+    padding: 20px;
+    text-align: center;
+    color: var(--admin-text-light);
+}
+
+.chat-item {
+    padding: 12px;
+    border-bottom: 1px solid var(--admin-border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.chat-item:last-child {
+    border-bottom: none;
+}
+
+.chat-item-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    color: var(--admin-text-light);
+}
+
+.chat-item-header strong {
+    color: var(--admin-primary-blue);
+}
+
+.chat-item-message {
+    font-size: 0.95em;
+    line-height: 1.4;
+}
+
+.chat-item-actions {
+    margin-top: 8px;
+    text-align: right;
+}
