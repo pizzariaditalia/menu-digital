@@ -8,10 +8,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
   <link rel="manifest" href="manifest-entregador.json">
   <meta name="theme-color" content="#d32f2f">
- <!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-  <script>
-    eruda.init();
-  </script> -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>
+      eruda.init();
+    </script> -->
 </head>
 <body>
 
@@ -29,26 +29,29 @@
 
     <p id="error-message" class="error-message"></p>
   </div>
-  
+
   <body>
     <div id="loading-auth-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; color: #333;">
-        <div class="spinner"></div> <p style="margin-top: 15px;">Verificando sua sessão...</p>
+      <div class="spinner"></div>
+      <p style="margin-top: 15px;">
+        Verificando sua sessão...
+      </p>
     </div>
 
     <div class="login-container" style="display: none;">
-        </div>
+    </div>
 
-    </body>
+  </body>
 
   <script type="module" src="auth-entregador.js"></script>
 
   <script>
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw-entregador.js')
-                .then((reg) => console.log('Service Worker do Entregador registrado!', reg.scope))
-                .catch((err) => console.log('Falha ao registrar Service Worker:', err));
-        });
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw-entregador.js')
+        .then((reg) => console.log('Service Worker do Entregador registrado!', reg.scope))
+        .catch((err) => console.log('Falha ao registrar Service Worker:', err));
+      });
     }
   </script>
 
