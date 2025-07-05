@@ -40,7 +40,7 @@ messaging.onBackgroundMessage(function(payload) {
 
 
 // 5. Lógica de Cache do PWA (Sua lógica original, com a versão do cache atualizada)
-const CACHE_NAME = 'ditalia-entregador-cache-v69'; // Versão incrementada
+const CACHE_NAME = 'ditalia-entregador-cache-v70'; // Versão incrementada
 const URLS_TO_CACHE = [
   './',
   './login.html',
