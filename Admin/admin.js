@@ -68,7 +68,7 @@ function initializeChatListener() {
 
     onSnapshot(q, (snapshot) => {
         if (!snapshot.metadata.hasPendingWrites && snapshot.docChanges().some(c => c.type === 'added')) {
-            new Audio('../audio/notification.mp3').play().catch(e => console.warn("Áudio bloqueado pelo navegador"));
+            new Audio('../audio/notification-mensagem.mp3').play().catch(e => console.warn("Áudio bloqueado pelo navegador"));
         }
         
         unreadMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
