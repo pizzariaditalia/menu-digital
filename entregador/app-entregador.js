@@ -459,30 +459,42 @@ if (filterHistoryBtn) {
   });
 }
 
-// --- LÓGICA PRINCIPAL DE AUTENTICAÇÃO ---
 onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    if (window.db && window.auth) {
-      const driverRef = doc(db, 'delivery_people', user.uid);
-      const driverSnap = await getDoc(driverRef);
-      if (driverSnap.exists()) {
-        currentDriverProfile = driverSnap.data();
-      } else {
-        currentDriverProfile = {
-          totalDeliveries: 0,
-          achievements: {}
-        };
-      }
-      if (driverNameSpan) {
-        driverNameSpan.textContent = user.displayName ? user.displayName.split(' ')[0]: "Entregador";
-      }
-      listenForDeliveries(user.uid);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      listenForHistory(user.uid, today, today);
-      setInterval(updateAllTimers, 1000);
+    // Seleciona os contêineres que criamos no HTML
+    const appLoader = document.getElementById('app-loader');
+    const appContent = document.getElementById('app-content');
+
+    if (user) {
+        // USUÁRIO ESTÁ LOGADO
+        // Busca os dados do perfil, como já fazia antes
+        const driverRef = doc(db, 'delivery_people', user.uid);
+        const driverSnap = await getDoc(driverRef);
+        if (driverSnap.exists()) {
+            currentDriverProfile = driverSnap.data();
+        } else {
+            currentDriverProfile = { totalDeliveries: 0, achievements: {} };
+        }
+
+        // Preenche as informações na tela
+        if (driverNameSpan) {
+            driverNameSpan.textContent = user.displayName ? user.displayName.split(' ')[0] : "Entregador";
+        }
+        
+        listenForDeliveries(user.uid); 
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); 
+        listenForHistory(user.uid, today, today);
+        
+        setInterval(updateAllTimers, 1000);
+
+        // Mostra o conteúdo do app e esconde o "carregando"
+        appLoader.classList.add('hidden');
+        appContent.classList.remove('hidden');
+
+    } else {
+        // USUÁRIO NÃO ESTÁ LOGADO
+        // Redireciona para a tela de login
+        window.location.href = 'login.html';
     }
-  } else {
-    window.location.href = 'login.html';
-  }
 });
