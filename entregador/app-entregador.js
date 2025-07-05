@@ -287,7 +287,7 @@ function addCardClickListeners(container, orderArray) {
 }
 
 function playNotificationSoundTwice() {
-    const audio = new Audio('../audio/notification.mp3');
+    const audio = new Audio('../audio/notification-entrega.mp3');
     audio.play().catch(e => console.warn("Aviso: O navegador bloqueou o autoplay do som.", e));
     audio.onended = () => {
         setTimeout(() => {
