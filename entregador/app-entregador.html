@@ -8,87 +8,86 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
   <link rel="manifest" href="manifest-entregador.json">
   <meta name="theme-color" content="#333333">
- <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-  <script>
-    eruda.init();
-  </script>
-</head>
+  </head>
 <body class="app-view">
 
-<header class="app-header">
-  <div class="header-content">
-    <div class="driver-info">
-      <i class="fas fa-motorcycle"></i>
-      <span id="driver-name">Carregando...</span>
-    </div>
-    <div class="header-actions">
-      <button id="achievements-btn" class="header-icon-btn" title="Ver Conquistas">
-        <i class="fas fa-trophy"></i>
-      </button>
-      <button id="history-btn" class="header-icon-btn" title="Ver Histórico do Dia">
-        <i class="fas fa-history"></i>
-      </button>
-      <button id="logout-btn" class="header-icon-btn" title="Sair">
-        <i class="fas fa-sign-out-alt"></i>
-      </button>
-    </div>
+  <div id="app-loader" class="loading-state" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh;">
+    <div class="spinner"></div>
+    <p>Verificando sessão...</p>
   </div>
-</header>
 
-  <main class="app-main">
-    <div id="quick-stats-panel" class="quick-stats-card">
-    <div class="stat-item">
-        <i class="fas fa-check-circle"></i>
-        <div class="stat-value" id="stats-deliveries-today">0</div>
-        <div class="stat-label">Entregas Hoje</div>
-    </div>
-    <div class="stat-item">
-        <i class="fas fa-wallet"></i>
-        <div class="stat-value" id="stats-earnings-today">R$ 0,00</div>
-        <div class="stat-label">Ganhos Hoje</div>
-    </div>
-</div>
-    <div id="current-deliveries-section">
-      <h3>Entregas Atuais</h3>
-      <div id="delivery-queue-list">
-        <div class="loading-state">
-          <div class="spinner"></div>
-          <p>
-            Aguardando novas entregas...
-          </p>
+  <div id="app-content" class="hidden">
+    <header class="app-header">
+      <div class="header-content">
+        <div class="driver-info">
+          <i class="fas fa-motorcycle"></i>
+          <span id="driver-name">Carregando...</span>
+        </div>
+        <div class="header-actions">
+          <button id="achievements-btn" class="header-icon-btn" title="Ver Conquistas">
+            <i class="fas fa-trophy"></i>
+          </button>
+          <button id="history-btn" class="header-icon-btn" title="Ver Histórico do Dia">
+            <i class="fas fa-history"></i>
+          </button>
+          <button id="logout-btn" class="header-icon-btn" title="Sair">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
         </div>
       </div>
-    </div>
+    </header>
 
-    <div id="history-section" class="hidden">
-      <h3>Histórico de Entregas</h3>
-      <div id="history-filter-controls" class="history-filter-card">
-        <div class="filter-group">
-          <label for="start-date">Data de Início:</label>
-          <input type="date" id="start-date" class="form-control">
+    <main class="app-main">
+      <div id="quick-stats-panel" class="quick-stats-card">
+        <div class="stat-item">
+          <i class="fas fa-check-circle"></i>
+          <div class="stat-value" id="stats-deliveries-today">0</div>
+          <div class="stat-label">Entregas Hoje</div>
         </div>
-        <div class="filter-group">
-          <label for="end-date">Data de Fim:</label>
-          <input type="date" id="end-date" class="form-control">
-        </div>
-        <button id="filter-history-btn" class="btn">Buscar</button>
-      </div>
-      <div id="history-summary" class="history-summary-card">
-        <div class="summary-item">
-          <span class="label">Total de Taxas </span>
-          <span class="value" id="total-fees-value">R$ 0,00</span>
-        </div>
-        <div class="summary-item">
-          <span class="label">Entregas Finalizadas</span>
-          <span class="value" id="total-deliveries-count">0</span>
+        <div class="stat-item">
+          <i class="fas fa-wallet"></i>
+          <div class="stat-value" id="stats-earnings-today">R$ 0,00</div>
+          <div class="stat-label">Ganhos Hoje</div>
         </div>
       </div>
-      <div id="history-list">
+      <div id="current-deliveries-section">
+        <h3>Entregas Atuais</h3>
+        <div id="delivery-queue-list">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Aguardando novas entregas...</p>
+          </div>
+        </div>
       </div>
-    </div>
-  </main>
 
- <div id="delivery-details-modal" class="modal-view">
+      <div id="history-section" class="hidden">
+        <h3>Histórico de Entregas</h3>
+        <div id="history-filter-controls" class="history-filter-card">
+          <div class="filter-group">
+            <label for="start-date">Data de Início:</label>
+            <input type="date" id="start-date" class="form-control">
+          </div>
+          <div class="filter-group">
+            <label for="end-date">Data de Fim:</label>
+            <input type="date" id="end-date" class="form-control">
+          </div>
+          <button id="filter-history-btn" class="btn">Buscar</button>
+        </div>
+        <div id="history-summary" class="history-summary-card">
+          <div class="summary-item">
+            <span class="label">Total de Taxas a Receber</span>
+            <span class="value" id="total-fees-value">R$ 0,00</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Entregas Finalizadas</span>
+            <span class="value" id="total-deliveries-count">0</span>
+          </div>
+        </div>
+        <div id="history-list">
+        </div>
+      </div>
+    </main>
+  </div> <div id="delivery-details-modal" class="modal-view">
     <div class="modal-content">
       <header class="modal-header">
         <h3>Detalhes da Entrega</h3>
@@ -102,7 +101,7 @@
             <i class="fas fa-comment-dots"></i> Enviar Mensagem
         </button>
         <button id="btn-delivery-action" class="btn btn-primary">
-          <i class="fas fa-motorcycle"></i> Peguei o Pedido
+          <i class="fas fa-motorcycle"></i> Saindo para Entrega
         </button>
         <button id="btn-complete-delivery" class="btn btn-success">
           <i class="fas fa-check-circle"></i> Entrega Finalizada
@@ -111,55 +110,42 @@
     </div>
   </div>
   
- <div id="achievements-modal" class="modal-view">
-  <div class="modal-content">
-    <header class="modal-header">
-      <h3><i class="fas fa-trophy" style="color: #f1c40f;"></i> Minhas Conquistas</h3>
-      <button class="close-modal-btn">×</button>
-    </header>
-    <main class="modal-body" id="achievements-list">
-      <div class="loading-state">
-        <div class="spinner"></div>
-        <p>Carregando suas medalhas...</p>
-      </div>
-    </main>
+  <div id="achievements-modal" class="modal-view">
+    <div class="modal-content">
+      <header class="modal-header">
+        <h3><i class="fas fa-trophy" style="color: #f1c40f;"></i> Minhas Conquistas</h3>
+        <button class="close-modal-btn">×</button>
+      </header>
+      <main class="modal-body" id="achievements-list">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Carregando suas medalhas...</p>
+        </div>
+      </main>
+    </div>
   </div>
-</div>
 
-<div id="quick-message-modal" class="modal-view">
-  <div class="modal-content">
-    <header class="modal-header">
-      <h3>Enviar Mensagem Rápida</h3>
-      <button class="close-modal-btn">×</button>
-    </header>
-    <main class="modal-body" id="quick-message-list">
-      <button class="quick-message-btn" data-message="Trânsito intenso, vou atrasar um pouco.">Trânsito intenso, vou atrasar um pouco.</button>
-      <button class="quick-message-btn" data-message="Endereço não encontrado, tentando contato.">Endereço não encontrado, tentando contato.</button>
-      <button class="quick-message-btn" data-message="Cliente não atende o telefone.">Cliente não atende o telefone.</button>
-      <button class="quick-message-btn" data-message="Problema com o pedido, preciso de ajuda.">Problema com o pedido, preciso de ajuda.</button>
-      <button class="quick-message-btn" data-message="Cheguei ao local.">Cheguei ao local.</button>
-    </main>
+  <div id="quick-message-modal" class="modal-view">
+    <div class="modal-content">
+      <header class="modal-header">
+        <h3>Enviar Mensagem Rápida</h3>
+        <button class="close-modal-btn">×</button>
+      </header>
+      <main class="modal-body" id="quick-message-list">
+        <button class="quick-message-btn" data-message="Trânsito intenso, vou atrasar um pouco.">Trânsito intenso, vou atrasar um pouco.</button>
+        <button class="quick-message-btn" data-message="Endereço não encontrado, tentando contato.">Endereço não encontrado, tentando contato.</button>
+        <button class="quick-message-btn" data-message="Cliente não atende o telefone.">Cliente não atende o telefone.</button>
+        <button class="quick-message-btn" data-message="Problema com o pedido, preciso de ajuda.">Problema com o pedido, preciso de ajuda.</button>
+        <button class="quick-message-btn" data-message="Cheguei ao local.">Cheguei ao local.</button>
+      </main>
+    </div>
   </div>
-</div>
 
   <script type="module">
-    import {
-      initializeApp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      query,
-      where,
-      onSnapshot,
-      doc,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import {
-      getAuth,
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    // Importa TODAS as funções do Firestore que o app-entregador.js precisa
+    import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, updateDoc, Timestamp, orderBy, getDocs, runTransaction, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
@@ -175,22 +161,11 @@
     const db = getFirestore(app);
     const auth = getAuth(app);
 
-    // Disponibiliza globalmente para o app-entregador.js
+    // Disponibiliza globalmente para o app-entregador.js poder usar
     window.db = db;
     window.auth = auth;
-    window.firebaseAuth = {
-      onAuthStateChanged,
-      signOut
-    };
-    window.firebaseFirestore = {
-      collection,
-      query,
-      where,
-      onSnapshot,
-      doc,
-      getDoc
-    };
   </script>
+  
   <script type="module" src="app-entregador.js"></script>
 
   <script>
