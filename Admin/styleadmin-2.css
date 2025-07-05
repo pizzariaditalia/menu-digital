@@ -1354,8 +1354,10 @@ input:checked + .slider:before { transform: translateX(20px); }
     gap: 8px;
 }
 
+/* Em styleadmin-2.css, substitua as regras do sino e do badge por estas */
+
 #chat-notification-bell {
-    position: relative;
+    position: relative; /* Essencial para o posicionamento do badge */
 }
 
 .notification-badge {
@@ -1367,12 +1369,14 @@ input:checked + .slider:before { transform: translateX(20px); }
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    font-size: 0.7em;
+    font-size: 0.75em; /* Aumentei um pouco para o número caber melhor */
     font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--admin-primary-blue);
+    border: 2px solid var(--admin-primary-blue); /* Cor do header */
+    z-index: 1; /* Garante que fique sobre o sino */
+    line-height: 1; /* Garante que o número fique bem centralizado */
 }
 
 .notification-badge.hidden {
@@ -1445,5 +1449,9 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 .chat-item-actions {
     margin-top: 8px;
-    text-align: right;
+    /* NOVAS REGRAS PARA ALINHAMENTO */
+    display: flex;
+    justify-content: flex-end; /* Alinha tudo para a direita */
+    align-items: center;      /* Alinha verticalmente no centro */
+    gap: 10px;                /* Adiciona um espaço entre o link e o botão */
 }
