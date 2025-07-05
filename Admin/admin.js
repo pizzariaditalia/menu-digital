@@ -55,24 +55,33 @@ async function markMessageAsRead(messageId) {
     }
 }
 
+// Em admin.js, substitua a função initializeChatListener por esta versão de TESTE
+
 function initializeChatListener() {
-    // Esta função agora será chamada pelo paineladmin.html
-    console.log("Admin.js: Inicializando listener do chat...");
+    console.log("Admin.js: INICIANDO LISTENER DE TESTE (SEM FILTROS)...");
     const { collection, query, where, orderBy, onSnapshot } = window.firebaseFirestore;
     
+    // TESTE: Vamos remover o 'where' e o 'orderBy' para buscar TUDO
     const q = query(
-        collection(window.db, "chat_messages"), 
-        where("isRead", "==", false), 
-        orderBy("timestamp", "desc")
+        collection(db, "chat_messages")
     );
 
     onSnapshot(q, (snapshot) => {
+        console.log("LISTENER DE TESTE FOI ACIONADO!");
+        console.log("Número de documentos recebidos:", snapshot.size);
+        if (snapshot.size > 0) {
+            console.log("Dados dos documentos:", snapshot.docs.map(d => d.data()));
+        }
+
         if (!snapshot.metadata.hasPendingWrites && snapshot.docChanges().some(c => c.type === 'added')) {
             new Audio('../audio/notification.mp3').play().catch(e => console.warn("Áudio bloqueado pelo navegador"));
         }
         
+        // A lógica de UI continua a mesma para vermos se algo muda na tela
         unreadMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderChatDropdown();
+    }, (error) => {
+        console.error("ERRO NO LISTENER DE TESTE:", error);
     });
 }
 // Disponibiliza a função globalmente para que o HTML possa chamá-la
