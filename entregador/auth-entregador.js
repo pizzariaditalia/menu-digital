@@ -4,9 +4,37 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// Importa as funções que você vai precisar dos SDKs
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+
+// TODO: SDKs adicionados para os produtos que você usa
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getMessaging } from "firebase/messaging";
+
+// Sua configuração do Firebase (está correta)
 const firebaseConfig = {
-    // ... sua configuração do Firebase ...
+  apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
+  authDomain: "app-ditalia.firebaseapp.com",
+  projectId: "app-ditalia",
+  storageBucket: "app-ditalia.firebasestorage.app",
+  messagingSenderId: "122567535166",
+  appId: "1:122567535166:web:19de7b8925042027063f6f",
+  measurementId: "G-5QW3MVGYME"
 };
+
+// Inicializa o Firebase
+const app = initializeApp(firebaseConfig);
+
+// Inicializa os outros serviços do Firebase que você usa
+const analytics = getAnalytics(app);
+const auth = getAuth(app); // Para Autenticação (login, etc.)
+const db = getFirestore(app); // Para o Banco de Dados Firestore
+const messaging = getMessaging(app); // Para Notificações Push
+
+// Você pode então exportar essas constantes para usar em outros arquivos do seu projeto,
+// ou colocá-las no objeto 'window' como fizemos anteriormente.
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
