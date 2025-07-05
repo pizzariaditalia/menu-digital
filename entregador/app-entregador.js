@@ -286,14 +286,10 @@ function addCardClickListeners(container, orderArray) {
     });
 }
 
-function playNotificationSoundTwice() {
-    const audio = new Audio('../audio/notification-entrega.mp3');
-    audio.play().catch(e => console.warn("Aviso: O navegador bloqueou o autoplay do som.", e));
-    audio.onended = () => {
-        setTimeout(() => {
-            audio.play().catch(e => console.warn("Aviso: O navegador bloqueou o autoplay do segundo som.", e));
-        }, 500);
-    };
+// O nome foi alterado e a lógica de repetição removida
+function playNotificationSound() { 
+    const audio = new Audio('../audio/notification-entrega.mp3');
+    audio.play().catch(e => console.warn("Aviso: O navegador bloqueou o autoplay do som.", e));
 }
 
 function renderHistory(orders) {
@@ -348,7 +344,7 @@ function listenForDeliveries(driverId) {
     onSnapshot(q, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
             if (change.type === "added" && !isFirstLoad) {
-                playNotificationSoundTwice();
+                playNotificationSound();
             }
         });
         isFirstLoad = false;
