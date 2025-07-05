@@ -1007,35 +1007,9 @@
 
  <script type="module">
     // Importando módulos do App, Firestore e Autenticação
-    import {
-      initializeApp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    
-    // CORREÇÃO: Adicionamos 'documentId' à lista de imports
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      getDocs,
-      setDoc,
-      updateDoc,
-      collection,
-      query,
-      where,
-      orderBy,
-      onSnapshot,
-      deleteDoc,
-      writeBatch,
-      serverTimestamp,
-      Timestamp,
-      documentId 
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    import {
-      getAuth,
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, documentId } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
     // Sua configuração do Firebase (sem alterações)
     const firebaseConfig = {
@@ -1048,67 +1022,45 @@
       measurementId: "G-5QW3MVGYME"
     };
 
-    // Inicialização
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app); // Obtém a instância de autenticação
+    const auth = getAuth(app);
 
-    // ** O GUARDA DE PROTEÇÃO **
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // O usuário está logado! Prossiga e carregue o painel.
-        console.log("Usuário autenticado:", user.uid);
-
-        // Disponibiliza as funções do Firestore globalmente para os outros scripts
+        console.log("PASSO 1: Usuário autenticado. Definindo objetos globais...");
         window.firebaseApp = app;
         window.db = db;
-        
-        // CORREÇÃO: Adicionamos 'documentId' ao objeto global
-        window.firebaseFirestore = {
-          doc,
-          getDoc,
-          getDocs,
-          setDoc,
-          updateDoc,
-          collection,
-          query,
-          where,
-          orderBy,
-          onSnapshot,
-          deleteDoc,
-          writeBatch,
-          serverTimestamp,
-          Timestamp,
-          documentId
-        };
+        window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, documentId };
+        console.log("PASSO 2: Objetos globais definidos. window.db existe?", !!window.db);
 
-        // Chama a função principal do admin.js para iniciar o painel
-        if (typeof startAdminPanel === 'function') {
-          startAdminPanel();
-        } else {
-          console.error("ERRO GRAVE: A função startAdminPanel() do admin.js não foi encontrada.");
+        console.log("PASSO 3: Chamando startAdminPanel()...");
+        if (typeof window.startAdminPanel === 'function') {
+          window.startAdminPanel();
+        } else { 
+          console.error("ERRO CRÍTICO: A função startAdminPanel do admin.js não foi encontrada!"); 
         }
 
-        // LÓGICA DO BOTÃO DE LOGOUT
+        console.log("PASSO 4: Chamando initializeChatListener()...");
+        if (typeof window.initializeChatListener === 'function') {
+          window.initializeChatListener();
+        } else { 
+          console.error("ERRO CRÍTICO: A função initializeChatListener do admin.js não foi encontrada!"); 
+        }
+
+        // Lógica do botão de logout
         const logoutButton = document.getElementById('logout-button');
         if (logoutButton) {
           logoutButton.addEventListener('click', (e) => {
             e.preventDefault();
-
             signOut(auth).then(() => {
-              // Logout bem-sucedido
-              console.log('Usuário deslogado com sucesso.');
-              window.location.href = 'login.html'; // Redireciona para a página de login
+              window.location.href = 'login.html';
             }).catch((error) => {
-              // Ocorreu um erro
               console.error('Erro ao fazer logout:', error);
-              alert("Ocorreu um erro ao tentar sair. Tente novamente.");
             });
           });
         }
       } else {
-        // O usuário NÃO está logado! Redireciona para a página de login.
-        console.log("Nenhum usuário autenticado. Redirecionando para /login.html");
         window.location.href = 'login.html';
       }
     });
