@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ditalia-admin-cache-v179';
+const CACHE_NAME = 'ditalia-admin-cache-v180';
 const URLS_TO_CACHE = [
   './login.html',
   './auth.js',
