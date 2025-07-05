@@ -478,3 +478,23 @@ body.app-view {
 .timer-red {
     background-color: #dc3545; /* Vermelho */
 }
+
+/* Adicione no final de style-entregador.css */
+
+/* --- NOVOS ESTILOS PARA TAGS DE PAGAMENTO --- */
+.payment-info .tag {
+    color: white;
+    font-weight: 500;
+}
+
+.tag.tag-payment-paid {
+    background-color: #28a745; /* Verde para PAGO */
+}
+
+.tag.tag-payment-unpaid {
+    background-color: #dc3545; /* Vermelho para NÃO PAGO */
+}
+
+.tag.tag-payment-delivery {
+    background-color: #0d6efd; /* Azul para pagamento na entrega */
+}
