@@ -1,4 +1,4 @@
-// auth-entregador.js - VERSÃO COM LOGIN AUTOMÁTICO
+// auth-entregador.js - VERSÃO OTIMIZADA COM SPLASH SCREEN
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -18,64 +18,53 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// --- LÓGICA PRINCIPAL ---
-window.onload = () => {
-    const loginContainer = document.querySelector('.login-container');
-    const loadingContainer = document.getElementById('loading-auth-state');
-
-    // Listener que verifica o estado da autenticação EM TEMPO REAL
-    onAuthStateChanged(auth, (user) => {
+// Listener que verifica a sessão assim que a página carrega
+onAuthStateChanged(auth, (user) => {
+    // Adiciona um pequeno delay para a transição ser mais suave
+    setTimeout(() => {
         if (user) {
-            // 1. USUÁRIO JÁ ESTÁ LOGADO!
-            console.log("Sessão ativa encontrada para:", user.email, "Redirecionando...");
-            // Mostra uma mensagem de "carregando"
-            if(loginContainer) loginContainer.style.display = 'none';
-            if(loadingContainer) loadingContainer.style.display = 'flex';
-            // Redireciona para a página principal do app
+            // Se tem usuário, vai direto para o app
             window.location.href = 'app-entregador.html';
         } else {
-            // 2. NINGUÉM ESTÁ LOGADO
-            console.log("Nenhuma sessão ativa. Exibindo tela de login.");
-            // Garante que o formulário de login esteja visível e o "carregando" escondido
-            if(loginContainer) loginContainer.style.display = 'block';
-            if(loadingContainer) loadingContainer.style.display = 'none';
-            // Configura o botão de login
+            // Se não tem usuário, esconde a splash e mostra o botão de login
+            const splashScreen = document.getElementById('splash-screen-container');
+            const loginContainer = document.getElementById('login-container');
+
+            if (splashScreen) splashScreen.classList.add('hidden');
+            if (loginContainer) loginContainer.classList.remove('hidden');
+            
+            // Configura o botão de login para aguardar o clique
             setupLoginButton();
         }
-    });
-};
+    }, 500); // Meio segundo de delay
+});
 
 function setupLoginButton() {
     const loginButton = document.getElementById('google-login-button');
     const errorMessage = document.getElementById('error-message');
 
-    if (!loginButton) return;
+    if (!loginButton || loginButton.dataset.listener) return;
+    loginButton.dataset.listener = 'true'; // Previne adicionar o listener múltiplas vezes
 
     loginButton.addEventListener('click', async () => {
-        // ... (seu código de login com o popup continua o mesmo aqui dentro) ...
         loginButton.disabled = true;
         loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
-        errorMessage.textContent = '';
         const provider = new GoogleAuthProvider();
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
-            const q = query(collection(db, "delivery_people"), where("email", "==", user.email));
+            const q = query(collection(db, "delivery_people"), where("googleUid", "==", user.uid));
             const querySnapshot = await getDocs(q);
+
             if (querySnapshot.empty) {
                 errorMessage.textContent = "Acesso negado. Este e-mail não está cadastrado.";
                 await signOut(auth);
             } else {
-                const driverDoc = querySnapshot.docs[0];
-                const driverRef = doc(db, "delivery_people", driverDoc.id);
-                await updateDoc(driverRef, { googleUid: user.uid });
-                console.log(`Entregador ${user.displayName} autorizado e logado.`);
-                // O redirecionamento agora é feito pelo onAuthStateChanged
+                // O onAuthStateChanged vai detectar o login e redirecionar
             }
         } catch (error) {
             console.error("Erro no login com Google:", error);
             errorMessage.textContent = "Ocorreu um erro durante o login.";
-        } finally {
             loginButton.disabled = false;
             loginButton.innerHTML = '<i class="fab fa-google"></i> Entrar com Google';
         }
