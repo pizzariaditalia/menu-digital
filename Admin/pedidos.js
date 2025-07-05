@@ -190,6 +190,7 @@ function openOrderDetailsModal(order) {
 
     orderDetailsModal.classList.add('show');
 }
+window.openOrderDetailsModal = openOrderDetailsModal; 
 
 function closeOrderDetailsModal() {
   const orderDetailsModal = document.getElementById('order-details-modal'); 
