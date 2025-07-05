@@ -5,44 +5,46 @@ let unreadMessages = [];
 
 // --- Funções do Chat ---
 
+// Em admin.js, substitua a função renderChatDropdown por esta
+
 function renderChatDropdown() {
-  const listContainer = document.getElementById('chat-dropdown-list');
-  const badge = document.getElementById('chat-badge');
+    const listContainer = document.getElementById('chat-dropdown-list');
+    const badge = document.getElementById('chat-badge');
+    
+    if (!listContainer || !badge) return;
 
-  if (!listContainer || !badge) return;
+    // --- LÓGICA DO BADGE CORRIGIDA ---
+    if (unreadMessages.length > 0) {
+        badge.textContent = unreadMessages.length;
+        // Em vez de usar classes, vamos forçar a exibição com style.display
+        badge.style.display = 'flex'; 
+    } else {
+        badge.style.display = 'none';
+    }
+    // --- FIM DA CORREÇÃO ---
 
-  // Atualiza o contador no badge
-  if (unreadMessages.length > 0) {
-    badge.textContent = unreadMessages.length;
-    badge.classList.remove('hidden');
-  } else {
-    badge.classList.add('hidden');
-  }
+    // O resto da função continua igual
+    if (unreadMessages.length === 0) {
+        listContainer.innerHTML = '<p class="empty-message">Nenhuma nova mensagem.</p>';
+        return;
+    }
 
-  // Renderiza a lista de mensagens
-  if (unreadMessages.length === 0) {
-    listContainer.innerHTML = '<p class="empty-message">Nenhuma nova mensagem.</p>';
-    return;
-  }
-
-  listContainer.innerHTML = unreadMessages.map(msg => {
-    const timestamp = msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString('pt-BR', {
-      hour: '2-digit', minute: '2-digit'
-    }): '';
-    return `
-    <div class="chat-item" id="chat-msg-${msg.id}">
-    <div class="chat-item-header">
-    <span>De: <strong>${msg.driverName}</strong></span>
-    <span>${timestamp}</span>
-    </div>
-    <p class="chat-item-message">${msg.message}</p>
-    <div class="chat-item-actions">
-    <a href="#" class="link-view-order" data-order-id="${msg.orderId}">Ver Pedido #${msg.orderId.substring(0, 6)}</a>
-    <button class="btn btn-sm btn-secondary-outline mark-as-read-btn" data-msg-id="${msg.id}" style="margin-left: 10px;">Marcar como lida</button>
-    </div>
-    </div>
-    `;
-  }).join('');
+    listContainer.innerHTML = unreadMessages.map(msg => {
+        const timestamp = msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+        return `
+            <div class="chat-item" id="chat-msg-${msg.id}">
+                <div class="chat-item-header">
+                    <span>De: <strong>${msg.driverName}</strong></span>
+                    <span>${timestamp}</span>
+                </div>
+                <p class="chat-item-message">${msg.message}</p>
+                <div class="chat-item-actions">
+                    <a href="#" class="link-view-order" data-order-id="${msg.orderId}">Ver Pedido #${msg.orderId.substring(0, 6)}</a>
+                    <button class="btn btn-sm btn-secondary-outline mark-as-read-btn" data-msg-id="${msg.id}" style="margin-left: 10px;">Marcar como lida</button>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 async function markMessageAsRead(messageId) {
