@@ -64,32 +64,32 @@ async function markMessageAsRead(messageId) {
 
 // Em admin.js, substitua a função initializeChatListener por esta versão de TESTE
 
+// Em admin.js, substitua a função de teste por esta versão final
+
 function initializeChatListener() {
-  console.log("PASSO 5: DENTRO de initializeChatListener. A função foi chamada com sucesso!");
-  console.log("Admin.js: INICIANDO LISTENER DE TESTE (SEM FILTROS)...");
-  const {
-    collection,
-    query,
-    where,
-    orderBy,
-    onSnapshot
-  } = window.firebaseFirestore;
+    console.log("Admin.js: Inicializando listener do chat com filtros.");
+    const { collection, query, where, orderBy, onSnapshot } = window.firebaseFirestore;
+    
+    // A consulta final, que agora vai funcionar com o índice correto
+    const q = query(
+        collection(db, "chat_messages"), 
+        where("isRead", "==", false), 
+        orderBy("timestamp", "desc")
+    );
 
-  // TESTE: Vamos remover o 'where' e o 'orderBy' para buscar TUDO
-  const q = query(
-    collection(db, "chat_messages")
-  );
-
-  onSnapshot(q, (snapshot) => {
-    console.log("LISTENER DE TESTE FOI ACIONADO!");
-    console.log("Número de documentos recebidos:", snapshot.size);
-    if (snapshot.size > 0) {
-      console.log("Dados dos documentos:", snapshot.docs.map(d => d.data()));
-    }
-
-    if (!snapshot.metadata.hasPendingWrites && snapshot.docChanges().some(c => c.type === 'added')) {
-      new Audio('../audio/notification.mp3').play().catch(e => console.warn("Áudio bloqueado pelo navegador"));
-    }
+    onSnapshot(q, (snapshot) => {
+        // Toca o som apenas se uma nova mensagem for adicionada
+        if (!snapshot.metadata.hasPendingWrites && snapshot.docChanges().some(c => c.type === 'added')) {
+            new Audio('../audio/notification.mp3').play().catch(e => console.warn("Áudio bloqueado pelo navegador"));
+        }
+        
+        // Atualiza a UI com as mensagens
+        unreadMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderChatDropdown();
+    }, (error) => {
+        console.error("ERRO no listener do chat:", error);
+    });
+}
 
     // A lógica de UI continua a mesma para vermos se algo muda na tela
     unreadMessages = snapshot.docs.map(doc => ({
