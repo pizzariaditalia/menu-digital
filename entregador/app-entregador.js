@@ -1,6 +1,6 @@
-// app-entregador.js - VERSÃO COMPLETA COM CHAT, GAMIFICAÇÃO, FILTROS E CORREÇÕES
+// app-entregador.js - VERSÃO COMPLETA COM CRONÔMETRO DE ENTREGAS
 
-// Importa funções do Firebase, incluindo as novas para o chat ('addDoc', 'serverTimestamp')
+// Importa funções do Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, updateDoc, Timestamp, orderBy, getDocs, runTransaction, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -53,8 +53,6 @@ const statsEarningsToday = document.getElementById('stats-earnings-today');
 const achievementsModal = document.getElementById('achievements-modal');
 const achievementsListDiv = document.getElementById('achievements-list');
 const closeAchievementsModalBtn = achievementsModal.querySelector('.close-modal-btn');
-
-// NOVO: Seletores para o chat de mensagens rápidas
 const btnSendMessage = document.getElementById('btn-send-message');
 const quickMessageModal = document.getElementById('quick-message-modal');
 const closeMessageModalBtn = quickMessageModal.querySelector('.close-modal-btn');
@@ -79,24 +77,19 @@ if (btnSendMessage) {
         }
     });
 }
-
 if (closeMessageModalBtn) {
     closeMessageModalBtn.addEventListener('click', () => quickMessageModal.classList.remove('show'));
 }
-
 if (quickMessageModal) {
     quickMessageModal.querySelectorAll('.quick-message-btn').forEach(button => {
         button.addEventListener('click', async (e) => {
             const message = e.target.dataset.message;
-            
             if (!auth.currentUser || !selectedOrder) {
                 alert("Erro: não foi possível identificar o usuário ou o pedido.");
                 return;
             }
-
             e.target.disabled = true;
             e.target.textContent = 'Enviando...';
-
             try {
                 await addDoc(collection(db, "chat_messages"), {
                     driverId: auth.currentUser.uid,
@@ -119,7 +112,6 @@ if (quickMessageModal) {
     });
 }
 
-
 // --- LÓGICA DAS CONQUISTAS ---
 function renderAchievements() {
     if (!achievementsListDiv || !currentDriverProfile) return;
@@ -132,12 +124,10 @@ function renderAchievements() {
                 <div class="icon"><i class="fas ${achievement.icon}"></i></div>
                 <div class="name">${achievement.name}</div>
                 <div class="description">${achievement.description}</div>
-            </div>
-        `;
+            </div>`;
     }
     achievementsListDiv.innerHTML = achievementsHTML;
 }
-
 if (achievementsBtn) {
     achievementsBtn.addEventListener('click', () => {
         renderAchievements();
@@ -147,52 +137,66 @@ if (achievementsBtn) {
 if (closeAchievementsModalBtn) {
     closeAchievementsModalBtn.addEventListener('click', () => achievementsModal.classList.remove('show'));
 }
-
 async function checkAndAwardAchievements(driverRef) {
     try {
         const newAchievementsAwarded = await runTransaction(db, async (transaction) => {
             const driverDoc = await transaction.get(driverRef);
             if (!driverDoc.exists()) throw "Documento do entregador não existe!";
-
             const driverData = driverDoc.data();
             const currentTotal = (driverData.totalDeliveries || 0) + 1;
             const currentAchievements = driverData.achievements || {};
             let awardedInThisTransaction = [];
-
             for (const id in ACHIEVEMENTS) {
                 if (!currentAchievements[id] && currentTotal >= ACHIEVEMENTS[id].requiredCount) {
                     currentAchievements[id] = true;
                     awardedInThisTransaction.push(ACHIEVEMENTS[id]);
                 }
             }
-
-            transaction.update(driverRef, {
-                totalDeliveries: currentTotal,
-                achievements: currentAchievements
-            });
-            
+            transaction.update(driverRef, { totalDeliveries: currentTotal, achievements: currentAchievements });
             return awardedInThisTransaction;
         });
-
         if (newAchievementsAwarded.length > 0) {
             const driverDoc = await getDoc(driverRef);
             if(driverDoc.exists()) currentDriverProfile = driverDoc.data();
-            
             setTimeout(() => {
                 newAchievementsAwarded.forEach(ach => {
                     alert(`Parabéns! Você desbloqueou a conquista: "${ach.name}"`);
                 });
             }, 500);
         }
-
     } catch (e) {
         console.error("Erro na transação de conquista: ", e);
     }
 }
 
+// --- NOVO: LÓGICA DO CRONÔMETRO ---
+function updateAllTimers() {
+    const timerElements = document.querySelectorAll('.order-timer');
+    timerElements.forEach(timerEl => {
+        const createdAt = timerEl.dataset.createdAt;
+        if (!createdAt) return;
+        const startTime = new Date(createdAt);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - startTime) / 1000);
+        if (diffInSeconds < 0) return;
+        const minutes = Math.floor(diffInSeconds / 60);
+        const seconds = diffInSeconds % 60;
+        timerEl.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        timerEl.classList.remove('timer-green', 'timer-yellow', 'timer-red');
+        if (minutes >= 60) {
+            timerEl.classList.add('timer-red');
+        } else if (minutes >= 45) {
+            timerEl.classList.add('timer-yellow');
+        } else {
+            timerEl.classList.add('timer-green');
+        }
+    });
+}
+
 
 // --- FUNÇÕES DE RENDERIZAÇÃO E UI ---
 
+// ALTERADO: Função createDeliveryCard agora inclui o cronômetro
 function createDeliveryCard(order) {
     const paymentMethod = order.payment?.method || 'N/A';
     const paymentClass = paymentMethod.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
@@ -201,9 +205,18 @@ function createDeliveryCard(order) {
     if (status === 'Entregue') {
         cardClass += ' history-card';
     }
+    const createdAtISO = order.createdAt?.toDate ? order.createdAt.toDate().toISOString() : new Date().toISOString();
+    let timerHTML = '';
+    // Só mostra o timer para pedidos que não foram entregues
+    if (status !== 'Entregue' && status !== 'Cancelado') {
+        timerHTML = `<div class="order-timer" data-created-at="${createdAtISO}">00:00</div>`;
+    }
 
     return `
     <div class="${cardClass}" data-order-id="${order.id}">
+        <div class="card-header">
+            ${timerHTML}
+        </div>
         <div class="card-row">
             <div class="customer-info">
                 <div class="name">${order.customer?.firstName || 'Cliente'} ${order.customer?.lastName || ''}</div>
@@ -220,22 +233,14 @@ function createDeliveryCard(order) {
 
 function openDetailsModal(order) {
     selectedOrder = order;
-    
     const address = order.delivery.address || `${order.delivery.street}, ${order.delivery.number}`;
     const mapLink = `https://maps.google.com/?q=${encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
-    
     const customerHTML = `<div class="modal-section"><h4><i class="fas fa-user"></i> Cliente</h4><div class="detail-line"><span class="label">Nome</span><span class="value">${order.customer.firstName} ${order.customer.lastName}</span></div><a href="https://wa.me/55${order.customer.whatsapp}" target="_blank" class="btn" style="background-color:#25D366; width: 95%; margin: 10px auto 0 auto;"><i class="fab fa-whatsapp"></i> Chamar no WhatsApp</a></div><div class="modal-section"><h4><i class="fas fa-map-marker-alt"></i> Endereço</h4><div class="address-block">${address}<br>Bairro: ${order.delivery.neighborhood}<br>${order.delivery.complement ? `Comp: ${order.delivery.complement}<br>` : ''}${order.delivery.reference ? `Ref: ${order.delivery.reference}` : ''}</div><a href="${mapLink}" target="_blank" class="btn" style="background-color:#4285F4; width:95%; margin:10px auto 0 auto;"><i class="fas fa-map-signs"></i> Ver no Mapa</a></div>`;
-
     const { subtotal = 0, discount = 0, deliveryFee = 0, grandTotal = 0 } = order.totals;
     const financialHTML = `<div class="modal-section"><h4><i class="fas fa-file-invoice-dollar"></i> Resumo Financeiro</h4><div class="detail-line"><span class="label">Subtotal dos Produtos</span><span class="value">${formatPrice(subtotal)}</span></div>${discount > 0 ? `<div class="detail-line"><span class="label">Desconto Aplicado</span><span class="value" style="color:var(--primary-red);">- ${formatPrice(discount)}</span></div>` : ''}<div class="detail-line"><span class="label">Taxa de Entrega</span><span class="value">${formatPrice(deliveryFee)}</span></div><hr><div class="detail-line"><span class="label">VALOR A COBRAR</span><span class="value total">${formatPrice(grandTotal)}</span></div><div class="detail-line"><span class="label">Forma de Pagamento</span><span class="value">${order.payment.method}</span></div>${order.payment.method === 'Dinheiro' && order.payment.changeFor > 0 ? `<div class="detail-line"><span class="label">Levar Troco Para</span><span class="value">${formatPrice(order.payment.changeFor)}</span></div>` : ''}</div>`;
-
     const itemsHTML = `<div class="modal-section"><h4><i class="fas fa-shopping-basket"></i> Itens do Pedido</h4><ul class="order-items-list">${order.items.map(item => `<li>${item.quantity}x ${item.name}</li>`).join('')}</ul></div>`;
-
     modalBody.innerHTML = customerHTML + financialHTML + itemsHTML;
-    
-    // Mostra o botão de mensagem apenas quando o pedido está em andamento
     if(btnSendMessage) btnSendMessage.style.display = (order.status === "Em Preparo" || order.status === "Saiu para Entrega") ? 'grid' : 'none';
-
     if (order.status === "Entregue") {
         modalFooter.style.display = 'none';
     } else {
@@ -248,7 +253,6 @@ function openDetailsModal(order) {
             btnCompleteDelivery.style.display = 'grid';
         }
     }
-    
     deliveryDetailsModal.classList.add('show');
 }
 
@@ -427,7 +431,11 @@ onAuthStateChanged(auth, async (user) => {
         listenForDeliveries(user.uid); 
         const today = new Date();
         today.setHours(0, 0, 0, 0); 
-        listenForHistory(user.uid, today, today); 
+        listenForHistory(user.uid, today, today);
+        
+        // Inicia o "motor" do cronômetro global
+        setInterval(updateAllTimers, 1000);
+
     } else {
         window.location.href = 'login.html';
     }
