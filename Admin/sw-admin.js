@@ -1,79 +1,237 @@
-const CACHE_NAME = 'ditalia-admin-cache-v181';
-const URLS_TO_CACHE = [
-  './login.html',
-  './auth.js',
-  './paineladmin.html',
-  './styleadmin.css',
-  './styleadmin-2.css',
-  './admin.js',
-  './pedidos.js',
-  './cardapio.js',
-  './pdv.js',
-  './clientes.js',
-  './vendas.js',
-  './promocoes.js',
-  './config.js',
-  './appearance.js',
-  '../img/logos/logo.png',
-  '../img/icons/icon-192x192.png',
-  '../img/icons/icon-512x512.png',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
-  'https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap'
-];
+// admin.js - VERSÃO FINAL COM CHAT 100% FUNCIONAL
 
-// Evento de instalação: abre o cache e armazena os arquivos do app
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-    .then((cache) => {
-      console.log('Cache do Admin aberto');
-      // Adiciona todas as URLs ao cache. Se uma falhar, a instalação falha.
-      return Promise.all(
-        URLS_TO_CACHE.map(url => {
-          return cache.add(new Request(url, {
-            cache: 'reload'
-          })).catch(err => {
-            console.warn(`Falha ao adicionar ao cache: ${url}`, err);
-          });
-        })
-      );
-    })
-  );
-});
+// --- Variáveis globais ---
+let unreadMessages = [];
 
-// Evento de fetch: intercepta as requisições
-self.addEventListener('fetch', (event) => {
-  // Não aplica o cache para requisições do Firebase
-  if (event.request.url.includes('firestore.googleapis.com')) {
-    return;
+// --- Funções do Chat ---
+
+// CORRIGIDO: Lógica do badge alterada para garantir a exibição
+function renderChatDropdown() {
+    const listContainer = document.getElementById('chat-dropdown-list');
+    const badge = document.getElementById('chat-badge');
+    
+    if (!listContainer || !badge) return;
+
+    // Lógica do badge corrigida para usar style.display
+    if (unreadMessages.length > 0) {
+        badge.textContent = unreadMessages.length;
+        badge.style.display = 'flex'; 
+    } else {
+        badge.style.display = 'none';
+    }
+
+    // Renderiza a lista de mensagens
+    if (unreadMessages.length === 0) {
+        listContainer.innerHTML = '<p class="empty-message">Nenhuma nova mensagem.</p>';
+        return;
+    }
+
+    listContainer.innerHTML = unreadMessages.map(msg => {
+        const timestamp = msg.timestamp?.toDate ? msg.timestamp.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+        return `
+            <div class="chat-item" id="chat-msg-${msg.id}">
+                <div class="chat-item-header">
+                    <span>De: <strong>${msg.driverName}</strong></span>
+                    <span>${timestamp}</span>
+                </div>
+                <p class="chat-item-message">${msg.message}</p>
+                <div class="chat-item-actions">
+                    <a href="#" class="link-view-order" data-order-id="${msg.orderId}">Ver Pedido #${msg.orderId.substring(0, 6)}</a>
+                    <button class="btn btn-sm btn-secondary-outline mark-as-read-btn" data-msg-id="${msg.id}" style="margin-left: 10px;">Marcar como lida</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+async function markMessageAsRead(messageId) {
+    const { doc, updateDoc } = window.firebaseFirestore;
+    const msgRef = doc(window.db, "chat_messages", messageId);
+    try {
+        await updateDoc(msgRef, { isRead: true });
+    } catch (error) {
+        console.error("Erro ao marcar mensagem como lida:", error);
+        window.showToast("Erro ao processar mensagem.", "error");
+    }
+}
+
+function initializeChatListener() {
+    // Esta função agora é chamada pelo paineladmin.html
+    console.log("Admin.js: Inicializando listener do chat com filtros.");
+    const { collection, query, where, orderBy, onSnapshot } = window.firebaseFirestore;
+    
+    const q = query(
+        collection(window.db, "chat_messages"), 
+        where("isRead", "==", false), 
+        orderBy("timestamp", "desc")
+    );
+
+    onSnapshot(q, (snapshot) => {
+        if (!snapshot.metadata.hasPendingWrites && snapshot.docChanges().some(c => c.type === 'added')) {
+            new Audio('../audio/notification.mp3').play().catch(e => console.warn("Áudio bloqueado pelo navegador"));
+        }
+        
+        unreadMessages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderChatDropdown();
+    }, (error) => {
+        console.error("ERRO no listener do chat:", error);
+    });
+}
+// Disponibiliza a função globalmente para que o HTML possa chamá-la
+window.initializeChatListener = initializeChatListener;
+
+
+async function startAdminPanel() {
+  console.log("Admin.js: startAdminPanel() iniciado.");
+
+  // --- Seletores do DOM ---
+  const openDrawerButton = document.getElementById('open-drawer-menu');
+  const closeDrawerButton = document.getElementById('close-drawer-menu');
+  const drawerMenu = document.getElementById('admin-drawer-menu');
+  const drawerOverlay = document.getElementById('drawer-overlay');
+  const drawerLinks = document.querySelectorAll('.admin-drawer ul li a');
+  const adminViews = document.querySelectorAll('.admin-main-content .admin-view');
+  
+  const chatNotificationBell = document.getElementById('chat-notification-bell');
+  const chatDropdown = document.getElementById('chat-dropdown');
+
+  // --- Lógica do Menu e Navegação ---
+  const defaultMenuDataAdmin = { "pizzas-tradicionais": { name: "Pizzas Tradicionais", items: [] } };
+  const defaultAppSettings = { operatingHours: {}, deliveryFees: {}, storeInfo: { minOrderValue: 0 } };
+
+  async function initializeMenuData() {
+    if (!window.firebaseFirestore || !window.db) { window.menuData = JSON.parse(JSON.stringify(defaultMenuDataAdmin)); return; }
+    const { doc, getDoc } = window.firebaseFirestore;
+    const menuDocRef = doc(window.db, "menus", "principal");
+    try { const docSnap = await getDoc(menuDocRef); window.menuData = docSnap.exists() ? docSnap.data() : defaultMenuDataAdmin; }
+    catch (error) { window.menuData = JSON.parse(JSON.stringify(defaultMenuDataAdmin)); }
   }
 
-  event.respondWith(
-    caches.match(event.request)
-    .then((response) => {
-      // Se o recurso for encontrado no cache, retorna ele
-      if (response) {
-        return response;
-      }
-      // Senão, faz a requisição à rede
-      return fetch(event.request);
-    })
-  );
-});
+  async function initializeAppSettings() {
+    if (!window.firebaseFirestore || !window.db) { window.appSettings = JSON.parse(JSON.stringify(defaultAppSettings)); return; }
+    const { doc, getDoc } = window.firebaseFirestore;
+    const settingsDocRef = doc(window.db, "configuracoes", "mainSettings");
+    try { const docSnap = await getDoc(settingsDocRef); window.appSettings = docSnap.exists() ? { ...defaultAppSettings, ...docSnap.data() } : defaultAppSettings; }
+    catch (error) { window.appSettings = JSON.parse(JSON.stringify(defaultAppSettings)); }
+  }
 
-// Evento de ativação: limpa caches antigos
-self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            console.log('Deletando cache antigo do admin:', cacheName);
-            return caches.delete(cacheName);
+  await initializeMenuData();
+  await initializeAppSettings();
+
+  function toggleDrawer(isOpen) {
+    if (!drawerMenu || !drawerOverlay) return;
+    drawerMenu.classList.toggle('open', isOpen);
+    drawerOverlay.classList.toggle('show', isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  }
+  
+  if (openDrawerButton) openDrawerButton.addEventListener('click', () => toggleDrawer(true));
+  if (closeDrawerButton) closeDrawerButton.addEventListener('click', () => toggleDrawer(false));
+  if (drawerOverlay) drawerOverlay.addEventListener('click', () => toggleDrawer(false));
+
+  drawerLinks.forEach(link => {
+    link.addEventListener('click', function(event) {
+      if (this.getAttribute('target') === '_blank' || this.closest('li').querySelector('hr')) return;
+      event.preventDefault();
+      drawerLinks.forEach(dl => dl.parentElement.classList.remove('active-link'));
+      this.parentElement.classList.add('active-link');
+      const targetViewId = this.dataset.sectionTarget;
+      adminViews.forEach(view => { view.classList.toggle('active', view.id === targetViewId) });
+      switch (targetViewId) {
+        case 'appearance-view': if (typeof window.initializeAppearanceSection === 'function') window.initializeAppearanceSection(); break;
+        case 'cardapio-view': if (typeof window.initializeCardapioSection === 'function') window.initializeCardapioSection(); break;
+        case 'pdv-content': if (typeof window.initializePdvSection === 'function') window.initializePdvSection(); break;
+        case 'orders-content': if (typeof window.initializeOrdersSection === 'function') window.initializeOrdersSection(); break;
+        case 'vendas-view': if (typeof window.initializeVendasSection === 'function') window.initializeVendasSection(); break;
+        case 'customers-content': if (typeof window.initializeCustomersSection === 'function') window.initializeCustomersSection(); break;
+        case 'promotions-content': if (typeof window.initializePromotionsSection === 'function') window.initializePromotionsSection(); break;
+        case 'settings-content': if (typeof window.initializeSettingsSection === 'function') window.initializeSettingsSection(); break;
+        case 'comunicados-view': if (typeof window.initializeComunicadosSection === 'function') window.initializeComunicadosSection(); break;
+        case 'import-view': if (typeof window.initializeImportSection === 'function') window.initializeImportSection(); break;
+      }
+      toggleDrawer(false);
+    });
+  });
+  
+  // LÓGICA ATUALIZADA: Listener de clique para o chat
+  if(chatNotificationBell) {
+      chatNotificationBell.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (chatDropdown) chatDropdown.classList.toggle('hidden');
+      });
+  }
+  
+  const chatDropdownList = document.getElementById('chat-dropdown-list');
+  if(chatDropdownList) {
+      chatDropdownList.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const target = e.target;
+          
+          if (target.classList.contains('mark-as-read-btn')) {
+              markMessageAsRead(target.dataset.msgId);
           }
-        })
-      );
-    })
-  );
-});
+
+          if (target.classList.contains('link-view-order')) {
+              const orderId = target.dataset.orderId;
+              if (!orderId) return;
+              target.textContent = 'Buscando...';
+              try {
+                  const { doc, getDoc } = window.firebaseFirestore;
+                  const orderRef = doc(window.db, "pedidos", orderId);
+                  const orderSnap = await getDoc(orderRef);
+
+                  if (orderSnap.exists()) {
+                      if (typeof window.openOrderDetailsModal === 'function') {
+                          window.openOrderDetailsModal({ id: orderSnap.id, ...orderSnap.data() });
+                          if (chatDropdown) chatDropdown.classList.add('hidden'); // Fecha o dropdown
+                      } else {
+                          window.showToast("Módulo de pedidos precisa ser carregado.", "error");
+                      }
+                  } else {
+                      window.showToast("Pedido não encontrado.", "error");
+                  }
+              } catch (error) {
+                  console.error("Erro ao buscar detalhes do pedido:", error);
+                  window.showToast("Erro ao buscar pedido.", "error");
+              } finally {
+                   target.textContent = `Ver Pedido #${orderId.substring(0, 6)}`;
+              }
+          }
+      });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (chatDropdown && !chatDropdown.classList.contains('hidden') && !chatNotificationBell.contains(e.target) && !chatDropdown.contains(e.target)) {
+        chatDropdown.classList.add('hidden');
+    }
+  });
+
+  // --- Inicialização do Painel ---
+  const initialActiveViewLink = document.querySelector('.admin-drawer ul li.active-link a');
+  if (initialActiveViewLink) {
+    initialActiveViewLink.click();
+  } else {
+    const firstLink = document.querySelector('.admin-drawer a[data-section-target]');
+    if (firstLink) firstLink.click();
+  }
+  
+  console.log("Admin.js: Painel Carregado e Scripts Prontos!");
+}
+// Disponibiliza a função principal globalmente
+window.startAdminPanel = startAdminPanel;
+
+
+function showToast(message, type = 'success') {
+  const existingToast = document.querySelector('.toast-notification');
+  if (existingToast) { existingToast.remove(); }
+  const toast = document.createElement('div');
+  toast.className = `toast-notification ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.classList.add('show'); }, 100);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => { if (toast.parentElement) { toast.parentElement.removeChild(toast); } }, 500);
+  }, 3000);
+}
+window.showToast = showToast;
