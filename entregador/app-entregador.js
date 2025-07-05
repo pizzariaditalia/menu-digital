@@ -1,4 +1,4 @@
-// app-entregador.js - VERSÃO COMPLETA COM CRONÔMETRO DE ENTREGAS
+// app-entregador.js - VERSÃO COMPLETA COM STATUS DE PAGAMENTO EM TEMPO REAL
 
 // Importa funções do Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -169,7 +169,7 @@ async function checkAndAwardAchievements(driverRef) {
     }
 }
 
-// --- NOVO: LÓGICA DO CRONÔMETRO ---
+// --- LÓGICA DO CRONÔMETRO ---
 function updateAllTimers() {
     const timerElements = document.querySelectorAll('.order-timer');
     timerElements.forEach(timerEl => {
@@ -196,21 +196,36 @@ function updateAllTimers() {
 
 // --- FUNÇÕES DE RENDERIZAÇÃO E UI ---
 
-// ALTERADO: Função createDeliveryCard agora inclui o cronômetro
+// ALTERADO: Função createDeliveryCard agora inclui a lógica de status de pagamento
 function createDeliveryCard(order) {
-    const paymentMethod = order.payment?.method || 'N/A';
-    const paymentClass = paymentMethod.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
     const status = order.status || 'Indefinido';
     let cardClass = 'delivery-card';
     if (status === 'Entregue') {
         cardClass += ' history-card';
     }
+
     const createdAtISO = order.createdAt?.toDate ? order.createdAt.toDate().toISOString() : new Date().toISOString();
     let timerHTML = '';
-    // Só mostra o timer para pedidos que não foram entregues
     if (status !== 'Entregue' && status !== 'Cancelado') {
         timerHTML = `<div class="order-timer" data-created-at="${createdAtISO}">00:00</div>`;
     }
+
+    // --- NOVA LÓGICA PARA A TAG DE PAGAMENTO ---
+    let paymentTagHTML = '';
+    const paymentMethod = order.payment?.method || 'N/A';
+
+    if (paymentMethod === 'Pix') {
+        const isPaid = order.payment?.pixPaid === true;
+        if (isPaid) {
+            paymentTagHTML = '<span class="tag tag-payment-paid">Pix (Pago)</span>';
+        } else {
+            paymentTagHTML = '<span class="tag tag-payment-unpaid">Pix (Não Pago)</span>';
+        }
+    } else {
+        const paymentClass = paymentMethod.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
+        paymentTagHTML = `<span class="tag tag-payment-delivery ${paymentClass}">${paymentMethod}</span>`;
+    }
+    // --- FIM DA NOVA LÓGICA ---
 
     return `
     <div class="${cardClass}" data-order-id="${order.id}">
@@ -225,7 +240,7 @@ function createDeliveryCard(order) {
             <div class="order-value">${formatPrice(order.totals?.grandTotal)}</div>
         </div>
         <div class="card-row">
-            <div class="payment-info"><span class="tag ${paymentClass}">${paymentMethod}</span></div>
+            <div class="payment-info">${paymentTagHTML}</div>
             <div class="status-info"><span class="tag status-${status.toLowerCase().replace(/ /g, '-')}">${status}</span></div>
         </div>
     </div>`;
@@ -433,9 +448,7 @@ onAuthStateChanged(auth, async (user) => {
         today.setHours(0, 0, 0, 0); 
         listenForHistory(user.uid, today, today);
         
-        // Inicia o "motor" do cronômetro global
         setInterval(updateAllTimers, 1000);
-
     } else {
         window.location.href = 'login.html';
     }
