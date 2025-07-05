@@ -1,4 +1,4 @@
-// app-entregador.js - VERSÃO COMPLETA COM CARREGAMENTO OTIMIZADO
+// app-entregador.js - VERSÃO FINAL COM TODAS AS FUNÇÕES E SOM ÚNICO
 
 // Importa funções do Firebase
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -183,6 +183,12 @@ function updateAllTimers() {
     });
 }
 
+// --- CORRIGIDO: Função de som para tocar apenas uma vez ---
+function playNotificationSound() {
+    const audio = new Audio('../audio/notification-entrega.mp3');
+    audio.play().catch(e => console.warn("Aviso: O navegador bloqueou o autoplay do som.", e));
+}
+
 // --- FUNÇÕES DE RENDERIZAÇÃO E UI ---
 function createDeliveryCard(order) {
     const status = order.status || 'Indefinido';
@@ -218,6 +224,7 @@ function createDeliveryCard(order) {
         </div>
     </div>`;
 }
+
 function openDetailsModal(order) {
     selectedOrder = order;
     const address = order.delivery.address || `${order.delivery.street}, ${order.delivery.number}`;
@@ -244,7 +251,7 @@ function openDetailsModal(order) {
 }
 function closeDetailsModal() { if (deliveryDetailsModal) deliveryDetailsModal.classList.remove('show'); }
 function addCardClickListeners(container, orderArray) { if (!container) return; container.querySelectorAll('.delivery-card').forEach(card => { card.addEventListener('click', () => { const orderId = card.dataset.orderId; const order = orderArray.find(o => o.id === orderId); if (order) openDetailsModal(order); }); }); }
-function playNotificationSound() { const audio = new Audio('../audio/notification-entrega.mp3'); audio.play().catch(e => console.warn("Aviso: O navegador bloqueou o autoplay do som.", e)); }
+
 function renderHistory(orders) {
     historicalOrders = orders; if (!historyList || !totalFeesValue || !totalDeliveriesCount) return; let totalFees = orders.reduce((sum, order) => sum + (order.delivery?.fee || 0), 0); let totalDeliveries = orders.length; if (statsDeliveriesToday && statsEarningsToday) { statsDeliveriesToday.textContent = totalDeliveries; statsEarningsToday.textContent = formatPrice(totalFees); } totalFeesValue.textContent = formatPrice(totalFees); totalDeliveriesCount.textContent = totalDeliveries; if (orders.length === 0) { historyList.innerHTML = `<div class="loading-state"><p>Nenhuma entrega encontrada para o período selecionado.</p></div>`; } else { historyList.innerHTML = orders.map(createDeliveryCard).join(''); addCardClickListeners(historyList, historicalOrders); }
 }
@@ -263,25 +270,21 @@ if (historyBtn) { historyBtn.addEventListener('click', () => { const isHistoryVi
 if (logoutBtn) { logoutBtn.addEventListener('click', () => { signOut(auth).catch(error => console.error("Erro no logout:", error)); }); }
 if (filterHistoryBtn) { filterHistoryBtn.addEventListener('click', () => { const startDateValue = startDateInput.value; const endDateValue = endDateInput.value; if (!startDateValue) { alert("Por favor, selecione pelo menos a data de início."); return; } const startDate = new Date(startDateValue + 'T00:00:00'); const endDate = endDateValue ? new Date(endDateValue + 'T00:00:00') : null; const user = auth.currentUser; if (user) { listenForHistory(user.uid, startDate, endDate); } }); }
 
-// --- ALTERADO: LÓGICA DE AUTENTICAÇÃO OTIMIZADA PARA CARREGAMENTO RÁPIDO ---
+// --- LÓGICA DE AUTENTICAÇÃO OTIMIZADA ---
 onAuthStateChanged(auth, async (user) => {
     const appLoader = document.getElementById('app-loader');
     const appContent = document.getElementById('app-content');
 
     if (user) {
-        // 1. Mostra o app e esconde o "carregando" IMEDIATAMENTE.
         appLoader.classList.add('hidden');
         appContent.classList.remove('hidden');
 
-        // 2. Coloca um nome temporário enquanto os dados carregam.
         if (driverNameSpan) {
             driverNameSpan.textContent = user.displayName ? user.displayName.split(' ')[0] : "Entregador";
         }
         
-        // 3. Inicia o cronômetro global.
         setInterval(updateAllTimers, 1000);
 
-        // 4. AGORA SIM, busca os dados do Firestore em segundo plano.
         const driverRef = doc(db, 'delivery_people', user.uid);
         const driverSnap = await getDoc(driverRef);
         if (driverSnap.exists()) {
@@ -290,14 +293,12 @@ onAuthStateChanged(auth, async (user) => {
             currentDriverProfile = { totalDeliveries: 0, achievements: {} };
         }
 
-        // Inicia os listeners para preencher as listas
         listenForDeliveries(user.uid); 
         const today = new Date();
         today.setHours(0, 0, 0, 0); 
         listenForHistory(user.uid, today, today); 
 
     } else {
-        // USUÁRIO NÃO ESTÁ LOGADO
         window.location.href = 'login.html';
     }
 });
