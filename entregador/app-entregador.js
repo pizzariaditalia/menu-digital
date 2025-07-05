@@ -316,9 +316,10 @@ function addCardClickListeners(container, orderArray) {
   });
 }
 
-function playNotificationSound() { 
-    const audio = new Audio('../audio/notification-entrega.mp3');
-    audio.play().catch(e => console.warn("Aviso: O navegador bloqueou o autoplay do som.", e));
+function playNotificationSound() {
+  const audio = new Audio('../audio/notification-entrega.mp3');
+  audio.play().catch(e => console.warn("Aviso: O navegador bloqueou o autoplay do som.",
+    e));
 }
 
 function renderHistory(orders) {
@@ -459,42 +460,48 @@ if (filterHistoryBtn) {
   });
 }
 
+// Em app-entregador.js, substitua a função onAuthStateChanged inteira por esta
+
 onAuthStateChanged(auth, async (user) => {
-    // Seleciona os contêineres que criamos no HTML
     const appLoader = document.getElementById('app-loader');
     const appContent = document.getElementById('app-content');
 
     if (user) {
-        // USUÁRIO ESTÁ LOGADO
-        // Busca os dados do perfil, como já fazia antes
+        // --- OTIMIZAÇÃO APLICADA AQUI ---
+        
+        // 1. Mostra o app e esconde o "carregando" IMEDIATAMENTE.
+        appLoader.classList.add('hidden');
+        appContent.classList.remove('hidden');
+
+        // 2. Coloca um nome temporário enquanto os dados carregam.
+        if (driverNameSpan) {
+            driverNameSpan.textContent = user.displayName ? user.displayName.split(' ')[0] : "Entregador";
+        }
+        
+        // 3. Inicia o cronômetro global.
+        setInterval(updateAllTimers, 1000);
+
+        // 4. AGORA SIM, busca os dados do Firestore em segundo plano.
+        // O usuário já está vendo a tela do app enquanto isso acontece.
         const driverRef = doc(db, 'delivery_people', user.uid);
         const driverSnap = await getDoc(driverRef);
         if (driverSnap.exists()) {
             currentDriverProfile = driverSnap.data();
         } else {
+            // Se o perfil não existir por algum motivo, cria um básico
             currentDriverProfile = { totalDeliveries: 0, achievements: {} };
         }
 
-        // Preenche as informações na tela
-        if (driverNameSpan) {
-            driverNameSpan.textContent = user.displayName ? user.displayName.split(' ')[0] : "Entregador";
-        }
-        
+        // Inicia os listeners para preencher as listas de entrega e histórico
         listenForDeliveries(user.uid); 
         
         const today = new Date();
         today.setHours(0, 0, 0, 0); 
-        listenForHistory(user.uid, today, today);
+        listenForHistory(user.uid, today, today); 
         
-        setInterval(updateAllTimers, 1000);
-
-        // Mostra o conteúdo do app e esconde o "carregando"
-        appLoader.classList.add('hidden');
-        appContent.classList.remove('hidden');
-
     } else {
         // USUÁRIO NÃO ESTÁ LOGADO
-        // Redireciona para a tela de login
+        // Redireciona para a tela de login (isso não muda)
         window.location.href = 'login.html';
     }
 });
