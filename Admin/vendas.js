@@ -1,8 +1,7 @@
-// vendas.js - VERSÃO COMPLETA COM CONTAGEM DE ACESSOS E EXCLUSÃO DE PEDIDOS
+// vendas.js - VERSÃO CORRIGIDA PARA LIDAR COM PEDIDOS ANTIGOS
 
 let salesSectionInitialized = false;
 
-// FUNÇÃO PARA DELETAR O PEDIDO
 async function deleteOrder(orderId) {
     if (!confirm(`Tem certeza que deseja excluir o pedido #${orderId.substring(0, 6)} permanentemente? Esta ação não pode ser desfeita.`)) {
         return false;
@@ -120,8 +119,11 @@ async function initializeVendasSection() {
                 salesData.forEach(order => {
                     if (order.items && Array.isArray(order.items)) {
                         order.items.forEach(item => {
-                            const name = item.name.split(' (Borda:')[0].trim();
-                            productCount[name] = (productCount[name] || 0) + item.quantity;
+                            // Verificação para garantir que item.name exista
+                            if (item && typeof item.name === 'string') {
+                                const name = item.name.split(' (Borda:')[0].trim();
+                                productCount[name] = (productCount[name] || 0) + item.quantity;
+                            }
                         });
                     }
                 });
@@ -137,7 +139,11 @@ async function initializeVendasSection() {
                 salesListContainer.innerHTML = '<p class="empty-list-message">Nenhum pedido (não cancelado) encontrado para o período selecionado.</p>';
             } else {
                 const cardsHTML = salesData.map(order => {
-                    const orderDate = order.createdAt.toDate();
+                    // --- CORREÇÃO APLICADA AQUI ---
+                    // Verificamos se 'order.createdAt' existe antes de chamar 'toDate()'
+                    // Se não existir, usamos a data atual como um fallback seguro.
+                    const orderDate = order.createdAt?.toDate ? order.createdAt.toDate() : new Date();
+                    
                     const customerName = `${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`.trim();
                     return `
                     <div class="sales-card" data-order-id="${order.id}">
@@ -176,7 +182,7 @@ async function initializeVendasSection() {
             }
         } catch (error) {
             console.error("Erro ao buscar relatório de vendas:", error);
-            salesListContainer.innerHTML = `<p class="empty-list-message" style="color:var(--admin-danger-red);">Ocorreu um erro ao buscar os pedidos.</p>`;
+            salesListContainer.innerHTML = `<p class="empty-list-message" style="color:var(--admin-danger-red);">Ocorreu um erro ao buscar os pedidos. Verifique se o índice do Firestore foi criado corretamente para esta consulta.</p>`;
         }
     }
 
@@ -198,6 +204,7 @@ async function initializeVendasSection() {
     if(startDateInput) startDateInput.valueAsDate = today;
     if(endDateInput) endDateInput.valueAsDate = today;
     
-    fetchAndRenderSales(today, today);
+    // Dispara a busca inicial para o dia de hoje
+    filterBtn.click();
 }
 window.initializeVendasSection = initializeVendasSection;
