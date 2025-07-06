@@ -1009,12 +1009,13 @@
 </div>
 
  <script type="module">
-    // Importando módulos do App, Firestore e Autenticação
+    // Importa os módulos necessários do Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, documentId } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
-    // Sua configuração do Firebase (sem alterações)
+    // Sua configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
       authDomain: "app-ditalia.firebaseapp.com",
@@ -1025,45 +1026,48 @@
       measurementId: "G-5QW3MVGYME"
     };
 
+    // Inicializa os serviços do Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app);
+    const auth = getAuth(app); 
+    const messaging = getMessaging(app);
 
+    // Monitora o estado de autenticação do usuário
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        console.log("PASSO 1: Usuário autenticado. Definindo objetos globais...");
-        window.firebaseApp = app;
+        // Usuário está logado
+        
+        // Expondo os serviços do Firebase para outros scripts
         window.db = db;
-        window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, documentId };
-        console.log("PASSO 2: Objetos globais definidos. window.db existe?", !!window.db);
-
-        console.log("PASSO 3: Chamando startAdminPanel()...");
-        if (typeof window.startAdminPanel === 'function') {
-          window.startAdminPanel();
-        } else { 
-          console.error("ERRO CRÍTICO: A função startAdminPanel do admin.js não foi encontrada!"); 
+        window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, arrayRemove, increment };
+        window.firebaseMessaging = { getMessaging, getToken, onMessage, messagingInstance: messaging };
+        
+        // --- CORREÇÃO APLICADA AQUI ---
+        // Garante que o painel principal inicie primeiro
+        if (typeof startAdminPanel === 'function') {
+          startAdminPanel(); 
         }
-
-        console.log("PASSO 4: Chamando initializeChatListener()...");
-        if (typeof window.initializeChatListener === 'function') {
-          window.initializeChatListener();
-        } else { 
-          console.error("ERRO CRÍTICO: A função initializeChatListener do admin.js não foi encontrada!"); 
+        
+        // E então, configura as notificações, agora que o usuário está confirmado
+        if (typeof setupAdminNotifications === 'function') {
+            setupAdminNotifications();
         }
-
+        // --- FIM DA CORREÇÃO ---
+        
         // Lógica do botão de logout
-        const logoutButton = document.getElementById('logout-button');
-        if (logoutButton) {
-          logoutButton.addEventListener('click', (e) => {
-            e.preventDefault();
+        const logoutButton = document.getElementById('logout-btn-drawer');
+        if(logoutButton) {
+          logoutButton.addEventListener('click', () => {
             signOut(auth).then(() => {
               window.location.href = 'login.html';
             }).catch((error) => {
-              console.error('Erro ao fazer logout:', error);
+              console.error("Erro ao fazer logout: ", error);
             });
           });
         }
+        
       } else {
+        // Usuário não está logado, redireciona para a página de login
         window.location.href = 'login.html';
       }
     });
