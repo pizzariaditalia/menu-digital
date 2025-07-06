@@ -4,13 +4,13 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-com
 
 // Sua configuração do Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
-    authDomain: "app-ditalia.firebaseapp.com",
-    projectId: "app-ditalia",
-    storageBucket: "app-ditalia.firebasestorage.app",
-    messagingSenderId: "122567535166",
-    appId: "1:122567535166:web:19de7b8925042027063f6f",
-    measurementId: "G-5QW3MVGYME"
+  apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
+  authDomain: "app-ditalia.firebaseapp.com",
+  projectId: "app-ditalia",
+  storageBucket: "app-ditalia.firebasestorage.app",
+  messagingSenderId: "122567535166",
+  appId: "1:122567535166:web:19de7b8925042027063f6f",
+  measurementId: "G-5QW3MVGYME"
 };
 
 // Inicializa o Firebase
@@ -20,7 +20,7 @@ const messaging = firebase.messaging();
 // Lógica para receber a notificação em segundo plano
 messaging.onBackgroundMessage(function(payload) {
   console.log('[sw-admin.js] Mensagem de novo pedido recebida: ', payload);
-  
+
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
@@ -31,7 +31,7 @@ messaging.onBackgroundMessage(function(payload) {
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-const CACHE_NAME = 'ditalia-admin-cache-v195';
+const CACHE_NAME = 'ditalia-admin-cache-v196';
 const URLS_TO_CACHE = [
   './login.html',
   './auth.js',
