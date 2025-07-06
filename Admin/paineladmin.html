@@ -19,23 +19,23 @@
 <body>
   <div class="admin-app-container">
     <header class="admin-top-bar">
-  <div class="logo-container">
-    </div>
+      <div class="logo-container">
+      </div>
 
-  <div class="header-actions-right">
-    <button id="admin-enable-notifications-btn" class="menu-drawer-button" title="Ativar notificações neste dispositivo">
-        <i class="fas fa-bell-slash"></i>
-    </button>
-    <button id="chat-notification-bell" class="menu-drawer-button">
-      <i class="fas fa-bell"></i>
-      <span id="chat-badge" class="notification-badge hidden"></span>
-    </button>
-    <button id="open-drawer-menu" class="menu-drawer-button">
-      <i class="fas fa-bars"></i>
-      <span>Menu</span>
-    </button>
-  </div>
-  </header>
+      <div class="header-actions-right">
+        <button id="admin-enable-notifications-btn" class="menu-drawer-button" title="Ativar notificações neste dispositivo">
+          <i class="fas fa-bell-slash"></i>
+        </button>
+        <button id="chat-notification-bell" class="menu-drawer-button">
+          <i class="fas fa-bell"></i>
+          <span id="chat-badge" class="notification-badge hidden"></span>
+        </button>
+        <button id="open-drawer-menu" class="menu-drawer-button">
+          <i class="fas fa-bars"></i>
+          <span>Menu</span>
+        </button>
+      </div>
+    </header>
 
     <nav id="admin-drawer-menu" class="admin-drawer">
       <div class="drawer-header">
@@ -67,77 +67,79 @@
     <main class="admin-main-content">
 
       <section id="comunicados-view" class="admin-view">
-    <div class="view-header">
-        <h2><i class="fab fa-whatsapp"></i> Envio de Comunicados</h2>
-    </div>
+        <div class="view-header">
+          <h2><i class="fab fa-whatsapp"></i> Envio de Comunicados</h2>
+        </div>
 
-    <div class="admin-form">
-        <h3>1. Crie seu Comunicado</h3>
-        <p class="form-instruction">
+        <div class="admin-form">
+          <h3>1. Crie seu Comunicado</h3>
+          <p class="form-instruction">
             Preencha os campos abaixo para enviar uma notificação push para todos os clientes ou gerar uma lista para envio no WhatsApp.
-        </p>
-        
-        <div class="form-group">
+          </p>
+
+          <div class="form-group">
             <label for="template-selecao-mensagem">Tipo de Mensagem (Opcional):</label>
             <select id="template-selecao-mensagem" class="form-control">
-                <option value="">-- Selecione um modelo --</option>
+              <option value="">-- Selecione um modelo --</option>
             </select>
             <small class="form-instruction">Escolha um modelo para preencher o título e a mensagem abaixo automaticamente.</small>
-        </div>
+          </div>
 
-        <div class="form-group">
+          <div class="form-group">
             <label for="comunicado-titulo">Título da Notificação Push:</label>
             <input type="text" id="comunicado-titulo" class="form-control" placeholder="Ex: Sextou com Pizza! 🍕">
-        </div>
+          </div>
 
-        <div class="form-group">
+          <div class="form-group">
             <label for="comunicado-mensagem">Corpo da Mensagem:</label>
             <textarea id="comunicado-mensagem" rows="4" class="form-control"></textarea>
             <small class="form-instruction">Use <strong>{nome_cliente}</strong> para personalizar mensagens de WhatsApp. Para notificações Push, essa personalização não será aplicada.</small>
-        </div>
+          </div>
 
-        <div class="form-actions" style="justify-content: flex-start; gap: 12px; flex-wrap: wrap;">
+          <div class="form-actions" style="justify-content: flex-start; gap: 12px; flex-wrap: wrap;">
             <button id="enviar-notificacao-push-btn" class="btn btn-success"><i class="fas fa-paper-plane"></i> Enviar Notificação Push</button>
             <button id="gerar-links-envio" class="btn btn-primary"><i class="fas fa-list"></i> Gerar Lista de Clientes (WhatsApp)</button>
             <button id="enviar-lote-selecionado-btn" class="btn btn-success hidden"><i class="fab fa-whatsapp"></i> Enviar para Selecionados (WhatsApp)</button>
+          </div>
         </div>
-    </div>
 
-    <div id="lista-envio-whatsapp-container" class="hidden" style="margin-top: var(--space-lg);">
-        <h3>2. Lista de Clientes (para WhatsApp)</h3>
-        <div id="lista-envio-whatsapp" class="table-responsive" style="max-height: 500px;">
+        <div id="lista-envio-whatsapp-container" class="hidden" style="margin-top: var(--space-lg);">
+          <h3>2. Lista de Clientes (para WhatsApp)</h3>
+          <div id="lista-envio-whatsapp" class="table-responsive" style="max-height: 500px;">
+          </div>
         </div>
-    </div>
-</section>
+      </section>
 
       <section id="import-view" class="admin-view">
-    <div class="view-header">
-        <h2><i class="fas fa-file-import"></i> Importar Clientes de Planilha (CSV)</h2>
-    </div>
+        <div class="view-header">
+          <h2><i class="fas fa-file-import"></i> Importar Clientes de Planilha (CSV)</h2>
+        </div>
 
-    <div class="admin-form">
-        <h3>Passo 1: Selecione o Arquivo CSV</h3>
-        <p class="form-instruction">
+        <div class="admin-form">
+          <h3>Passo 1: Selecione o Arquivo CSV</h3>
+          <p class="form-instruction">
             Prepare sua planilha com as colunas: <strong>nome, sobrenome, whatsapp, endereco</strong>. Depois, salve como CSV e selecione o arquivo abaixo.
-        </p>
-        <div class="form-group">
+          </p>
+          <div class="form-group">
             <input type="file" id="csv-file-input" accept=".csv" class="form-control">
-        </div>
-         <div class="form-actions" style="justify-content: flex-start;">
+          </div>
+          <div class="form-actions" style="justify-content: flex-start;">
             <button id="process-csv-btn" class="btn btn-primary"><i class="fas fa-cogs"></i> Carregar e Pré-visualizar</button>
+          </div>
         </div>
-    </div>
 
-    <div id="csv-preview-container" class="hidden" style="margin-top: var(--space-lg);">
-        <h3>Passo 2: Pré-visualização dos Dados</h3>
-        <p class="form-instruction">Verifique se os dados abaixo estão corretos antes de importar.</p>
-        <div id="csv-preview-area" class="table-responsive" style="max-height: 400px;"></div>
-        <div class="form-actions" style="margin-top: var(--space-md); justify-content: flex-start;">
+        <div id="csv-preview-container" class="hidden" style="margin-top: var(--space-lg);">
+          <h3>Passo 2: Pré-visualização dos Dados</h3>
+          <p class="form-instruction">
+            Verifique se os dados abaixo estão corretos antes de importar.
+          </p>
+          <div id="csv-preview-area" class="table-responsive" style="max-height: 400px;"></div>
+          <div class="form-actions" style="margin-top: var(--space-md); justify-content: flex-start;">
             <button id="confirm-import-btn" class="btn btn-success btn-lg"><i class="fas fa-check-circle"></i> Confirmar e Importar Clientes</button>
+          </div>
         </div>
-    </div>
-</section>
-      
+      </section>
+
       <section id="appearance-view" class="admin-view">
         <div class="view-header">
           <h2><i class="fas fa-paint-brush"></i> Aparência do Site</h2>
@@ -163,31 +165,33 @@
             </div>
           </div>
 
-         <div class="settings-group active">
+          <div class="settings-group active">
             <h3><i class="fas fa-film"></i> Gerenciamento do Carrossel</h3>
             <div class="settings-content-wrapper" style="display: block; padding: var(--space-lg);">
-                
-                <p class="form-instruction">
-                    Adicione ou remova vídeos da "playlist" do carrossel. Os arquivos de vídeo já devem existir na pasta <strong>/img/banner/</strong> do seu projeto.
+
+              <p class="form-instruction">
+                Adicione ou remova vídeos da "playlist" do carrossel. Os arquivos de vídeo já devem existir na pasta <strong>/img/banner/</strong> do seu projeto.
+              </p>
+
+              <div id="carousel-videos-list" class="image-preview-grid">
+                <p>
+                  Carregando vídeos...
                 </p>
+              </div>
 
-                <div id="carousel-videos-list" class="image-preview-grid">
-                    <p>Carregando vídeos...</p>
-                </div>
-                
-                <hr style="margin: var(--space-lg) 0;">
+              <hr style="margin: var(--space-lg) 0;">
 
-                <h4 style="margin-top: 0;">Adicionar Vídeo ao Carrossel</h4>
-                <div class="form-group">
-                    <label for="carousel-video-filename-input">Nome do Arquivo (ex: video1.mp4)</label>
-                    <div class="input-with-button">
-                        <input type="text" id="carousel-video-filename-input" class="form-control" placeholder="Digite o nome exato do arquivo...">
-                        <button type="button" id="add-video-btn" class="btn btn-primary">Adicionar</button>
-                    </div>
+              <h4 style="margin-top: 0;">Adicionar Vídeo ao Carrossel</h4>
+              <div class="form-group">
+                <label for="carousel-video-filename-input">Nome do Arquivo (ex: video1.mp4)</label>
+                <div class="input-with-button">
+                  <input type="text" id="carousel-video-filename-input" class="form-control" placeholder="Digite o nome exato do arquivo...">
+                  <button type="button" id="add-video-btn" class="btn btn-primary">Adicionar</button>
                 </div>
+              </div>
 
             </div>
-        </div>
+          </div>
 
           <div class="settings-group active" style="margin-top: 2rem;">
             <h3><i class="fas fa-palette"></i> Esquema de Cores</h3>
@@ -504,14 +508,14 @@
             </div>
           </div>
           <div class="summary-box-v2">
-    <div class="icon" style="background-color: #f0f6ff;">
-        <i class="fas fa-eye" style="color: #0d6efd;"></i>
-    </div>
-    <div class="text">
-        <span class="label">Acessos ao Cardápio no Período</span>
-        <span class="value" id="sales-total-visits">0</span>
-    </div>
-</div>
+            <div class="icon" style="background-color: #f0f6ff;">
+              <i class="fas fa-eye" style="color: #0d6efd;"></i>
+            </div>
+            <div class="text">
+              <span class="label">Acessos ao Cardápio no Período</span>
+              <span class="value" id="sales-total-visits">0</span>
+            </div>
+          </div>
           <div class="summary-box-v2">
             <div class="icon">
               <i class="fas fa-motorcycle"></i>
@@ -563,7 +567,7 @@
         <form id="new-promotion-form" class="admin-form" style="display: none; margin-top: var(--space-lg); border-top: 1px solid var(--admin-border-color); padding-top: var(--space-lg);">
           <h3 id="new-promotion-form-title">Criar Nova Promoção</h3>
           <input type="hidden" id="promotion-id-hidden">
-          
+
           <div class="form-group">
             <label for="select-item-for-promotion">Item do Cardápio:</label><select id="select-item-for-promotion" required><option value="" disabled selected>Carregando...</option></select>
           </div>
@@ -660,9 +664,9 @@
                   <input type="text" id="delivery-person-lastname" placeholder="Ex: Silva" required>
                 </div>
                 <div class="form-group">
-  <label for="delivery-person-email">E-mail (usado para o login com Google)</label>
-  <input type="email" id="delivery-person-email" class="form-control" placeholder="Ex: entregador@gmail.com" required>
-</div>
+                  <label for="delivery-person-email">E-mail (usado para o login com Google)</label>
+                  <input type="email" id="delivery-person-email" class="form-control" placeholder="Ex: entregador@gmail.com" required>
+                </div>
               </div>
               <div class="form-group">
                 <label for="delivery-person-whatsapp">WhatsApp (somente números com DDD)</label>
@@ -953,13 +957,13 @@
       </div>
 
       <div id="edit-customer-modal" class="admin-modal">
-  <div class="modal-content">
-    <button class="close-modal-btn" data-modal-id="edit-customer-modal">&times;</button>
-    <h3><i class="fas fa-user-edit"></i> Editar Cliente</h3>
-    <form id="edit-customer-form" class="admin-form-modal">
-    </form>
-  </div>
-</div>
+        <div class="modal-content">
+          <button class="close-modal-btn" data-modal-id="edit-customer-modal">&times;</button>
+          <h3><i class="fas fa-user-edit"></i> Editar Cliente</h3>
+          <form id="edit-customer-form" class="admin-form-modal">
+          </form>
+        </div>
+      </div>
 
       <div id="pdv-discount-modal" class="admin-modal">
         <div class="modal-content" style="max-width: 550px;">
@@ -998,22 +1002,54 @@
 
     </main>
   </div>
-  
-  <div id="chat-dropdown" class="chat-dropdown-container hidden">
-  <div class="chat-dropdown-header">
-    Mensagens dos Entregadores
-  </div>
-  <div id="chat-dropdown-list" class="chat-dropdown-body">
-    <p class="empty-message">Nenhuma nova mensagem.</p>
-  </div>
-</div>
 
- <script type="module">
+  <div id="chat-dropdown" class="chat-dropdown-container hidden">
+    <div class="chat-dropdown-header">
+      Mensagens dos Entregadores
+    </div>
+    <div id="chat-dropdown-list" class="chat-dropdown-body">
+      <p class="empty-message">
+        Nenhuma nova mensagem.
+      </p>
+    </div>
+  </div>
+
+  <script type="module">
     // Importa os módulos necessários do Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+    import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      getDocs,
+      setDoc,
+      updateDoc,
+      collection,
+      query,
+      where,
+      orderBy,
+      onSnapshot,
+      deleteDoc,
+      writeBatch,
+      serverTimestamp,
+      Timestamp,
+      limit,
+      arrayUnion,
+      arrayRemove,
+      increment
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getMessaging,
+      getToken,
+      onMessage
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
     // Sua configuração do Firebase
     const firebaseConfig = {
@@ -1029,34 +1065,58 @@
     // Inicializa os serviços do Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    const auth = getAuth(app); 
+    const auth = getAuth(app);
     const messaging = getMessaging(app);
 
     // Monitora o estado de autenticação do usuário
     onAuthStateChanged(auth, (user) => {
       if (user) {
         // Usuário está logado
-        
+
         // Expondo os serviços do Firebase para outros scripts
         window.db = db;
-        window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, arrayRemove, increment };
-        window.firebaseMessaging = { getMessaging, getToken, onMessage, messagingInstance: messaging };
-        
+        window.firebaseFirestore = {
+          doc,
+          getDoc,
+          getDocs,
+          setDoc,
+          updateDoc,
+          collection,
+          query,
+          where,
+          orderBy,
+          onSnapshot,
+          deleteDoc,
+          writeBatch,
+          serverTimestamp,
+          Timestamp,
+          limit,
+          arrayUnion,
+          arrayRemove,
+          increment
+        };
+        window.firebaseMessaging = {
+          getMessaging,
+          getToken,
+          onMessage,
+          messagingInstance: messaging
+        };
+
         // --- CORREÇÃO APLICADA AQUI ---
         // Garante que o painel principal inicie primeiro
         if (typeof startAdminPanel === 'function') {
-          startAdminPanel(); 
+          startAdminPanel();
         }
-        
+
         // E então, configura as notificações, agora que o usuário está confirmado
         if (typeof setupAdminNotifications === 'function') {
-            setupAdminNotifications();
+          setupAdminNotifications();
         }
         // --- FIM DA CORREÇÃO ---
-        
+
         // Lógica do botão de logout
         const logoutButton = document.getElementById('logout-btn-drawer');
-        if(logoutButton) {
+        if (logoutButton) {
           logoutButton.addEventListener('click', () => {
             signOut(auth).then(() => {
               window.location.href = 'login.html';
@@ -1065,14 +1125,14 @@
             });
           });
         }
-        
+
       } else {
         // Usuário não está logado, redireciona para a página de login
         window.location.href = 'login.html';
       }
     });
-</script>
-  
+  </script>
+
   <script src="appearance.js" defer></script>
   <script src="config.js" defer></script>
   <script src="admin.js" defer></script>
@@ -1085,5 +1145,5 @@
   <script src="comunicados.js" defer></script>
   <script src="importar.js" defer></script>
 
-  </body>
+</body>
 </html>
