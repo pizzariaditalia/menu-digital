@@ -220,6 +220,63 @@ async function startAdminPanel() {
 // Disponibiliza a função principal globalmente
 window.startAdminPanel = startAdminPanel;
 
+/**
+ * LÓGICA PARA ATIVAR NOTIFICAÇÕES NO PAINEL DE ADMIN
+ */
+function setupAdminNotifications() {
+    const enableBtn = document.getElementById('admin-enable-notifications-btn');
+    if (!enableBtn) return;
+
+    const icon = enableBtn.querySelector('i');
+    
+    // Verifica se a permissão já foi dada
+    if (Notification.permission === 'granted') {
+        icon.classList.remove('fa-bell-slash');
+        icon.classList.add('fa-bell');
+        enableBtn.title = "Notificações ativadas";
+    }
+
+    enableBtn.addEventListener('click', async () => {
+        if (!window.firebaseMessaging || !auth.currentUser) {
+            window.showToast("Erro: Usuário não autenticado.", "error");
+            return;
+        }
+
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                const { getToken, messagingInstance } = window.firebaseMessaging;
+                // Use a mesma VAPID Key do site do cliente
+                const vapidKey = 'BEu5mwSdY7ci-Tl8lUJcrq12Ct1w62_2ywucGfPq0FanERTxEUk7wB9PK37dxxles-9jpbN2nsrv3S2xnzelqYU';
+                
+                const fcmToken = await getToken(messagingInstance, { vapidKey });
+
+                if (fcmToken) {
+                    // Salva o token em um documento específico para o admin
+                    const { doc, setDoc, arrayUnion } = window.firebaseFirestore;
+                    const adminUserRef = doc(db, "admin_users", auth.currentUser.uid);
+                    await setDoc(adminUserRef, {
+                        email: auth.currentUser.email,
+                        notificationTokens: arrayUnion(fcmToken)
+                    }, { merge: true });
+
+                    window.showToast("Notificações ativadas para este dispositivo!", "success");
+                    icon.classList.remove('fa-bell-slash');
+                    icon.classList.add('fa-bell');
+                    enableBtn.title = "Notificações ativadas";
+                }
+            } else {
+                window.showToast("Permissão de notificação negada.", "warning");
+            }
+        } catch (error) {
+            console.error("Erro ao ativar notificações do admin:", error);
+            window.showToast("Erro ao ativar notificações.", "error");
+        }
+    });
+}
+
+// Chama a função de configuração assim que o painel iniciar
+setupAdminNotifications();
 
 function showToast(message, type = 'success') {
   const existingToast = document.querySelector('.toast-notification');
