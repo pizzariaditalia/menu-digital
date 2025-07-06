@@ -1013,11 +1013,12 @@
       </p>
     </div>
   </div>
-
-  <script type="module">
+  
+    <script type="module">
     // Importa os módulos necessários do Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    // ADICIONADO `documentId` À LISTA DE IMPORTS
+    import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, arrayRemove, increment, documentId } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
@@ -1038,33 +1039,23 @@
     const auth = getAuth(app);
     const messaging = getMessaging(app);
 
-    // --- CORREÇÃO APLICADA AQUI ---
-    // Expondo o serviço de autenticação para outros scripts
-    window.auth = auth;
-    // --- FIM DA CORREÇÃO ---
-
-
     // Monitora o estado de autenticação do usuário
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        // Usuário está logado
-        
-        // Expondo os outros serviços do Firebase
+        // Expondo os serviços do Firebase para outros scripts
+        window.auth = auth;
         window.db = db;
-        window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, arrayRemove, increment };
+        // ADICIONADO `documentId` ao objeto global
+        window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, arrayRemove, increment, documentId };
         window.firebaseMessaging = { getMessaging, getToken, onMessage, messagingInstance: messaging };
         
-        // Garante que o painel principal inicie primeiro
         if (typeof startAdminPanel === 'function') {
           startAdminPanel(); 
         }
-        
-        // E então, configura as notificações
         if (typeof setupAdminNotifications === 'function') {
             setupAdminNotifications();
         }
         
-        // Lógica do botão de logout
         const logoutButton = document.getElementById('logout-btn-drawer');
         if(logoutButton) {
           logoutButton.addEventListener('click', () => {
@@ -1077,11 +1068,10 @@
         }
         
       } else {
-        // Usuário não está logado, redireciona para a página de login
         window.location.href = 'login.html';
       }
     });
-</script>
+  </script>
 
   <script src="appearance.js" defer></script>
   <script src="config.js" defer></script>
