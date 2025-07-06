@@ -1016,40 +1016,10 @@
 
   <script type="module">
     // Importa os módulos necessários do Firebase
-    import {
-      initializeApp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      getDocs,
-      setDoc,
-      updateDoc,
-      collection,
-      query,
-      where,
-      orderBy,
-      onSnapshot,
-      deleteDoc,
-      writeBatch,
-      serverTimestamp,
-      Timestamp,
-      limit,
-      arrayUnion,
-      arrayRemove,
-      increment
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import {
-      getAuth,
-      onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import {
-      getMessaging,
-      getToken,
-      onMessage
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
     // Sua configuração do Firebase
     const firebaseConfig = {
@@ -1068,55 +1038,35 @@
     const auth = getAuth(app);
     const messaging = getMessaging(app);
 
+    // --- CORREÇÃO APLICADA AQUI ---
+    // Expondo o serviço de autenticação para outros scripts
+    window.auth = auth;
+    // --- FIM DA CORREÇÃO ---
+
+
     // Monitora o estado de autenticação do usuário
     onAuthStateChanged(auth, (user) => {
       if (user) {
         // Usuário está logado
-
-        // Expondo os serviços do Firebase para outros scripts
+        
+        // Expondo os outros serviços do Firebase
         window.db = db;
-        window.firebaseFirestore = {
-          doc,
-          getDoc,
-          getDocs,
-          setDoc,
-          updateDoc,
-          collection,
-          query,
-          where,
-          orderBy,
-          onSnapshot,
-          deleteDoc,
-          writeBatch,
-          serverTimestamp,
-          Timestamp,
-          limit,
-          arrayUnion,
-          arrayRemove,
-          increment
-        };
-        window.firebaseMessaging = {
-          getMessaging,
-          getToken,
-          onMessage,
-          messagingInstance: messaging
-        };
-
-        // --- CORREÇÃO APLICADA AQUI ---
+        window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, arrayRemove, increment };
+        window.firebaseMessaging = { getMessaging, getToken, onMessage, messagingInstance: messaging };
+        
         // Garante que o painel principal inicie primeiro
         if (typeof startAdminPanel === 'function') {
-          startAdminPanel();
+          startAdminPanel(); 
         }
-
-        // E então, configura as notificações, agora que o usuário está confirmado
+        
+        // E então, configura as notificações
         if (typeof setupAdminNotifications === 'function') {
-          setupAdminNotifications();
+            setupAdminNotifications();
         }
-        // --- FIM DA CORREÇÃO ---
-
+        
         // Lógica do botão de logout
         const logoutButton = document.getElementById('logout-btn-drawer');
-        if (logoutButton) {
+        if(logoutButton) {
           logoutButton.addEventListener('click', () => {
             signOut(auth).then(() => {
               window.location.href = 'login.html';
@@ -1125,13 +1075,13 @@
             });
           });
         }
-
+        
       } else {
         // Usuário não está logado, redireciona para a página de login
         window.location.href = 'login.html';
       }
     });
-  </script>
+</script>
 
   <script src="appearance.js" defer></script>
   <script src="config.js" defer></script>
