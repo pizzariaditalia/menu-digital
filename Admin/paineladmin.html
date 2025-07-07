@@ -6,14 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>D'Italia Pizzaria - Admin</title>
   <link rel="manifest" href="manifest-admin.json">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <link rel="stylesheet" href="styleadmin.css">
   <link rel="stylesheet" href="styleadmin-2.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <!--<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
   <script>
     eruda.init();
-  </script>
+  </script>-->
 </head>
 
 <body>
@@ -43,19 +46,20 @@
         <button id="close-drawer-menu" class="close-drawer-btn">&times;</button>
       </div>
       <ul>
-        <li><a href="#" data-section-target="appearance-view"><i class="fas fa-paint-brush"></i> Aparência do Site</a></li>
-        <li><a href="#" data-section-target="cardapio-view"><i class="fas fa-utensils"></i> Gerenciar Cardápio</a></li>
-        <li><a href="#" data-section-target="pdv-content"><i class="fas fa-cash-register"></i> PDV (Ponto de Venda)</a></li>
         <li class="active-link"><a href="#" data-section-target="orders-content"><i class="fas fa-receipt"></i> Pedidos</a></li>
+        
+        <li><a href="#" data-section-target="map-view"><i class="fas fa-map-marked-alt"></i> Mapa em Tempo Real</a></li>
+        
+        <li><a href="#" data-section-target="pdv-content"><i class="fas fa-cash-register"></i> PDV (Ponto de Venda)</a></li>
         <li><a href="#" data-section-target="vendas-view"><i class="fas fa-chart-line"></i> Relatório de Vendas</a></li>
+        <li><a href="#" data-section-target="cardapio-view"><i class="fas fa-utensils"></i> Gerenciar Cardápio</a></li>
         <li><a href="#" data-section-target="customers-content"><i class="fas fa-users"></i> Clientes</a></li>
         <li><a href="#" data-section-target="import-view"><i class="fas fa-file-import"></i> Importar Clientes</a></li>
         <li><a href="#" data-section-target="comunicados-view"><i class="fab fa-whatsapp"></i> Comunicados</a></li>
         <li><a href="#" data-section-target="promotions-content"><i class="fas fa-tags"></i> Promoções</a></li>
+        <li><a href="#" data-section-target="appearance-view"><i class="fas fa-paint-brush"></i> Aparência do Site</a></li>
         <li><a href="#" data-section-target="settings-content"><i class="fas fa-cog"></i> Configurações</a></li>
-        <li>
-          <hr>
-        </li>
+        <li><hr></li>
         <li><a href="../index.html" target="_blank"><i class="fas fa-store"></i> Ver Site Principal</a></li>
         <li><hr></li>
         <li><a href="#" id="logout-button"><i class="fas fa-sign-out-alt"></i> Sair (Logout)</a></li>
@@ -66,6 +70,17 @@
 
     <main class="admin-main-content">
 
+      <section id="map-view" class="admin-view">
+        <div class="view-header">
+          <h2><i class="fas fa-map-marked-alt"></i> Localização dos Entregadores</h2>
+        </div>
+        <p class="form-instruction">
+          Acompanhe em tempo real a posição dos entregadores que estão com o aplicativo aberto. O mapa será centralizado no primeiro entregador ativo.
+        </p>
+        <div id="realtime-map-container" style="height: 75vh; border-radius: 8px; border: 1px solid var(--admin-border-color); background-color: #f0f2f5;">
+          </div>
+      </section>
+      
       <section id="comunicados-view" class="admin-view">
         <div class="view-header">
           <h2><i class="fab fa-whatsapp"></i> Envio de Comunicados</h2>
@@ -419,7 +434,7 @@
         </div>
       </section>
 
-      <section id="orders-content" class="admin-view">
+      <section id="orders-content" class="admin-view active">
         <div class="order-summary-bar">
           <div id="notification-banner" class="notification-banner" style="display: none;">
             <span>Deseja receber notificações de novos pedidos?</span>
@@ -460,7 +475,7 @@
           <div class="empty-orders-state">
             <i class="fas fa-utensils empty-state-icon"></i>
             <p class="empty-state-message">
-              Nenhum pedido ativo.
+              Nenhum pedido ativo no momento.
             </p>
             <button class="btn btn-primary btn-lg empty-state-new-order-btn"><i class="fas fa-plus-circle"></i> Novo pedido</button>
           </div>
@@ -1056,7 +1071,7 @@
             setupAdminNotifications();
         }
         
-        const logoutButton = document.getElementById('logout-btn-drawer');
+        const logoutButton = document.getElementById('logout-button');
         if(logoutButton) {
           logoutButton.addEventListener('click', () => {
             signOut(auth).then(() => {
@@ -1084,6 +1099,8 @@
   <script src="pdv.js" defer></script>
   <script src="comunicados.js" defer></script>
   <script src="importar.js" defer></script>
+
+  <script src="mapa.js" defer></script>
 
 </body>
 </html>
