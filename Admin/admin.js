@@ -1,18 +1,16 @@
-// admin.js - VERSÃO FINAL COM CHAT 100% FUNCIONAL
+// admin.js - VERSÃO COM SUPORTE AO MENU DO MAPA
 
 // --- Variáveis globais ---
 let unreadMessages = [];
 
 // --- Funções do Chat ---
 
-// CORRIGIDO: Lógica do badge alterada para garantir a exibição
 function renderChatDropdown() {
     const listContainer = document.getElementById('chat-dropdown-list');
     const badge = document.getElementById('chat-badge');
     
     if (!listContainer || !badge) return;
 
-    // Lógica do badge corrigida para usar style.display
     if (unreadMessages.length > 0) {
         badge.textContent = unreadMessages.length;
         badge.style.display = 'flex'; 
@@ -20,7 +18,6 @@ function renderChatDropdown() {
         badge.style.display = 'none';
     }
 
-    // Renderiza a lista de mensagens
     if (unreadMessages.length === 0) {
         listContainer.innerHTML = '<p class="empty-message">Nenhuma nova mensagem.</p>';
         return;
@@ -56,7 +53,6 @@ async function markMessageAsRead(messageId) {
 }
 
 function initializeChatListener() {
-    // Esta função agora é chamada pelo paineladmin.html
     console.log("Admin.js: Inicializando listener do chat com filtros.");
     const { collection, query, where, orderBy, onSnapshot } = window.firebaseFirestore;
     
@@ -77,7 +73,6 @@ function initializeChatListener() {
         console.error("ERRO no listener do chat:", error);
     });
 }
-// Disponibiliza a função globalmente para que o HTML possa chamá-la
 window.initializeChatListener = initializeChatListener;
 
 
@@ -137,6 +132,7 @@ async function startAdminPanel() {
       this.parentElement.classList.add('active-link');
       const targetViewId = this.dataset.sectionTarget;
       adminViews.forEach(view => { view.classList.toggle('active', view.id === targetViewId) });
+      
       switch (targetViewId) {
         case 'appearance-view': if (typeof window.initializeAppearanceSection === 'function') window.initializeAppearanceSection(); break;
         case 'cardapio-view': if (typeof window.initializeCardapioSection === 'function') window.initializeCardapioSection(); break;
@@ -148,12 +144,14 @@ async function startAdminPanel() {
         case 'settings-content': if (typeof window.initializeSettingsSection === 'function') window.initializeSettingsSection(); break;
         case 'comunicados-view': if (typeof window.initializeComunicadosSection === 'function') window.initializeComunicadosSection(); break;
         case 'import-view': if (typeof window.initializeImportSection === 'function') window.initializeImportSection(); break;
+        
+        // ADICIONADO: Lógica para carregar a seção do mapa
+        case 'map-view': if (typeof window.initializeMapSection === 'function') window.initializeMapSection(); break;
       }
       toggleDrawer(false);
     });
   });
   
-  // LÓGICA ATUALIZADA: Listener de clique para o chat
   if(chatNotificationBell) {
       chatNotificationBell.addEventListener('click', (e) => {
           e.stopPropagation();
@@ -217,19 +215,15 @@ async function startAdminPanel() {
   
   console.log("Admin.js: Painel Carregado e Scripts Prontos!");
 }
-// Disponibiliza a função principal globalmente
 window.startAdminPanel = startAdminPanel;
 
-/**
- * LÓGICA PARA ATIVAR NOTIFICAÇÕES NO PAINEL DE ADMIN
- */
+
 function setupAdminNotifications() {
     const enableBtn = document.getElementById('admin-enable-notifications-btn');
     if (!enableBtn) return;
 
     const icon = enableBtn.querySelector('i');
     
-    // Verifica se a permissão já foi dada
     if (Notification.permission === 'granted') {
         icon.classList.remove('fa-bell-slash');
         icon.classList.add('fa-bell');
@@ -246,13 +240,11 @@ function setupAdminNotifications() {
             const permission = await Notification.requestPermission();
             if (permission === 'granted') {
                 const { getToken, messagingInstance } = window.firebaseMessaging;
-                // Use a mesma VAPID Key do site do cliente
                 const vapidKey = 'BEu5mwSdY7ci-Tl8lUJcrq12Ct1w62_2ywucGfPq0FanERTxEUk7wB9PK37dxxles-9jpbN2nsrv3S2xnzelqYU';
                 
                 const fcmToken = await getToken(messagingInstance, { vapidKey });
 
                 if (fcmToken) {
-                    // Salva o token em um documento específico para o admin
                     const { doc, setDoc, arrayUnion } = window.firebaseFirestore;
                     const adminUserRef = doc(db, "admin_users", auth.currentUser.uid);
                     await setDoc(adminUserRef, {
@@ -274,8 +266,6 @@ function setupAdminNotifications() {
         }
     });
 }
-
-// Chama a função de configuração assim que o painel iniciar
 setupAdminNotifications();
 
 function showToast(message, type = 'success') {
