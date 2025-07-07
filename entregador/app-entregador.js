@@ -1,4 +1,4 @@
-// app-entregador.js - VERSÃO FINAL COM TODAS AS FUNÇÕES E SOM ÚNICO
+// app-entregador.js - VERSÃO FINAL COM BOTÃO DE INÍCIO
 
 // Importa funções do Firebase
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -18,11 +18,17 @@ const auth = window.auth;
 
 // --- SELETORES DE ELEMENTOS DO DOM ---
 const driverNameSpan = document.getElementById('driver-name');
+const driverBalanceSpan = document.getElementById('driver-balance');
 const logoutBtn = document.getElementById('logout-btn');
 const historyBtn = document.getElementById('history-btn');
 const achievementsBtn = document.getElementById('achievements-btn');
-const historySection = document.getElementById('history-section');
-const currentDeliveriesSection = document.getElementById('current-deliveries-section');
+const financialBtn = document.getElementById('financial-btn');
+const homeBtn = document.getElementById('home-btn'); // NOVO: Seletor para o botão de início
+const mainViews = {
+    deliveries: document.getElementById('current-deliveries-section'),
+    history: document.getElementById('history-section'),
+    financial: document.getElementById('financial-control-view')
+};
 const deliveryQueueList = document.getElementById('delivery-queue-list');
 const historyList = document.getElementById('history-list');
 const totalFeesValue = document.getElementById('total-fees-value');
@@ -36,14 +42,21 @@ const modalFooter = deliveryDetailsModal.querySelector('.modal-footer');
 const startDateInput = document.getElementById('start-date');
 const endDateInput = document.getElementById('end-date');
 const filterHistoryBtn = document.getElementById('filter-history-btn');
-const statsDeliveriesToday = document.getElementById('stats-deliveries-today');
-const statsEarningsToday = document.getElementById('stats-earnings-today');
 const achievementsModal = document.getElementById('achievements-modal');
 const achievementsListDiv = document.getElementById('achievements-list');
 const closeAchievementsModalBtn = achievementsModal.querySelector('.close-modal-btn');
 const btnSendMessage = document.getElementById('btn-send-message');
 const quickMessageModal = document.getElementById('quick-message-modal');
 const closeMessageModalBtn = quickMessageModal.querySelector('.close-modal-btn');
+
+// Seletores do formulário financeiro
+const formFinanceiro = document.getElementById('form-financeiro');
+const tipoMovimentacao = document.getElementById('tipo-movimentacao');
+const valorMovimentacao = document.getElementById('valor-movimentacao');
+const descricaoMovimentacao = document.getElementById('descricao-movimentacao');
+const saldoAtualViewEl = document.getElementById('saldo-atual-view');
+const listaHistoricoEl = document.getElementById('lista-historico-financeiro');
+
 
 // --- VARIÁVEIS DE ESTADO ---
 let currentDriverProfile = null;
@@ -55,7 +68,22 @@ let isFirstLoad = true;
 // --- FUNÇÕES UTILITÁRIAS ---
 const formatPrice = (price) => typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
 
-// --- LÓGICA DO CHAT DE MENSAGENS RÁPIDAS ---
+// ALTERADO: Função de troca de tela agora inclui o botão de início
+function showView(viewName) {
+    for (const key in mainViews) {
+        if (mainViews[key]) mainViews[key].classList.add('hidden');
+    }
+    if (mainViews[viewName]) {
+        mainViews[viewName].classList.remove('hidden');
+    }
+
+    // Gerencia o estado 'active' de todos os botões de navegação
+    homeBtn.classList.toggle('active', viewName === 'deliveries');
+    historyBtn.classList.toggle('active', viewName === 'history');
+    financialBtn.classList.toggle('active', viewName === 'financial');
+}
+
+// --- LÓGICA DO CHAT DE MENSAGENS RÁPIDAS (sem alterações) ---
 if (btnSendMessage) {
     btnSendMessage.addEventListener('click', () => {
         if (selectedOrder) {
@@ -100,7 +128,7 @@ if (quickMessageModal) {
     });
 }
 
-// --- LÓGICA DAS CONQUISTAS ---
+// --- LÓGICA DAS CONQUISTAS (sem alterações) ---
 function renderAchievements() {
     if (!achievementsListDiv || !currentDriverProfile) return;
     let achievementsHTML = '';
@@ -159,7 +187,7 @@ async function checkAndAwardAchievements(driverRef) {
     }
 }
 
-// --- LÓGICA DO CRONÔMETRO ---
+// --- LÓGICA DO CRONÔMETRO (sem alterações) ---
 function updateAllTimers() {
     const timerElements = document.querySelectorAll('.order-timer');
     timerElements.forEach(timerEl => {
@@ -183,13 +211,13 @@ function updateAllTimers() {
     });
 }
 
-// --- CORRIGIDO: Função de som para tocar apenas uma vez ---
+// --- FUNÇÃO DE SOM (sem alterações) ---
 function playNotificationSound() {
     const audio = new Audio('../audio/notification-entrega.mp3');
     audio.play().catch(e => console.warn("Aviso: O navegador bloqueou o autoplay do som.", e));
 }
 
-// --- FUNÇÕES DE RENDERIZAÇÃO E UI ---
+// --- FUNÇÕES DE RENDERIZAÇÃO E UI (sem grandes alterações) ---
 function createDeliveryCard(order) {
     const status = order.status || 'Indefinido';
     let cardClass = 'delivery-card';
@@ -228,7 +256,7 @@ function createDeliveryCard(order) {
 function openDetailsModal(order) {
     selectedOrder = order;
     const address = order.delivery.address || `${order.delivery.street}, ${order.delivery.number}`;
-    const mapLink = `https://maps.google.com/?q=${encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
+    const mapLink = `http://maps.google.com/maps?q=${encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
     const customerHTML = `<div class="modal-section"><h4><i class="fas fa-user"></i> Cliente</h4><div class="detail-line"><span class="label">Nome</span><span class="value">${order.customer.firstName} ${order.customer.lastName}</span></div><a href="https://wa.me/55${order.customer.whatsapp}" target="_blank" class="btn" style="background-color:#25D366; width: 95%; margin: 10px auto 0 auto;"><i class="fab fa-whatsapp"></i> Chamar no WhatsApp</a></div><div class="modal-section"><h4><i class="fas fa-map-marker-alt"></i> Endereço</h4><div class="address-block">${address}<br>Bairro: ${order.delivery.neighborhood}<br>${order.delivery.complement ? `Comp: ${order.delivery.complement}<br>` : ''}${order.delivery.reference ? `Ref: ${order.delivery.reference}` : ''}</div><a href="${mapLink}" target="_blank" class="btn" style="background-color:#4285F4; width:95%; margin:10px auto 0 auto;"><i class="fas fa-map-signs"></i> Ver no Mapa</a></div>`;
     const { subtotal = 0, discount = 0, deliveryFee = 0, grandTotal = 0 } = order.totals;
     const financialHTML = `<div class="modal-section"><h4><i class="fas fa-file-invoice-dollar"></i> Resumo Financeiro</h4><div class="detail-line"><span class="label">Subtotal dos Produtos</span><span class="value">${formatPrice(subtotal)}</span></div>${discount > 0 ? `<div class="detail-line"><span class="label">Desconto Aplicado</span><span class="value" style="color:var(--primary-red);">- ${formatPrice(discount)}</span></div>` : ''}<div class="detail-line"><span class="label">Taxa de Entrega</span><span class="value">${formatPrice(deliveryFee)}</span></div><hr><div class="detail-line"><span class="label">VALOR A COBRAR</span><span class="value total">${formatPrice(grandTotal)}</span></div><div class="detail-line"><span class="label">Forma de Pagamento</span><span class="value">${order.payment.method}</span></div>${order.payment.method === 'Dinheiro' && order.payment.changeFor > 0 ? `<div class="detail-line"><span class="label">Levar Troco Para</span><span class="value">${formatPrice(order.payment.changeFor)}</span></div>` : ''}</div>`;
@@ -253,24 +281,174 @@ function closeDetailsModal() { if (deliveryDetailsModal) deliveryDetailsModal.cl
 function addCardClickListeners(container, orderArray) { if (!container) return; container.querySelectorAll('.delivery-card').forEach(card => { card.addEventListener('click', () => { const orderId = card.dataset.orderId; const order = orderArray.find(o => o.id === orderId); if (order) openDetailsModal(order); }); }); }
 
 function renderHistory(orders) {
-    historicalOrders = orders; if (!historyList || !totalFeesValue || !totalDeliveriesCount) return; let totalFees = orders.reduce((sum, order) => sum + (order.delivery?.fee || 0), 0); let totalDeliveries = orders.length; if (statsDeliveriesToday && statsEarningsToday) { statsDeliveriesToday.textContent = totalDeliveries; statsEarningsToday.textContent = formatPrice(totalFees); } totalFeesValue.textContent = formatPrice(totalFees); totalDeliveriesCount.textContent = totalDeliveries; if (orders.length === 0) { historyList.innerHTML = `<div class="loading-state"><p>Nenhuma entrega encontrada para o período selecionado.</p></div>`; } else { historyList.innerHTML = orders.map(createDeliveryCard).join(''); addCardClickListeners(historyList, historicalOrders); }
+    historicalOrders = orders;
+    if (!historyList || !totalFeesValue || !totalDeliveriesCount) return;
+    let totalFees = orders.reduce((sum, order) => sum + (order.delivery?.fee || 0), 0);
+    let totalDeliveries = orders.length;
+    totalFeesValue.textContent = formatPrice(totalFees);
+    totalDeliveriesCount.textContent = totalDeliveries;
+    if (orders.length === 0) {
+        historyList.innerHTML = `<div class="loading-state"><p>Nenhuma entrega encontrada para o período selecionado.</p></div>`;
+    } else {
+        historyList.innerHTML = orders.map(createDeliveryCard).join('');
+        addCardClickListeners(historyList, historicalOrders);
+    }
 }
 async function listenForHistory(driverId, startDate = null, endDate = null) {
-    if (!historyList) return; historyList.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Buscando histórico...</p></div>`; let historyQuery = query(collection(db, "pedidos"), where("delivery.assignedTo.id", "==", driverId), where("status", "==", "Entregue")); if (startDate) { historyQuery = query(historyQuery, where("lastStatusUpdate", ">=", Timestamp.fromDate(startDate))); } if (endDate) { const endOfDay = new Date(endDate); endOfDay.setHours(23, 59, 59, 999); historyQuery = query(historyQuery, where("lastStatusUpdate", "<=", Timestamp.fromDate(endOfDay))); } historyQuery = query(historyQuery, orderBy("lastStatusUpdate", "desc")); try { const snapshot = await getDocs(historyQuery); const historyOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); renderHistory(historyOrders); } catch (error) { console.error("Erro ao buscar histórico:", error); if (error.code === 'failed-precondition') { historyList.innerHTML = `<div class="loading-state error"><p><strong>Erro:</strong> O banco de dados precisa de um índice para esta busca.</p><p>Abra o console do navegador (F12), clique no link do erro para criar o índice e tente novamente em alguns minutos.</p></div>`; } else { historyList.innerHTML = `<div class="loading-state error"><p>Ocorreu um erro ao buscar o histórico.</p></div>`; } }
+    if (!historyList) return;
+    historyList.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Buscando histórico...</p></div>`;
+    let historyQuery = query(collection(db, "pedidos"), where("delivery.assignedTo.id", "==", driverId), where("status", "==", "Entregue"));
+    if (startDate) {
+        historyQuery = query(historyQuery, where("lastStatusUpdate", ">=", Timestamp.fromDate(startDate)));
+    }
+    if (endDate) {
+        const endOfDay = new Date(endDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        historyQuery = query(historyQuery, where("lastStatusUpdate", "<=", Timestamp.fromDate(endOfDay)));
+    }
+    historyQuery = query(historyQuery, orderBy("lastStatusUpdate", "desc"));
+    try {
+        const snapshot = await getDocs(historyQuery);
+        const historyOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderHistory(historyOrders);
+    } catch (error) {
+        console.error("Erro ao buscar histórico:", error);
+        if (error.code === 'failed-precondition') {
+            historyList.innerHTML = `<div class="loading-state error"><p><strong>Erro:</strong> O banco de dados precisa de um índice para esta busca.</p><p>Abra o console do navegador (F12), clique no link do erro para criar o índice e tente novamente em alguns minutos.</p></div>`;
+        } else {
+            historyList.innerHTML = `<div class="loading-state error"><p>Ocorreu um erro ao buscar o histórico.</p></div>`;
+        }
+    }
 }
 function listenForDeliveries(driverId) {
-    if (!driverId) return; const q = query(collection(db, "pedidos"), where("delivery.assignedTo.id", "==", driverId), where("status", "in", ["Em Preparo", "Saiu para Entrega"])); onSnapshot(q, (snapshot) => { snapshot.docChanges().forEach((change) => { if (change.type === "added" && !isFirstLoad) { playNotificationSound(); } }); isFirstLoad = false; currentOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); if (!deliveryQueueList) return; if (currentOrders.length === 0) { deliveryQueueList.innerHTML = `<div class="loading-state"><i class="fas fa-motorcycle" style="font-size: 3em; color: #ccc;"></i><p>Nenhuma entrega para você no momento. Aguardando...</p></div>`; } else { currentOrders.sort((a, b) => (b.createdAt?.toDate() ?? 0) - (a.createdAt?.toDate() ?? 0)); deliveryQueueList.innerHTML = currentOrders.map(createDeliveryCard).join(''); addCardClickListeners(deliveryQueueList, currentOrders); } }, (error) => { console.error("Erro ao buscar entregas: ", error); if (deliveryQueueList) deliveryQueueList.innerHTML = "<p>Ocorreu um erro ao carregar as entregas.</p>"; });
+    if (!driverId) return;
+    const q = query(collection(db, "pedidos"), where("delivery.assignedTo.id", "==", driverId), where("status", "in", ["Em Preparo", "Saiu para Entrega"]));
+    onSnapshot(q, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            if (change.type === "added" && !isFirstLoad) {
+                playNotificationSound();
+            }
+        });
+        isFirstLoad = false;
+        currentOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (!deliveryQueueList) return;
+        if (currentOrders.length === 0) {
+            deliveryQueueList.innerHTML = `<div class="loading-state"><i class="fas fa-motorcycle" style="font-size: 3em; color: #ccc;"></i><p>Nenhuma entrega para você no momento. Aguardando...</p></div>`;
+        } else {
+            currentOrders.sort((a, b) => (b.createdAt?.toDate() ?? 0) - (a.createdAt?.toDate() ?? 0));
+            deliveryQueueList.innerHTML = currentOrders.map(createDeliveryCard).join('');
+            addCardClickListeners(deliveryQueueList, currentOrders);
+        }
+    }, (error) => {
+        console.error("Erro ao buscar entregas: ", error);
+        if (deliveryQueueList) deliveryQueueList.innerHTML = "<p>Ocorreu um erro ao carregar as entregas.</p>";
+    });
 }
+
+// ============================================================
+// ============ LÓGICA DO CONTROLE FINANCEIRO  ==========
+// ============================================================
+if (formFinanceiro) {
+    formFinanceiro.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const user = auth.currentUser;
+        if (!user) {
+            alert('Você precisa estar logado para fazer um lançamento.');
+            return;
+        }
+
+        const valor = parseFloat(valorMovimentacao.value);
+        const descricao = descricaoMovimentacao.value;
+        const tipo = tipoMovimentacao.value;
+
+        if (isNaN(valor) || valor <= 0 || descricao.trim() === '') {
+            alert('Por favor, preencha todos os campos corretamente.');
+            return;
+        }
+
+        const button = formFinanceiro.querySelector('button');
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
+        try {
+            await addDoc(collection(db, 'delivery_people', user.uid, 'movimentacoesFinanceiras'), {
+                tipo: tipo,
+                valor: valor,
+                descricao: descricao,
+                data: serverTimestamp()
+            });
+            formFinanceiro.reset();
+        } catch (error) {
+            console.error("Erro ao adicionar lançamento: ", error);
+            alert('Ocorreu um erro ao salvar. Tente novamente.');
+        } finally {
+            button.disabled = false;
+            button.textContent = 'Adicionar Lançamento';
+        }
+    });
+}
+
+function carregarRelatorioFinanceiro(driverId) {
+    if (!driverId) return;
+    const q = query(collection(db, 'delivery_people', driverId, 'movimentacoesFinanceiras'), orderBy('data', 'desc'));
+
+    onSnapshot(q, (querySnapshot) => {
+        let saldo = 0;
+        if (!listaHistoricoEl || !saldoAtualViewEl || !driverBalanceSpan) return;
+        listaHistoricoEl.innerHTML = '';
+
+        if (querySnapshot.empty) {
+            listaHistoricoEl.innerHTML = '<li>Nenhum lançamento encontrado.</li>';
+            saldoAtualViewEl.textContent = formatPrice(0);
+            driverBalanceSpan.textContent = `(${formatPrice(0)})`; 
+            return;
+        }
+
+        querySnapshot.forEach(doc => {
+            const movimentacao = doc.data();
+            const valor = movimentacao.valor;
+
+            if (movimentacao.tipo === 'receita') {
+                saldo += valor;
+            } else {
+                saldo -= valor;
+            }
+
+            const li = document.createElement('li');
+            const valorFormatado = formatPrice(valor);
+            
+            li.classList.add(movimentacao.tipo);
+            li.innerHTML = `
+                <span>${movimentacao.descricao}</span>
+                <span class="valor">${movimentacao.tipo === 'receita' ? '+' : '-'} ${valorFormatado}</span>
+            `;
+            listaHistoricoEl.appendChild(li);
+        });
+
+        saldoAtualViewEl.textContent = formatPrice(saldo);
+        driverBalanceSpan.textContent = `(${formatPrice(saldo)})`;
+        if (saldo < 0) {
+            driverBalanceSpan.style.color = 'var(--primary-red)';
+            saldoAtualViewEl.style.color = 'var(--primary-red)';
+        } else {
+            driverBalanceSpan.style.color = 'var(--success-green)';
+            saldoAtualViewEl.style.color = 'var(--success-green)';
+        }
+    }, error => {
+        console.error("Erro ao carregar relatório financeiro:", error);
+    });
+}
+
 
 // --- LÓGICA DE AÇÃO DOS BOTÕES ---
 if (closeModalBtn) closeModalBtn.addEventListener('click', closeDetailsModal);
 if (btnDeliveryAction) { btnDeliveryAction.addEventListener('click', async () => { if (!selectedOrder) return; btnDeliveryAction.disabled = true; btnDeliveryAction.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...'; const orderRef = doc(db, "pedidos", selectedOrder.id); await updateDoc(orderRef, { status: "Saiu para Entrega", lastStatusUpdate: new Date() }); btnDeliveryAction.disabled = false; btnDeliveryAction.innerHTML = '<i class="fas fa-motorcycle"></i> Peguei o Pedido'; closeDetailsModal(); }); }
 if (btnCompleteDelivery) { btnCompleteDelivery.addEventListener('click', async () => { if (!selectedOrder || !auth.currentUser) return; btnCompleteDelivery.disabled = true; btnCompleteDelivery.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finalizando...'; const orderRef = doc(db, "pedidos", selectedOrder.id); const driverRef = doc(db, "delivery_people", auth.currentUser.uid); await updateDoc(orderRef, { status: "Entregue", lastStatusUpdate: new Date() }); await checkAndAwardAchievements(driverRef); btnCompleteDelivery.disabled = false; btnCompleteDelivery.innerHTML = '<i class="fas fa-check-circle"></i> Entrega Finalizada'; closeDetailsModal(); }); }
-if (historyBtn) { historyBtn.addEventListener('click', () => { const isHistoryVisible = historySection.classList.contains('hidden'); historySection.classList.toggle('hidden', !isHistoryVisible); currentDeliveriesSection.classList.toggle('hidden', isHistoryVisible); historyBtn.classList.toggle('active', isHistoryVisible); }); }
 if (logoutBtn) { logoutBtn.addEventListener('click', () => { signOut(auth).catch(error => console.error("Erro no logout:", error)); }); }
 if (filterHistoryBtn) { filterHistoryBtn.addEventListener('click', () => { const startDateValue = startDateInput.value; const endDateValue = endDateInput.value; if (!startDateValue) { alert("Por favor, selecione pelo menos a data de início."); return; } const startDate = new Date(startDateValue + 'T00:00:00'); const endDate = endDateValue ? new Date(endDateValue + 'T00:00:00') : null; const user = auth.currentUser; if (user) { listenForHistory(user.uid, startDate, endDate); } }); }
 
-// --- LÓGICA DE AUTENTICAÇÃO OTIMIZADA ---
+
+// --- LÓGICA DE AUTENTICAÇÃO E INICIALIZAÇÃO ---
 onAuthStateChanged(auth, async (user) => {
     const appLoader = document.getElementById('app-loader');
     const appContent = document.getElementById('app-content');
@@ -293,10 +471,19 @@ onAuthStateChanged(auth, async (user) => {
             currentDriverProfile = { totalDeliveries: 0, achievements: {} };
         }
 
+        // --- ATIVANDO OS LISTENERS ---
         listenForDeliveries(user.uid); 
         const today = new Date();
         today.setHours(0, 0, 0, 0); 
         listenForHistory(user.uid, today, today); 
+        carregarRelatorioFinanceiro(user.uid);
+
+        // --- GERENCIAMENTO DAS TELAS ---
+        showView('deliveries'); // Mostra a tela de entregas por padrão
+        
+        homeBtn.addEventListener('click', () => showView('deliveries'));
+        historyBtn.addEventListener('click', () => showView('history'));
+        financialBtn.addEventListener('click', () => showView('financial'));
 
     } else {
         window.location.href = 'login.html';
