@@ -52,7 +52,7 @@ function setupMap() {
 
     // Ícone para o entregador
     window.driverIcon = L.icon({
-        iconUrl: 'img/icons/motinha.png',
+        iconUrl: '../img/icons/motinha.png',
         iconSize: [40, 40],
         iconAnchor: [20, 40],
         popupAnchor: [0, -40]
@@ -60,7 +60,7 @@ function setupMap() {
 
     // Ícone para a pizzaria
     const storeIcon = L.icon({
-        iconUrl: 'img/logos/logo1.png',
+        iconUrl: '../img/logos/logo1.png',
         iconSize: [42, 42],
         iconAnchor: [21, 42],
         popupAnchor: [0, -42]
