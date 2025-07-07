@@ -1,10 +1,10 @@
-// pedidos.js - VERSÃO COMPLETA E CORRIGIDA
+// pedidos.js - VERSÃO COMPLETA COM ALTERAÇÃO DE STATUS DE PAGAMENTO
 
 // --- Variáveis de estado do módulo ---
 let ordersSectionInitialized = false;
 let unsubscribeFromOrders = null;
 let allOrders = [];
-let allDeliveryPeople = []; // Será preenchido pela função fetchDeliveryPeople
+let allDeliveryPeople = [];
 let activeTypeFilter = 'todos';
 
 // --- Funções de Dados (Firestore) ---
@@ -15,12 +15,10 @@ async function fetchDeliveryPeople() {
     try {
         const q = query(collection(window.db, "delivery_people"));
         const querySnapshot = await getDocs(q);
-        // Mapeia todos os documentos para o array global
         allDeliveryPeople = querySnapshot.docs.map(doc => ({
-          docId: doc.id, // O ID do documento é o UID do Google
+          docId: doc.id,
           ...doc.data()
         }));
-        // Disponibiliza também em uma variável global para outros scripts, se necessário
         window.allDeliveryPeople = allDeliveryPeople;
     } catch (error) {
         console.error("Erro ao buscar entregadores:", error);
@@ -44,8 +42,7 @@ async function assignDriverToOrder(orderId, driverData) {
     const { doc, updateDoc } = window.firebaseFirestore;
     const orderRef = doc(window.db, "pedidos", orderId);
     try {
-        // Salva um objeto com o ID (googleUid) e o nome do entregador
-        await updateDoc(orderRef, { 'delivery.assignedTo': { id: driverData.id, name: driverData.name } });
+        await updateDoc(orderRef, { 'delivery.assignedTo': driverData });
         window.showToast(`Entregador ${driverData.name} atribuído ao pedido!`);
     } catch (error) {
         console.error("Erro ao atribuir entregador:", error);
@@ -143,13 +140,13 @@ function openOrderDetailsModal(order) {
                         <span class="slider round"></span>
                     </label>
                 </div>
-            </div>`;
+            </div>
+        `;
     }
     
     const paymentSectionHTML = `<h4 class="modal-section-title"><i class="fas fa-file-invoice-dollar"></i> Financeiro</h4><div class="detail-grid">${paymentDetailsHTML}</div>`;
     
-    // CORRIGIDO: Agora usa 'allDeliveryPeople' para listar TODOS os entregadores
-    const deliveryPersonSelectorHTML = `<div class="delivery-assignment-section"><div class="form-group"><label for="modal-delivery-person-select">Atribuir Entregador:</label><div class="input-with-icon right-icon"><select id="modal-delivery-person-select" class="form-control"><option value="">-- Nenhum --</option>${allDeliveryPeople.map(p => `<option value="${p.docId}" data-whatsapp="${p.whatsapp}" data-name="${p.firstName}">${p.firstName} ${p.lastName}</option>`).join('')}</select><button id="modal-save-driver-btn" class="btn btn-sm btn-success" style="height: 100%; border-radius: 0 4px 4px 0;">Salvar</button></div><small>Ao salvar, o pedido aparecerá imediatamente para o entregador.</small></div></div>`;
+    const deliveryPersonSelectorHTML = `<div class="delivery-assignment-section"><div class="form-group"><label for="modal-delivery-person-select">Atribuir Entregador:</label><div class="input-with-icon right-icon"><select id="modal-delivery-person-select" class="form-control"><option value="">-- Nenhum --</option>${allDeliveryPeople.map(p => p.googleUid ? `<option value="${p.googleUid}" data-whatsapp="${p.whatsapp}" data-name="${p.firstName}">${p.firstName} ${p.lastName}</option>` : '').join('')}</select><button id="modal-save-driver-btn" class="btn btn-sm btn-success" style="height: 100%; border-radius: 0 4px 4px 0;">Salvar</button></div><small>Ao salvar, o pedido aparecerá imediatamente para o entregador.</small></div></div>`;
     
     modalBody.innerHTML = customerHTML + itemsSectionHTML + addressHTML + paymentSectionHTML + `<h4 class="modal-section-title"><i class="fas fa-motorcycle"></i> Entregador</h4>${deliveryPersonSelectorHTML}`;
     
@@ -292,15 +289,17 @@ function renderOrders() {
 
 function listenForRealTimeOrders() {
     if (unsubscribeFromOrders) unsubscribeFromOrders();
-    const { collection, query, orderBy, onSnapshot, limit } = window.firebaseFirestore;
-    const q = query(collection(window.db, "pedidos"), orderBy("createdAt", "desc"), limit(50));
+    const { collection, query, orderBy, onSnapshot } = window.firebaseFirestore;
+    const q = query(collection(window.db, "pedidos"), orderBy("createdAt", "desc"));
     let isInitialLoad = true;
     unsubscribeFromOrders = onSnapshot(q, snapshot => {
         allOrders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderOrders();
-        if (!isInitialLoad && snapshot.docChanges().some(c => c.type === 'added')) {
-            new Audio('../audio/notification.mp3').play().catch(e => {});
-        }
+        snapshot.docChanges().forEach(change => {
+            if (change.type === "added" && !isInitialLoad) {
+                new Audio('../audio/notification.mp3').play().catch(e => {});
+            }
+        });
         isInitialLoad = false;
     }, error => {
         console.error("Erro ao escutar pedidos em tempo real: ", error);
