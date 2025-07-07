@@ -539,3 +539,250 @@ body.app-view {
 .hidden {
   display: none !important;
 }
+
+/* ============================================= */
+/* --- NOVOS ESTILOS PARA O CONTROLE FINANCEIRO --- */
+/* ============================================= */
+
+#financial-control-card {
+    background-color: var(--white);
+    border-radius: 12px;
+    margin-bottom: 25px; /* Aumenta a margem para separar da próxima seção */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border-left: 5px solid #17a2b8; /* Cor azul para diferenciar */
+    padding: 20px;
+}
+
+#financial-control-card h2 {
+    margin: 0 0 15px 0;
+    font-size: 1.4em;
+    color: var(--dark-text);
+}
+
+.saldo-container {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: var(--light-gray-bg);
+    border-radius: 8px;
+}
+
+.saldo-container h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.saldo-container span {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--success-green);
+}
+
+#form-financeiro {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#form-financeiro select,
+#form-financeiro input,
+#form-financeiro button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1em;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+#form-financeiro button {
+    background-color: #17a2b8;
+    color: var(--white);
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+#form-financeiro button:hover {
+    background-color: #138496;
+}
+
+.historico-container {
+    margin-top: 15px;
+}
+
+.historico-container h4 {
+    font-size: 1em;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+#lista-historico-financeiro {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#lista-historico-financeiro li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+#lista-historico-financeiro li:last-child {
+    border-bottom: none;
+}
+
+#lista-historico-financeiro li.receita .valor {
+    color: var(--success-green);
+    font-weight: bold;
+}
+#lista-historico-financeiro li.retirada .valor {
+    color: var(--primary-red);
+    font-weight: bold;
+}
+
+/* ============================================= */
+/* --- NOVOS ESTILOS PARA O CABEÇALHO E FINANCEIRO --- */
+/* ============================================= */
+
+.driver-balance {
+    font-weight: bold;
+    color: var(--success-green);
+    margin-left: 8px;
+}
+
+.header-actions button#financial-btn {
+    /* Estilos opcionais para o botão do caixa, se quiser diferenciá-lo */
+}
+
+#financial-control-view {
+    padding: 15px; /* Adiciona um pouco de padding ao redor da view */
+}
+
+#financial-control-card {
+    background-color: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border-left: 5px solid #17a2b8; /* Cor azul para diferenciar */
+    padding: 20px;
+    max-width: 600px; /* Limita a largura em telas maiores */
+    margin: 20px auto; /* Centraliza o card */
+}
+
+#financial-control-card h2 {
+    margin: 0 0 15px 0;
+    font-size: 1.4em;
+    color: var(--dark-text);
+}
+
+.saldo-container {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: var(--light-gray-bg);
+    border-radius: 8px;
+}
+
+.saldo-container h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.saldo-container span {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--success-green);
+}
+
+#form-financeiro {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#form-financeiro select,
+#form-financeiro input,
+#form-financeiro button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1em;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+#form-financeiro button {
+    background-color: #17a2b8;
+    color: var(--white);
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+#form-financeiro button:hover {
+    background-color: #138496;
+}
+
+.historico-container {
+    margin-top: 15px;
+}
+
+.historico-container h4 {
+    font-size: 1em;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+#lista-historico-financeiro {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#lista-historico-financeiro li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+#lista-historico-financeiro li:last-child {
+    border-bottom: none;
+}
+
+#lista-historico-financeiro li.receita .valor {
+    color: var(--success-green);
+    font-weight: bold;
+}
+#lista-historico-financeiro li.retirada .valor {
+    color: var(--primary-red);
+    font-weight: bold;
+}
+
+#financial-control-view.hidden {
+    display: none !important;
+}
+
+#back-to-deliveries {
+    background-color: var(--secondary-color);
+    color: var(--white);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+    margin-top: 20px;
+}
+
+#back-to-deliveries:hover {
+    background-color: var(--secondary-darker);
+}
