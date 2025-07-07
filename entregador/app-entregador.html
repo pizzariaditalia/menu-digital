@@ -8,98 +8,125 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
   <link rel="manifest" href="manifest-entregador.json">
   <meta name="theme-color" content="#333333">
-  </head>
+</head>
 <body class="app-view">
 
   <div id="app-loader" class="loading-state" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh;">
-      <div class="spinner"></div>
-      <p>Verificando sessão...</p>
+    <div class="spinner"></div>
+    <p>
+      Verificando sessão...
+    </p>
   </div>
 
-  <div id="app-content" class="hidden"> 
-      <header class="app-header">
-        <div class="header-content">
-          <div class="driver-info">
-            <i class="fas fa-motorcycle"></i>
-            <span id="driver-name">Carregando...</span>
-          </div>
-          <div class="header-actions">
-            <button id="achievements-btn" class="header-icon-btn" title="Ver Conquistas">
-              <i class="fas fa-trophy"></i>
-            </button>
-            <button id="history-btn" class="header-icon-btn" title="Ver Histórico do Dia">
-              <i class="fas fa-history"></i>
-            </button>
-            <button id="logout-btn" class="header-icon-btn" title="Sair">
-              <i class="fas fa-sign-out-alt"></i>
-            </button>
-          </div>
+  <div id="app-content" class="hidden">
+    <header class="app-header">
+      <div class="header-content">
+        <div class="driver-info">
+          <i class="fas fa-motorcycle"></i>
+          <span id="driver-name">Carregando...</span>
+          <span id="driver-balance" class="driver-balance"> (R$ 0,00)</span>
         </div>
-      </header>
+        <div class="header-actions">
+          <button id="home-btn" class="header-icon-btn active" title="Início / Entregas">
+            <i class="fas fa-home"></i>
+          </button>
+          <button id="financial-btn" class="header-icon-btn" title="Meu Caixa">
+            <i class="fas fa-money-bill-wave"></i>
+          </button>
+          <button id="achievements-btn" class="header-icon-btn" title="Ver Conquistas">
+            <i class="fas fa-trophy"></i>
+          </button>
+          <button id="history-btn" class="header-icon-btn" title="Ver Histórico do Dia">
+            <i class="fas fa-history"></i>
+          </button>
+          <button id="logout-btn" class="header-icon-btn" title="Sair">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+        </div>
+      </div>
+    </header>
 
-      <main class="app-main">
-        <div id="quick-stats-panel" class="quick-stats-card">
-          <div class="stat-item">
-            <i class="fas fa-check-circle"></i>
-            <div class="stat-value" id="stats-deliveries-today">0</div>
-            <div class="stat-label">Entregas Hoje</div>
-          </div>
-          <div class="stat-item">
-            <i class="fas fa-wallet"></i>
-            <div class="stat-value" id="stats-earnings-today">R$ 0,00</div>
-            <div class="stat-label">Ganhos Hoje</div>
+    <main class="app-main">
+      <div id="current-deliveries-section">
+        <h3>Entregas Disponíveis</h3>
+        <div id="delivery-queue-list">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>
+              Aguardando novas entregas...
+            </p>
           </div>
         </div>
-        <div id="current-deliveries-section">
-          <h3>Entregas Atuais</h3>
-          <div id="delivery-queue-list">
-            <div class="loading-state">
-              <div class="spinner"></div>
-              <p>Aguardando novas entregas...</p>
-            </div>
+      </div>
+      <div id="history-section" class="hidden">
+        <h3>Histórico de Entregas</h3>
+        <div id="history-filter-controls" class="history-filter-card">
+          <div class="filter-group">
+            <label for="start-date">Data de Início:</label>
+            <input type="date" id="start-date" class="form-control">
+          </div>
+          <div class="filter-group">
+            <label for="end-date">Data de Fim:</label>
+            <input type="date" id="end-date" class="form-control">
+          </div>
+          <button id="filter-history-btn" class="btn">Buscar</button>
+        </div>
+        <div id="history-summary" class="history-summary-card">
+          <div class="summary-item">
+            <span class="label">Total de Taxas a Receber</span>
+            <span class="value" id="total-fees-value">R$ 0,00</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Entregas Finalizadas</span>
+            <span class="value" id="total-deliveries-count">0</span>
           </div>
         </div>
-        <div id="history-section" class="hidden">
-          <h3>Histórico de Entregas</h3>
-          <div id="history-filter-controls" class="history-filter-card">
-            <div class="filter-group">
-              <label for="start-date">Data de Início:</label>
-              <input type="date" id="start-date" class="form-control">
-            </div>
-            <div class="filter-group">
-              <label for="end-date">Data de Fim:</label>
-              <input type="date" id="end-date" class="form-control">
-            </div>
-            <button id="filter-history-btn" class="btn">Buscar</button>
-          </div>
-          <div id="history-summary" class="history-summary-card">
-            <div class="summary-item">
-              <span class="label">Total de Taxas a Receber</span>
-              <span class="value" id="total-fees-value">R$ 0,00</span>
-            </div>
-            <div class="summary-item">
-              <span class="label">Entregas Finalizadas</span>
-              <span class="value" id="total-deliveries-count">0</span>
-            </div>
-          </div>
-          <div id="history-list"></div>
+        <div id="history-list"></div>
+      </div>
+    </main>
+
+    <div id="financial-control-view" class="hidden app-main">
+      <div id="financial-control-card" class="card">
+        <h2>Meu Caixa</h2>
+        <div class="saldo-container">
+          <h3>Saldo Atual: <span id="saldo-atual-view">R$ 0,00</span></h3>
         </div>
-      </main>
-  </div> <div id="delivery-details-modal" class="modal-view">
+        <form id="form-financeiro">
+          <select id="tipo-movimentacao" required>
+            <option value="receita">Receita (Entrada)</option>
+            <option value="retirada">Retirada (Saída)</option>
+          </select>
+          <input type="number" id="valor-movimentacao" placeholder="Valor (R$)" step="0.01" required>
+          <input type="text" id="descricao-movimentacao" placeholder="Descrição (Ex: Taxa Pedido)" required>
+          <button type="submit">Adicionar Lançamento</button>
+        </form>
+        <div class="historico-container">
+          <h4>Histórico de Lançamentos</h4>
+          <ul id="lista-historico-financeiro">
+            <li>Nenhum lançamento ainda.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div id="delivery-details-modal" class="modal-view">
     <div class="modal-content">
       <header class="modal-header">
         <h3>Detalhes da Entrega</h3>
         <button class="close-modal-btn">×</button>
       </header>
       <main class="modal-body">
-        <p>Carregando detalhes...</p>
+        <p>
+          Carregando detalhes...
+        </p>
       </main>
       <footer class="modal-footer">
         <button id="btn-send-message" class="btn btn-secondary">
-            <i class="fas fa-comment-dots"></i> Enviar Mensagem
+          <i class="fas fa-comment-dots"></i> Enviar Mensagem
         </button>
         <button id="btn-delivery-action" class="btn btn-primary">
-          <i class="fas fa-motorcycle"></i> Peguei o Pedido
+          <i class="fas fa-motorcycle"></i> Saindo para Entrega
         </button>
         <button id="btn-complete-delivery" class="btn btn-success">
           <i class="fas fa-check-circle"></i> Entrega Finalizada
@@ -116,7 +143,9 @@
       <main class="modal-body" id="achievements-list">
         <div class="loading-state">
           <div class="spinner"></div>
-          <p>Carregando suas medalhas...</p>
+          <p>
+            Carregando suas medalhas...
+          </p>
         </div>
       </main>
     </div>
@@ -138,16 +167,22 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     const firebaseConfig = {
       apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
       authDomain: "app-ditalia.firebaseapp.com",
       projectId: "app-ditalia",
       storageBucket: "app-ditalia.firebasestorage.app",
       messagingSenderId: "122567535166",
-      appId: "1:122567535166:web:19de7b8925042027063f6f",
+      appId: "1:122567b8925042027063f6f",
       measurementId: "G-5QW3MVGYME"
     };
     const app = initializeApp(firebaseConfig);
