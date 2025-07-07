@@ -46,6 +46,7 @@ const URLS_TO_CACHE = [
   './vendas.js',
   './promocoes.js',
   './config.js',
+  './mapa.js',
   './appearance.js',
   '../img/logos/logo.png',
   '../img/icons/icon-192x192.png',
