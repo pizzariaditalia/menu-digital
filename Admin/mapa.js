@@ -7,56 +7,78 @@ let driverMarkers = {}; // Objeto para guardar os marcadores de cada entregador
 
 // Função que será chamada para inicializar a seção do mapa
 async function initializeMapSection() {
-    if (mapSectionInitialized) return;
+    // Garante que a inicialização ocorra apenas uma vez
+    if (mapSectionInitialized) {
+        // Se a seção já foi inicializada, apenas garante que o mapa se ajuste ao container
+        if(map) {
+            setTimeout(() => map.invalidateSize(), 100);
+        }
+        return;
+    }
     mapSectionInitialized = true;
     console.log("Módulo Mapa.js: Inicializando...");
 
-    // Garante que o container do mapa está visível antes de inicializar
+    // Garante que o container do mapa está visível antes de inicializar o Leaflet
     setTimeout(() => {
         setupMap();
         listenForDriverLocations();
-    }, 100); 
+    }, 100);
 }
 
 // Função para configurar o mapa Leaflet
 function setupMap() {
     // Verifica se o mapa já foi inicializado para não criar outro
     if (map) {
-        map.invalidateSize(); // Ajusta o tamanho do mapa caso a janela tenha mudado
+        map.invalidateSize();
         return;
     }
 
     const mapContainer = document.getElementById('realtime-map-container');
-    if (!mapContainer) return;
+    if (!mapContainer) {
+        console.error("Container do mapa #realtime-map-container não encontrado!");
+        return;
+    }
 
-    // Coordenadas para centralizar o mapa no Brasil
-    const initialCoords = [-14.235, -51.925]; 
-    const initialZoom = 4;
+    // Coordenadas exatas da sua pizzaria
+    const pizzariaCoords = [-23.115958446804026, -45.70218834501301];
+    const initialZoom = 16; // Zoom um pouco mais próximo
 
-    map = L.map(mapContainer).setView(initialCoords, initialZoom);
+    map = L.map(mapContainer).setView(pizzariaCoords, initialZoom);
 
-    // Adiciona a camada de mapa do OpenStreetMap
+    // Adiciona a camada de mapa do OpenStreetMap (gratuito)
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    // Ícone customizado para o entregador
-    const driverIcon = L.icon({
-        iconUrl: '../img/icons/motinha.png', 
-        iconSize: [40, 40], // Tamanho do ícone
-        iconAnchor: [20, 40], // Ponto do ícone que corresponde à localização
-        popupAnchor: [0, -40] // Ponto onde o popup deve abrir em relação ao ícone
+    // Ícone para o entregador
+    window.driverIcon = L.icon({
+        iconUrl: 'img/icons/motinha.png',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40]
     });
-    window.driverIcon = driverIcon; // Torna o ícone acessível globalmente se necessário
+
+    // Ícone para a pizzaria
+    const storeIcon = L.icon({
+        iconUrl: 'img/icons/pizzaria.png',
+        iconSize: [42, 42],
+        iconAnchor: [21, 42],
+        popupAnchor: [0, -42]
+    });
+
+    // Adiciona o marcador fixo da pizzaria no mapa
+    L.marker(pizzariaCoords, { icon: storeIcon })
+        .addTo(map)
+        .bindPopup("<b>D'Italia Pizzaria</b><br>Nossa base!")
+        .openPopup(); // Força o balão a aparecer inicialmente
 }
 
 // Função para ouvir as atualizações de localização do Firestore
 function listenForDriverLocations() {
-    const { collection, onSnapshot, query, where } = window.firebaseFirestore;
+    const { collection, onSnapshot, query, where, Timestamp } = window.firebaseFirestore;
 
-    // Opcional: ouvir apenas os atualizados nos últimos 5 minutos
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000); 
-    const q = query(collection(window.db, "driver_locations"), where("lastUpdate", ">", fiveMinutesAgo));
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const q = query(collection(window.db, "driver_locations"), where("lastUpdate", ">", Timestamp.fromDate(fiveMinutesAgo)));
 
     onSnapshot(q, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
@@ -64,24 +86,20 @@ function listenForDriverLocations() {
             const driverData = change.doc.data();
 
             if (change.type === "removed" || !driverData.lat || !driverData.lng) {
-                // Remove o marcador se o entregador ficar offline
                 if (driverMarkers[driverId]) {
                     map.removeLayer(driverMarkers[driverId]);
                     delete driverMarkers[driverId];
                 }
             } else {
-                // Adiciona ou atualiza o marcador
                 const newPosition = [driverData.lat, driverData.lng];
+
                 if (driverMarkers[driverId]) {
-                    // Se o marcador já existe, apenas move
                     driverMarkers[driverId].setLatLng(newPosition);
                 } else {
-                    // Se é um novo entregador, cria um novo marcador
                     driverMarkers[driverId] = L.marker(newPosition, { icon: window.driverIcon }).addTo(map);
                 }
-                // Atualiza o popup com o nome e a hora da atualização
                 const updateTime = driverData.lastUpdate?.toDate().toLocaleTimeString('pt-BR') || 'agora';
-                driverMarkers[driverId].bindPopup(`<b>${driverData.name}</b><br>Última atualização: ${updateTime}`);
+                driverMarkers[driverId].bindPopup(`<b>${driverData.name}</b><br>Atualizado às: ${updateTime}`);
             }
         });
     });
