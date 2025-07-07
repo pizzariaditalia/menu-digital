@@ -60,7 +60,7 @@ function setupMap() {
 
     // Ícone para a pizzaria
     const storeIcon = L.icon({
-        iconUrl: 'img/icons/pizzaria.png',
+        iconUrl: 'img/logos/logo1.png',
         iconSize: [42, 42],
         iconAnchor: [21, 42],
         popupAnchor: [0, -42]
