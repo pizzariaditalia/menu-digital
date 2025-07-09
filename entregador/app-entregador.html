@@ -23,8 +23,10 @@
       <div class="header-content">
         <div class="driver-info">
           <i class="fas fa-motorcycle"></i>
-          <span id="driver-name">Carregando...</span>
-          <span id="driver-balance" class="driver-balance"> (R$ 0,00)</span>
+          <div class="driver-details">
+            <span id="driver-name">Carregando...</span>
+            <span id="driver-balance" class="driver-balance">R$ 0,00</span>
+          </div>
         </div>
         <div class="header-actions">
           <button id="home-btn" class="header-icon-btn active" title="Início / Entregas">
@@ -48,6 +50,16 @@
 
     <main class="app-main">
       <div id="current-deliveries-section">
+        <div class="daily-summary-card">
+          <div class="summary-item">
+            <span class="label">Total Taxas do Dia</span>
+            <span class="value" id="today-fees-value">R$ 0,00</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Entregas Finalizadas</span>
+            <span class="value" id="today-deliveries-count">0</span>
+          </div>
+        </div>
         <h3>Entregas Disponíveis</h3>
         <div id="delivery-queue-list">
           <div class="loading-state">
@@ -99,6 +111,9 @@
           <input type="number" id="valor-movimentacao" placeholder="Valor (R$)" step="0.01" required>
           <input type="text" id="descricao-movimentacao" placeholder="Descrição (Ex: Taxa Pedido)" required>
           <button type="submit">Adicionar Lançamento</button>
+          <button type="button" id="request-withdrawal-btn" class="btn btn-secondary">
+            <i class="fab fa-whatsapp"></i> Solicitar Saque
+          </button>
         </form>
         <div class="historico-container">
           <h4>Histórico de Lançamentos</h4>
