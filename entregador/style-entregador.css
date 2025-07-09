@@ -160,7 +160,7 @@ body.app-view {
 
 .app-header .driver-info {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 10px;
     font-weight: 500;
 }
@@ -785,4 +785,70 @@ body.app-view {
 
 #back-to-deliveries:hover {
     background-color: var(--secondary-darker);
+}
+
+/* ============================================= */
+/* --- ESTILOS PARA O RESUMO DIÁRIO --- */
+/* ============================================= */
+
+.daily-summary-card {
+    background: var(--white);
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Duas colunas de tamanho igual */
+    gap: 15px;
+    text-align: center;
+    border-top: 4px solid var(--primary-yellow);
+}
+
+.daily-summary-card .summary-item .label {
+    font-size: 0.85em;
+    color: var(--light-text);
+    display: block;
+    margin-bottom: 5px;
+}
+
+.daily-summary-card .summary-item .value {
+    font-size: 1.6em;
+    font-weight: 700;
+    color: var(--dark-text);
+    display: block;
+}
+
+.daily-summary-card .summary-item:first-child .value {
+    color: var(--success-green);
+}
+
+/* ============================================= */
+/* --- AJUSTES NO CABEÇALHO DO ENTREGADOR --- */
+/* ============================================= */
+
+.driver-info .driver-details {
+    display: flex;
+    flex-direction: column; /* Faz os itens ficarem um em cima do outro */
+    align-items: flex-start; /* Alinha à esquerda */
+    line-height: 1.2; /* Deixa o espaçamento entre eles mais justo */
+}
+
+.driver-balance {
+    font-size: 0.8em;
+    font-weight: 400; /* Deixa a fonte mais leve que o nome */
+    color: var(--light-text);
+    opacity: 0.9;
+}
+
+/* ESTILO PARA O NOVO BOTÃO DE SAQUE */
+.btn-secondary {
+    background-color: #6c757d; /* Cinza escuro */
+    color: var(--white);
+    margin-top: 10px; /* Espaço para separar do botão de cima */
+    transition: background-color 0.2s ease;
+    border: none;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
 }
