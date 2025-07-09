@@ -1514,3 +1514,28 @@ input:checked + .slider:before { transform: translateX(20px); }
 .saque-footer .btn-pagar-saque {
     width: 100%;
 }
+
+/* ==========================================================================
+   16. ESTILOS PARA O HISTÓRICO DE SAQUES
+   ========================================================================== */
+
+/* Estilo para o card de um saque já pago */
+.saque-card.paid {
+    border-left: 5px solid var(--admin-success-green);
+    background-color: #f8f9fa; /* Um cinza bem claro para diferenciar */
+}
+
+/* Detalhes no cabeçalho do card de histórico */
+.saque-card.paid .saque-header {
+    background-color: #f1f3f5;
+}
+
+/* Badge de status "Pago" */
+.saque-status {
+    font-size: 0.85em;
+    font-weight: 500;
+    color: var(--admin-success-green);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
