@@ -1,4 +1,4 @@
-// app-entregador.js - VERSÃO FINAL COM LÓGICA FINANCEIRA UNIFICADA
+// app-entregador.js - VERSÃO FINAL COMPLETA
 
 // Importa funções do Firebase
 import {
@@ -31,11 +31,6 @@ let currentOrders = [];
 let historicalOrders = [];
 let selectedOrder = null;
 let isFirstLoad = true;
-
-// --- Variáveis para o cálculo do balanço ---
-// Embora não sejam mais estritamente necessárias com o novo modelo,
-// podem ser úteis para debug ou futuras funcionalidades.
-// A fonte da verdade agora é o caixa (movimentacoesFinanceiras).
 
 // ===================================================================
 // RASTREAMENTO DE LOCALIZAÇÃO
@@ -144,6 +139,7 @@ const saldoAtualViewEl = document.getElementById('saldo-atual-view');
 const listaHistoricoEl = document.getElementById('lista-historico-financeiro');
 const todayFeesEl = document.getElementById('today-fees-value');
 const todayCountEl = document.getElementById('today-deliveries-count');
+const requestWithdrawalBtn = document.getElementById('request-withdrawal-btn');
 
 // --- FUNÇÕES UTILITÁRIAS ---
 const formatPrice = (price) => typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
@@ -221,6 +217,7 @@ function renderAchievements() {
   }
   achievementsListDiv.innerHTML = achievementsHTML;
 }
+
 if (achievementsBtn) {
   achievementsBtn.addEventListener('click', () => {
     if (currentDriverProfile) {
@@ -229,9 +226,11 @@ if (achievementsBtn) {
     }
   });
 }
+
 if (closeAchievementsModalBtn) {
   closeAchievementsModalBtn.addEventListener('click', () => achievementsModal.classList.remove('show'));
 }
+
 async function checkAndAwardAchievements(driverRef) {
   try {
     const newAchievementsAwarded = await runTransaction(db, async (transaction) => {
@@ -301,7 +300,7 @@ function createDeliveryCard(order) {
   const status = order.status || 'Indefinido';
   let cardClass = 'delivery-card';
   if (status === 'Entregue') cardClass += ' history-card';
-  const createdAtISO = order.createdAt?.toDate ? order.createdAt.toDate().toISOString(): new Date().toISOString();
+  const createdAtISO = order.createdAt?.toDate ? order.createdAt.toDate().toISOString() : new Date().toISOString();
   let timerHTML = '';
   if (status !== 'Entregue' && status !== 'Cancelado') {
     timerHTML = `<div class="order-timer" data-created-at="${createdAtISO}">00:00</div>`;
@@ -310,7 +309,7 @@ function createDeliveryCard(order) {
   const paymentMethod = order.payment?.method || 'N/A';
   if (paymentMethod === 'Pix') {
     const isPaid = order.payment?.pixPaid === true;
-    paymentTagHTML = isPaid ? '<span class="tag tag-payment-paid">Pix (Pago)</span>': '<span class="tag tag-payment-unpaid">Pix (Não Pago)</span>';
+    paymentTagHTML = isPaid ? '<span class="tag tag-payment-paid">Pix (Pago)</span>' : '<span class="tag tag-payment-unpaid">Pix (Não Pago)</span>';
   } else {
     const paymentClass = paymentMethod.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
     paymentTagHTML = `<span class="tag tag-payment-delivery ${paymentClass}">${paymentMethod}</span>`;
@@ -335,7 +334,7 @@ function createDeliveryCard(order) {
 function openDetailsModal(order) {
   selectedOrder = order;
   const address = order.delivery.address || `${order.delivery.street}, ${order.delivery.number}`;
-  const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
+  const mapLink = `https://maps.google.com/maps?q=${encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
   const customerHTML = `<div class="modal-section"><h4><i class="fas fa-user"></i> Cliente</h4><div class="detail-line"><span class="label">Nome</span><span class="value">${order.customer.firstName} ${order.customer.lastName}</span></div><a href="https://wa.me/55${order.customer.whatsapp}" target="_blank" class="btn" style="background-color:#25D366; width: 95%; margin: 10px auto 0 auto;"><i class="fab fa-whatsapp"></i> Chamar no WhatsApp</a></div><div class="modal-section"><h4><i class="fas fa-map-marker-alt"></i> Endereço</h4><div class="address-block">${address}<br>Bairro: ${order.delivery.neighborhood}<br>${order.delivery.complement ? `Comp: ${order.delivery.complement}<br>`: ''}${order.delivery.reference ? `Ref: ${order.delivery.reference}`: ''}</div><a href="${mapLink}" target="_blank" class="btn" style="background-color:#4285F4; width:95%; margin:10px auto 0 auto;"><i class="fas fa-map-signs"></i> Ver no Mapa</a></div>`;
   const {
     subtotal = 0,
@@ -386,6 +385,7 @@ function renderHistory(orders) {
     addCardClickListeners(historyList, historicalOrders);
   }
 }
+
 async function listenForHistory(driverId, startDate = null, endDate = null) {
   if (!historyList) return;
   historyList.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Buscando histórico...</p></div>`;
@@ -533,13 +533,23 @@ function carregarRelatorioFinanceiro(driverId) {
   });
 }
 
-
 // --- LÓGICA DE AÇÃO DOS BOTÕES ---
 if (closeModalBtn) closeModalBtn.addEventListener('click', closeDetailsModal);
 
 if (btnDeliveryAction) {
   btnDeliveryAction.addEventListener('click', async () => {
-    if (btnCompleteDelivery) {
+    if (!selectedOrder) return;
+    btnDeliveryAction.disabled = true;
+    btnDeliveryAction.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
+    const orderRef = doc(db, "pedidos", selectedOrder.id);
+    await updateDoc(orderRef, { status: "Saiu para Entrega", lastStatusUpdate: new Date() });
+    btnDeliveryAction.disabled = false;
+    btnDeliveryAction.innerHTML = '<i class="fas fa-motorcycle"></i> Peguei o Pedido';
+    closeDetailsModal();
+  });
+}
+
+if (btnCompleteDelivery) {
   btnCompleteDelivery.addEventListener('click', async () => {
     if (!selectedOrder || !auth.currentUser) {
       alert("Erro: Pedido ou entregador não selecionado.");
@@ -559,7 +569,7 @@ if (btnDeliveryAction) {
         // 1. Atualiza o status do pedido para "Entregue"
         transaction.update(orderRef, {
           status: "Entregue",
-          lastStatusUpdate: new Date()
+          lastStatusUpdate: new Date() 
         });
 
         // 2. Adiciona a taxa de entrega como uma nova receita no caixa
@@ -576,7 +586,7 @@ if (btnDeliveryAction) {
 
       // 3. Checa por novas conquistas após a transação ser bem-sucedida
       await checkAndAwardAchievements(driverRef);
-
+      
       // 4. Atualiza o card de resumo visual na tela inicial
       await updateDailySummaryVisuals(auth.currentUser.uid);
 
@@ -589,16 +599,6 @@ if (btnDeliveryAction) {
       btnCompleteDelivery.disabled = false;
       btnCompleteDelivery.innerHTML = '<i class="fas fa-check-circle"></i> Entrega Finalizada';
     }
-  });
-}
-    if (!selectedOrder) return;
-    btnDeliveryAction.disabled = true;
-    btnDeliveryAction.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
-    const orderRef = doc(db, "pedidos", selectedOrder.id);
-    await updateDoc(orderRef, { status: "Saiu para Entrega", lastStatusUpdate: new Date() });
-    btnDeliveryAction.disabled = false;
-    btnDeliveryAction.innerHTML = '<i class="fas fa-motorcycle"></i> Peguei o Pedido';
-    closeDetailsModal();
   });
 }
 
@@ -625,50 +625,6 @@ if (filterHistoryBtn) {
     }
   });
 }
-
-// --- LÓGICA DE AUTENTICAÇÃO E INICIALIZAÇÃO ---
-onAuthStateChanged(auth, async (user) => {
-  const appLoader = document.getElementById('app-loader');
-  const appContent = document.getElementById('app-content');
-
-  if (user) {
-    appLoader.classList.add('hidden');
-    appContent.classList.remove('hidden');
-
-    if (driverNameSpan) {
-      driverNameSpan.textContent = user.displayName ? user.displayName.split(' ')[0] : "Entregador";
-    }
-
-    setInterval(updateAllTimers, 1000);
-
-    const driverRef = doc(db, 'delivery_people', user.uid);
-    const driverSnap = await getDoc(driverRef);
-    currentDriverProfile = driverSnap.exists() ? driverSnap.data() : { totalDeliveries: 0, achievements: {} };
-
-    // --- ATIVANDO OS LISTENERS ---
-    listenForDeliveries(user.uid);
-    carregarRelatorioFinanceiro(user.uid);
-    updateDailySummaryVisuals(user.uid);
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    listenForHistory(user.uid, today, today);
-    startLocationTracking(user.uid);
-
-    // --- GERENCIAMENTO DAS TELAS ---
-    showView('deliveries');
-    homeBtn.addEventListener('click', () => showView('deliveries'));
-    historyBtn.addEventListener('click', () => showView('history'));
-    financialBtn.addEventListener('click', () => showView('financial'));
-
-  } else {
-    stopLocationTracking();
-    window.location.href = 'login.html';
-  }
-});
-
-// --- LÓGICA DO BOTÃO DE SOLICITAR SAQUE ---
-const requestWithdrawalBtn = document.getElementById('request-withdrawal-btn');
 
 if (requestWithdrawalBtn) {
     requestWithdrawalBtn.addEventListener('click', async () => {
@@ -712,8 +668,8 @@ if (requestWithdrawalBtn) {
 
 *Entregador:* ${user.displayName || "Entregador"}
 *ID da Solicitação:* ${docRef.id}
-*=====================================*
-Acabei de solicitar um de saque no valor de *${formatPrice(totalBalance)}*. Por favor, verifique o painel administrativo para aprovar.
+
+Uma nova solicitação de saque no valor de *${formatPrice(totalBalance)}* foi registrada no sistema. Por favor, verifique o painel administrativo para aprovar.
 
 Obrigado!
             `.trim().replace(/\n\s+/g, '\n');
@@ -731,3 +687,44 @@ Obrigado!
         }
     });
 }
+
+// --- LÓGICA DE AUTENTICAÇÃO E INICIALIZAÇÃO ---
+onAuthStateChanged(auth, async (user) => {
+  const appLoader = document.getElementById('app-loader');
+  const appContent = document.getElementById('app-content');
+
+  if (user) {
+    appLoader.classList.add('hidden');
+    appContent.classList.remove('hidden');
+
+    if (driverNameSpan) {
+      driverNameSpan.textContent = user.displayName ? user.displayName.split(' ')[0] : "Entregador";
+    }
+
+    setInterval(updateAllTimers, 1000);
+
+    const driverRef = doc(db, 'delivery_people', user.uid);
+    const driverSnap = await getDoc(driverRef);
+    currentDriverProfile = driverSnap.exists() ? driverSnap.data() : { totalDeliveries: 0, achievements: {} };
+
+    // --- ATIVANDO OS LISTENERS ---
+    listenForDeliveries(user.uid);
+    carregarRelatorioFinanceiro(user.uid);
+    updateDailySummaryVisuals(user.uid);
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    listenForHistory(user.uid, today, today);
+    startLocationTracking(user.uid);
+
+    // --- GERENCIAMENTO DAS TELAS ---
+    showView('deliveries');
+    homeBtn.addEventListener('click', () => showView('deliveries'));
+    historyBtn.addEventListener('click', () => showView('history'));
+    financialBtn.addEventListener('click', () => showView('financial'));
+
+  } else {
+    stopLocationTracking();
+    window.location.href = 'login.html';
+  }
+});
