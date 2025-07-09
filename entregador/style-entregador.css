@@ -852,3 +852,74 @@ body.app-view {
 .btn-secondary:hover {
     background-color: #5a6268;
 }
+
+/* ============================================= */
+/* --- AJUSTES DE RESPONSIVIDADE (MOBILE) --- */
+/* ============================================= */
+
+/* Estas regras serão aplicadas apenas em telas com largura máxima de 380px */
+@media (max-width: 380px) {
+
+    /* -- Cabeçalho -- */
+    .app-header .header-content {
+        gap: 8px; /* Reduz o espaço entre os elementos do cabeçalho */
+    }
+
+    .app-header .driver-info .driver-details #driver-name {
+        font-size: 0.9em; /* Diminui um pouco o nome para caber melhor */
+    }
+    
+    .app-header .header-actions {
+        gap: 5px; /* Diminui o espaço entre os botões de ação */
+    }
+    
+    .header-icon-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9em;
+    }
+
+    /* -- Corpo Principal -- */
+    .app-main {
+        padding: 15px; /* Reduz o padding geral */
+    }
+
+    /* -- Cards de Resumo -- */
+    .daily-summary-card,
+    .history-summary-card {
+        grid-template-columns: 1fr; /* Empilha os itens do resumo um em cima do outro */
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    .daily-summary-card .summary-item .value {
+        font-size: 1.4em;
+    }
+    
+    .history-summary-card .summary-item .value {
+        font-size: 1.4em;
+    }
+
+    /* -- Card de Entrega -- */
+    .delivery-card {
+        padding: 15px;
+    }
+
+    .customer-info .name {
+        font-size: 1.1em;
+    }
+
+    .order-value {
+        font-size: 1.3em;
+    }
+
+    /* -- Modal de Detalhes -- */
+    .modal-footer {
+        grid-template-columns: 1fr; /* Empilha os botões do modal */
+    }
+
+    /* -- Página do Caixa -- */
+    #financial-control-card {
+        padding: 15px;
+    }
+}
