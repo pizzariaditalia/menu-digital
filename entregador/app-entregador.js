@@ -660,8 +660,8 @@ if (requestWithdrawalBtn) {
 
 *Entregador:* ${user.displayName || "Entregador"}
 *ID da Solicitação:* ${docRef.id}
-
-Uma nova solicitação de saque no valor de *${formatPrice(totalBalance)}* foi registrada no sistema. Por favor, verifique o painel administrativo para aprovar.
+*=====================================*
+Acabei de solicitar um de saque no valor de *${formatPrice(totalBalance)}*. Por favor, verifique o painel administrativo para aprovar.
 
 Obrigado!
             `.trim().replace(/\n\s+/g, '\n');
