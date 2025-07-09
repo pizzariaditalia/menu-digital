@@ -682,11 +682,11 @@ onAuthStateChanged(auth, async (user) => {
       };
     }
     
-    // --- LÓGICA DO BOTÃO DE SOLICITAR SAQUE ---
+// --- LÓGICA DO BOTÃO DE SOLICITAR SAQUE (VERSÃO MELHORADA) ---
 const requestWithdrawalBtn = document.getElementById('request-withdrawal-btn');
 
 if (requestWithdrawalBtn) {
-    requestWithdrawalBtn.addEventListener('click', () => {
+    requestWithdrawalBtn.addEventListener('click', async () => { // Adicionamos 'async' aqui
         const user = auth.currentUser;
         if (!user) {
             alert("Erro: Usuário não identificado.");
@@ -700,30 +700,53 @@ if (requestWithdrawalBtn) {
             return;
         }
 
-        const adminWhatsappNumber = "12996052425"; // O número que você forneceu
-        const driverName = user.displayName || "Entregador";
+        // Desabilita o botão para evitar cliques duplos
+        requestWithdrawalBtn.disabled = true;
+        requestWithdrawalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
 
-        // Monta a mensagem do extrato de forma clara
-        const message = `
-*===== Solicitação de Saque =====*
+        try {
+            // PASSO 1: Salvar a solicitação no Firestore
+            const requestData = {
+                driverId: user.uid,
+                driverName: user.displayName || "Entregador",
+                amount: totalBalance,
+                status: "pending", // Status inicial
+                requestedAt: serverTimestamp(),
+                details: {
+                    dailyFees: currentDailyFees,
+                    financialBalance: currentFinancialBalance
+                }
+            };
+            
+            const docRef = await addDoc(collection(db, "withdrawal_requests"), requestData);
+            console.log("Solicitação de saque salva com ID: ", docRef.id);
+
+            // PASSO 2: Montar e abrir a mensagem do WhatsApp
+            const adminWhatsappNumber = "12996052425";
+            const driverName = user.displayName || "Entregador";
+            const message = `
+*===== Nova Solicitação de Saque =====*
 
 *Entregador:* ${driverName}
+*ID da Solicitação:* ${docRef.id}
 
-Olá, gostaria de solicitar o saque do meu saldo atual.
+Uma nova solicitação de saque no valor de *${formatPrice(totalBalance)}* foi registrada no sistema. Por favor, verifique o painel administrativo para aprovar.
 
-*VALOR TOTAL:* *${formatPrice(totalBalance)}*
------------------------------------
-*DETALHAMENTO DO SALDO:*
-- Taxas de Entrega (Hoje): ${formatPrice(currentDailyFees)}
-- Saldo do Caixa: ${formatPrice(currentFinancialBalance)}
------------------------------------
+Obrigado!
+            `.trim().replace(/\n\s+/g, '\n');
 
-Aguardo a confirmação do pagamento. Obrigado!
-        `.trim().replace(/\n\s+/g, '\n'); // Remove espaços extras da formatação
+            const whatsappUrl = `https://wa.me/55${adminWhatsappNumber}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+            alert("Sua solicitação foi registrada e a mensagem enviada ao administrador!");
 
-        const whatsappUrl = `https://wa.me/55${adminWhatsappNumber}?text=${encodeURIComponent(message)}`;
-
-        window.open(whatsappUrl, '_blank');
+        } catch (error) {
+            console.error("Erro ao registrar solicitação de saque:", error);
+            alert("Ocorreu um erro ao registrar sua solicitação. Tente novamente.");
+        } finally {
+            // Reabilita o botão
+            requestWithdrawalBtn.disabled = false;
+            requestWithdrawalBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Solicitar Saque';
+        }
     });
 }
 
