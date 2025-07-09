@@ -1,4 +1,4 @@
-// app-entregador.js - VERSÃO COM ENVIO DE LOCALIZAÇÃO EM TEMPO REAL
+// app-entregador.js - VERSÃO COM BALANÇO TOTAL NO CABEÇALHO
 
 // Importa funções do Firebase
 import {
@@ -24,14 +24,23 @@ import {
   setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// --- Variável para controlar o rastreamento ---
+// --- Variáveis de estado ---
 let locationWatcherId = null;
+let currentDriverProfile = null;
+let currentOrders = [];
+let historicalOrders = [];
+let selectedOrder = null;
+let isFirstLoad = true;
+
+// --- NOVAS VARIÁVEIS PARA O CÁLCULO DO BALANÇO ---
+let currentFinancialBalance = 0;
+let currentDailyFees = 0;
+
 
 // ===================================================================
-// NOVA FUNÇÃO: RASTREAMENTO DE LOCALIZAÇÃO
+// RASTREAMENTO DE LOCALIZAÇÃO (sem alterações)
 // ===================================================================
 function startLocationTracking(driverId) {
-  // Se já houver um rastreamento ativo, para antes de iniciar um novo
   if (locationWatcherId) {
     navigator.geolocation.clearWatch(locationWatcherId);
   }
@@ -44,19 +53,16 @@ function startLocationTracking(driverId) {
         } = position.coords;
         const user = auth.currentUser;
 
-        // Só envia a localização se o usuário estiver logado
         if (!user) return;
-
         console.log(`Nova Posição: ${latitude}, ${longitude}`);
 
         try {
-          // Salva a localização em uma coleção separada 'driver_locations'
           const locationRef = doc(db, "driver_locations", driverId);
           await setDoc(locationRef, {
             lat: latitude,
             lng: longitude,
             name: user.displayName || "Entregador",
-            lastUpdate: serverTimestamp() // Usa o timestamp do servidor para consistência
+            lastUpdate: serverTimestamp()
           });
         } catch (error) {
           console.error("Erro ao salvar localização do entregador:", error);
@@ -65,16 +71,13 @@ function startLocationTracking(driverId) {
       (error) => {
         console.error("Erro no Geolocation: ", error.message);
         if (error.code === 1) {
-          // PERMISSION_DENIED
           alert("Para o rastreamento no mapa funcionar, por favor, ative a permissão de localização para este site nas configurações do seu navegador.");
         }
       },
       {
         enableHighAccuracy: true,
-        // Pede a localização mais precisa possível
         timeout: 15000,
-        // Tempo máximo para obter uma posição
-        maximumAge: 10000 // Idade máxima de uma posição em cache
+        maximumAge: 10000
       }
     );
   } else {
@@ -83,7 +86,6 @@ function startLocationTracking(driverId) {
   }
 }
 
-// NOVA FUNÇÃO: Para o rastreamento quando o usuário desloga
 function stopLocationTracking() {
   if (locationWatcherId) {
     navigator.geolocation.clearWatch(locationWatcherId);
@@ -92,8 +94,7 @@ function stopLocationTracking() {
   }
 }
 
-
-// --- Define a estrutura das conquistas ---
+// --- Define a estrutura das conquistas (sem alterações) ---
 const ACHIEVEMENTS = {
   '10_deliveries': {
     name: 'Entregador Iniciante',
@@ -125,7 +126,7 @@ const ACHIEVEMENTS = {
 const db = window.db;
 const auth = window.auth;
 
-// --- SELETORES DE ELEMENTOS DO DOM ---
+// --- SELETORES DE ELEMENTOS DO DOM (sem alterações) ---
 const driverNameSpan = document.getElementById('driver-name');
 const driverBalanceSpan = document.getElementById('driver-balance');
 const logoutBtn = document.getElementById('logout-btn');
@@ -157,8 +158,6 @@ const closeAchievementsModalBtn = achievementsModal.querySelector('.close-modal-
 const btnSendMessage = document.getElementById('btn-send-message');
 const quickMessageModal = document.getElementById('quick-message-modal');
 const closeMessageModalBtn = quickMessageModal.querySelector('.close-modal-btn');
-
-// Seletores do formulário financeiro
 const formFinanceiro = document.getElementById('form-financeiro');
 const tipoMovimentacao = document.getElementById('tipo-movimentacao');
 const valorMovimentacao = document.getElementById('valor-movimentacao');
@@ -166,19 +165,10 @@ const descricaoMovimentacao = document.getElementById('descricao-movimentacao');
 const saldoAtualViewEl = document.getElementById('saldo-atual-view');
 const listaHistoricoEl = document.getElementById('lista-historico-financeiro');
 
-
-// --- VARIÁVEIS DE ESTADO ---
-let currentDriverProfile = null;
-let currentOrders = [];
-let historicalOrders = [];
-let selectedOrder = null;
-let isFirstLoad = true;
-
-// --- FUNÇÕES UTILITÁRIAS ---
+// --- FUNÇÕES UTILITÁRIAS (sem alterações) ---
 const formatPrice = (price) => typeof price === 'number' ? price.toLocaleString('pt-BR', {
   style: 'currency', currency: 'BRL'
 }): 'R$ 0,00';
-
 function showView(viewName) {
   for (const key in mainViews) {
     if (mainViews[key]) mainViews[key].classList.add('hidden');
@@ -186,13 +176,25 @@ function showView(viewName) {
   if (mainViews[viewName]) {
     mainViews[viewName].classList.remove('hidden');
   }
-
   homeBtn.classList.toggle('active', viewName === 'deliveries');
   historyBtn.classList.toggle('active', viewName === 'history');
   financialBtn.classList.toggle('active', viewName === 'financial');
 }
 
-// --- LÓGICA DO CHAT DE MENSAGENS RÁPIDAS (sem alterações) ---
+// ===================================================================
+// NOVA FUNÇÃO CENTRAL PARA ATUALIZAR O CABEÇALHO
+// ===================================================================
+function updateHeaderBalance() {
+  const totalBalance = currentDailyFees + currentFinancialBalance;
+  if (driverBalanceSpan) {
+    driverBalanceSpan.textContent = formatPrice(totalBalance);
+    // Atualiza a cor baseada no saldo total
+    driverBalanceSpan.style.color = totalBalance < 0 ? 'var(--primary-red)': 'var(--success-green)';
+  }
+}
+
+// --- Demais funções (CHAT, CONQUISTAS, CRONÔMETRO, SOM, UI) permanecem as mesmas... ---
+// (O código das funções que não foram alteradas foi omitido aqui para brevidade, mas deve ser mantido no seu arquivo)
 if (btnSendMessage) {
   btnSendMessage.addEventListener('click', () => {
     if (selectedOrder) {
@@ -237,7 +239,6 @@ if (quickMessageModal) {
   });
 }
 
-// --- LÓGICA DAS CONQUISTAS (sem alterações) ---
 function renderAchievements() {
   if (!achievementsListDiv || !currentDriverProfile) return;
   let achievementsHTML = '';
@@ -298,7 +299,6 @@ async function checkAndAwardAchievements(driverRef) {
   }
 }
 
-// --- LÓGICA DO CRONÔMETRO (sem alterações) ---
 function updateAllTimers() {
   const timerElements = document.querySelectorAll('.order-timer');
   timerElements.forEach(timerEl => {
@@ -322,13 +322,11 @@ function updateAllTimers() {
   });
 }
 
-// --- FUNÇÃO DE SOM (sem alterações) ---
 function playNotificationSound() {
   const audio = new Audio('../audio/notification-entrega.mp3');
   audio.play().catch(e => console.warn("Aviso: O navegador bloqueou o autoplay do som.", e));
 }
 
-// --- FUNÇÕES DE RENDERIZAÇÃO E UI (sem grandes alterações) ---
 function createDeliveryCard(order) {
   const status = order.status || 'Indefinido';
   let cardClass = 'delivery-card';
@@ -367,7 +365,7 @@ function createDeliveryCard(order) {
 function openDetailsModal(order) {
   selectedOrder = order;
   const address = order.delivery.address || `${order.delivery.street}, ${order.delivery.number}`;
-  const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
+  const mapLink = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
   const customerHTML = `<div class="modal-section"><h4><i class="fas fa-user"></i> Cliente</h4><div class="detail-line"><span class="label">Nome</span><span class="value">${order.customer.firstName} ${order.customer.lastName}</span></div><a href="https://wa.me/55${order.customer.whatsapp}" target="_blank" class="btn" style="background-color:#25D366; width: 95%; margin: 10px auto 0 auto;"><i class="fab fa-whatsapp"></i> Chamar no WhatsApp</a></div><div class="modal-section"><h4><i class="fas fa-map-marker-alt"></i> Endereço</h4><div class="address-block">${address}<br>Bairro: ${order.delivery.neighborhood}<br>${order.delivery.complement ? `Comp: ${order.delivery.complement}<br>`: ''}${order.delivery.reference ? `Ref: ${order.delivery.reference}`: ''}</div><a href="${mapLink}" target="_blank" class="btn" style="background-color:#4285F4; width:95%; margin:10px auto 0 auto;"><i class="fas fa-map-signs"></i> Ver no Mapa</a></div>`;
   const {
     subtotal = 0,
@@ -446,6 +444,47 @@ async function listenForHistory(driverId, startDate = null, endDate = null) {
     }
   }
 }
+
+// --- FUNÇÃO DE RESUMO DO DIA (ALTERADA) ---
+async function updateDailySummary(driverId) {
+  if (!driverId) return;
+
+  const todayFeesEl = document.getElementById('today-fees-value');
+  const todayCountEl = document.getElementById('today-deliveries-count');
+  if (!todayFeesEl || !todayCountEl) return;
+
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+  const q = query(
+    collection(db, "pedidos"),
+    where("delivery.assignedTo.id", "==", driverId),
+    where("status", "==", "Entregue"),
+    where("lastStatusUpdate", ">=", Timestamp.fromDate(startOfDay)),
+    where("lastStatusUpdate", "<=", Timestamp.fromDate(endOfDay))
+  );
+
+  try {
+    const querySnapshot = await getDocs(q);
+    const dailyOrders = querySnapshot.docs.map(doc => doc.data());
+    const totalFees = dailyOrders.reduce((sum, order) => sum + (order.delivery?.fee || 0), 0);
+    const totalCount = dailyOrders.length;
+
+    todayFeesEl.textContent = formatPrice(totalFees);
+    todayCountEl.textContent = totalCount;
+
+    // ATUALIZA A VARIÁVEL GLOBAL E CHAMA A FUNÇÃO CENTRAL
+    currentDailyFees = totalFees;
+    updateHeaderBalance();
+
+  } catch (error) {
+    console.error("Erro ao buscar resumo do dia:", error);
+    todayFeesEl.textContent = "Erro";
+    todayCountEl.textContent = "Erro";
+  }
+}
+
 function listenForDeliveries(driverId) {
   if (!driverId) return;
   const q = query(collection(db, "pedidos"), where("delivery.assignedTo.id", "==", driverId), where("status", "in", ["Em Preparo", "Saiu para Entrega"]));
@@ -475,7 +514,7 @@ function listenForDeliveries(driverId) {
 }
 
 // ============================================================
-// ============ LÓGICA DO CONTROLE FINANCEIRO  ==========
+// LÓGICA DO CONTROLE FINANCEIRO (ALTERADA)
 // ============================================================
 if (formFinanceiro) {
   formFinanceiro.addEventListener('submit', async (e) => {
@@ -485,20 +524,16 @@ if (formFinanceiro) {
       alert('Você precisa estar logado para fazer um lançamento.');
       return;
     }
-
     const valor = parseFloat(valorMovimentacao.value);
     const descricao = descricaoMovimentacao.value;
     const tipo = tipoMovimentacao.value;
-
     if (isNaN(valor) || valor <= 0 || descricao.trim() === '') {
       alert('Por favor, preencha todos os campos corretamente.');
       return;
     }
-
     const button = formFinanceiro.querySelector('button');
     button.disabled = true;
     button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
-
     try {
       await addDoc(collection(db, 'delivery_people', user.uid, 'movimentacoesFinanceiras'), {
         tipo: tipo,
@@ -523,87 +558,105 @@ function carregarRelatorioFinanceiro(driverId) {
 
   onSnapshot(q, (querySnapshot) => {
     let saldo = 0;
-    if (!listaHistoricoEl || !saldoAtualViewEl || !driverBalanceSpan) return;
+    if (!listaHistoricoEl || !saldoAtualViewEl) return;
     listaHistoricoEl.innerHTML = '';
 
     if (querySnapshot.empty) {
       listaHistoricoEl.innerHTML = '<li>Nenhum lançamento encontrado.</li>';
-      saldoAtualViewEl.textContent = formatPrice(0);
-      driverBalanceSpan.textContent = `(${formatPrice(0)})`;
-      return;
     }
 
     querySnapshot.forEach(doc => {
       const movimentacao = doc.data();
       const valor = movimentacao.valor;
-
       if (movimentacao.tipo === 'receita') {
         saldo += valor;
       } else {
         saldo -= valor;
       }
-
       const li = document.createElement('li');
       const valorFormatado = formatPrice(valor);
-
       li.classList.add(movimentacao.tipo);
-      li.innerHTML = `
-      <span>${movimentacao.descricao}</span>
-      <span class="valor">${movimentacao.tipo === 'receita' ? '+': '-'} ${valorFormatado}</span>
-      `;
+      li.innerHTML = `<span>${movimentacao.descricao}</span><span class="valor">${movimentacao.tipo === 'receita' ? '+': '-'} ${valorFormatado}</span>`;
       listaHistoricoEl.appendChild(li);
     });
 
-    saldoAtualViewEl.textContent = formatPrice(saldo);
-    driverBalanceSpan.textContent = `(${formatPrice(saldo)})`;
+    saldoAtualViewEl.textContent = formatPrice(currentDailyFees + saldo);
     if (saldo < 0) {
-      driverBalanceSpan.style.color = 'var(--primary-red)';
       saldoAtualViewEl.style.color = 'var(--primary-red)';
     } else {
-      driverBalanceSpan.style.color = 'var(--success-green)';
       saldoAtualViewEl.style.color = 'var(--success-green)';
     }
+
+    // ATUALIZA A VARIÁVEL GLOBAL E CHAMA A FUNÇÃO CENTRAL
+    currentFinancialBalance = saldo;
+    updateHeaderBalance();
+
   },
     error => {
       console.error("Erro ao carregar relatório financeiro:", error);
     });
 }
 
-
-// --- LÓGICA DE AÇÃO DOS BOTÕES ---
+// --- LÓGICA DE AÇÃO DOS BOTÕES (ALTERADA) ---
 if (closeModalBtn) closeModalBtn.addEventListener('click', closeDetailsModal);
 if (btnDeliveryAction) {
   btnDeliveryAction.addEventListener('click', async () => {
-    if (!selectedOrder) return; btnDeliveryAction.disabled = true; btnDeliveryAction.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...'; const orderRef = doc(db, "pedidos", selectedOrder.id); await updateDoc(orderRef, {
+    if (!selectedOrder) return;
+    btnDeliveryAction.disabled = true;
+    btnDeliveryAction.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
+    const orderRef = doc(db, "pedidos", selectedOrder.id);
+    await updateDoc(orderRef, {
       status: "Saiu para Entrega", lastStatusUpdate: new Date()
-    }); btnDeliveryAction.disabled = false; btnDeliveryAction.innerHTML = '<i class="fas fa-motorcycle"></i> Peguei o Pedido'; closeDetailsModal();
+    });
+    btnDeliveryAction.disabled = false;
+    btnDeliveryAction.innerHTML = '<i class="fas fa-motorcycle"></i> Peguei o Pedido';
+    closeDetailsModal();
   });
 }
 if (btnCompleteDelivery) {
   btnCompleteDelivery.addEventListener('click', async () => {
-    if (!selectedOrder || !auth.currentUser) return; btnCompleteDelivery.disabled = true; btnCompleteDelivery.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finalizando...'; const orderRef = doc(db, "pedidos", selectedOrder.id); const driverRef = doc(db, "delivery_people", auth.currentUser.uid); await updateDoc(orderRef, {
+    if (!selectedOrder || !auth.currentUser) return;
+    btnCompleteDelivery.disabled = true;
+    btnCompleteDelivery.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finalizando...';
+    const orderRef = doc(db, "pedidos", selectedOrder.id);
+    const driverRef = doc(db, "delivery_people", auth.currentUser.uid);
+    await updateDoc(orderRef, {
       status: "Entregue", lastStatusUpdate: new Date()
-    }); await checkAndAwardAchievements(driverRef); btnCompleteDelivery.disabled = false; btnCompleteDelivery.innerHTML = '<i class="fas fa-check-circle"></i> Entrega Finalizada'; closeDetailsModal();
+    });
+    await checkAndAwardAchievements(driverRef);
+
+    // ATUALIZA O RESUMO DO DIA E O BALANÇO GERAL
+    await updateDailySummary(auth.currentUser.uid);
+
+    btnCompleteDelivery.disabled = false;
+    btnCompleteDelivery.innerHTML = '<i class="fas fa-check-circle"></i> Entrega Finalizada';
+    closeDetailsModal();
   });
 }
 if (logoutBtn) {
   logoutBtn.addEventListener('click', () => {
-    stopLocationTracking(); // ALTERAÇÃO: Para o rastreamento ao clicar em logout
+    stopLocationTracking();
     signOut(auth).catch(error => console.error("Erro no logout:", error));
   });
 }
 if (filterHistoryBtn) {
   filterHistoryBtn.addEventListener('click', () => {
-    const startDateValue = startDateInput.value; const endDateValue = endDateInput.value; if (!startDateValue) {
-      alert("Por favor, selecione pelo menos a data de início."); return;
-    } const startDate = new Date(startDateValue + 'T00:00:00'); const endDate = endDateValue ? new Date(endDateValue + 'T00:00:00'): null; const user = auth.currentUser; if (user) {
+    const startDateValue = startDateInput.value;
+    const endDateValue = endDateInput.value;
+    if (!startDateValue) {
+      alert("Por favor, selecione pelo menos a data de início.");
+      return;
+    }
+    const startDate = new Date(startDateValue + 'T00:00:00');
+    const endDate = endDateValue ? new Date(endDateValue + 'T00:00:00'): null;
+    const user = auth.currentUser;
+    if (user) {
       listenForHistory(user.uid, startDate, endDate);
     }
   });
 }
 
-
-// --- LÓGICA DE AUTENTICAÇÃO E INICIALIZAÇÃO ---
+// --- LÓGICA DE AUTENTICAÇÃO E INICIALIZAÇÃO (sem alterações) ---
 onAuthStateChanged(auth, async (user) => {
   const appLoader = document.getElementById('app-loader');
   const appContent = document.getElementById('app-content');
@@ -629,27 +682,75 @@ onAuthStateChanged(auth, async (user) => {
       };
     }
 
+    // --- LÓGICA DO BOTÃO DE SOLICITAR SAQUE ---
+    const requestWithdrawalBtn = document.getElementById('request-withdrawal-btn');
+
+    if (requestWithdrawalBtn) {
+      requestWithdrawalBtn.addEventListener('click', () => {
+        const user = auth.currentUser;
+        if (!user) {
+          alert("Erro: Usuário não identificado.");
+          return;
+        }
+
+        const totalBalance = currentDailyFees + currentFinancialBalance;
+
+        if (totalBalance <= 0) {
+          alert("Você não possui saldo positivo para solicitar um saque.");
+          return;
+        }
+
+        const adminWhatsappNumber = "12996052425"; // O número que você forneceu
+        const driverName = user.displayName || "Entregador";
+
+        // Monta a mensagem do extrato de forma clara
+        const message = `
+        *===== Solicitação de Saque =====*
+
+        *Entregador:* ${driverName}
+
+        Olá, gostaria de solicitar o saque do meu saldo atual.
+
+        *VALOR TOTAL:* *${formatPrice(totalBalance)}*
+        -----------------------------------
+        *DETALHAMENTO DO SALDO:*
+        - Taxas de Entrega (Hoje): ${formatPrice(currentDailyFees)}
+        - Saldo do Caixa: ${formatPrice(currentFinancialBalance)}
+        -----------------------------------
+
+        Aguardo a confirmação do pagamento. Obrigado!
+        `.trim().replace(/\n\s+/g, '\n'); // Remove espaços extras da formatação
+
+        const whatsappUrl = `https://wa.me/55${adminWhatsappNumber}?text=${encodeURIComponent(message)}`;
+
+        window.open(whatsappUrl, '_blank');
+      });
+    }
+
     // --- ATIVANDO OS LISTENERS ---
     listenForDeliveries(user.uid);
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    listenForHistory(user.uid, today, today);
+    today.setHours(0,
+      0,
+      0,
+      0);
+    listenForHistory(user.uid,
+      today,
+      today);
     carregarRelatorioFinanceiro(user.uid);
-
-    // ==========================================================
-    //  NOVA CHAMADA PARA INICIAR O RASTREAMENTO
-    // ==========================================================
     startLocationTracking(user.uid);
+    updateDailySummary(user.uid);
 
     // --- GERENCIAMENTO DAS TELAS ---
     showView('deliveries');
-
-    homeBtn.addEventListener('click', () => showView('deliveries'));
-    historyBtn.addEventListener('click', () => showView('history'));
-    financialBtn.addEventListener('click', () => showView('financial'));
+    homeBtn.addEventListener('click',
+      () => showView('deliveries'));
+    historyBtn.addEventListener('click',
+      () => showView('history'));
+    financialBtn.addEventListener('click',
+      () => showView('financial'));
 
   } else {
-    // Se o usuário deslogar, para o rastreamento
     stopLocationTracking();
     window.location.href = 'login.html';
   }
