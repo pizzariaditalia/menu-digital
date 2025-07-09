@@ -1,4 +1,4 @@
-// Arquivo: saques.js - VERSÃO FINAL E CORRIGIDA
+// Arquivo: saques.js - VERSÃO COM HISTÓRICO DE SAQUES
 
 // --- FUNÇÃO AUXILIAR DISPONÍVEL PARA TODO O ARQUIVO ---
 const formatPrice = (price) => (price != null) ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
@@ -9,12 +9,13 @@ let saquesSectionInitialized = false;
 async function initializeSaquesSection() {
     if (saquesSectionInitialized) return;
     saquesSectionInitialized = true;
-    console.log("Módulo Saques.js: Inicializando...");
+    console.log("Módulo Saques.js: Inicializando com histórico...");
 
     listenForPendingWithdrawals();
+    listenForPaidWithdrawals(); // <-- NOVA CHAMADA
 }
 
-// Função para ouvir em tempo real as solicitações pendentes
+// Função para ouvir em tempo real as solicitações PENDENTES
 function listenForPendingWithdrawals() {
     const listContainer = document.getElementById('saques-list-container');
     if (!listContainer) return;
@@ -27,25 +28,42 @@ function listenForPendingWithdrawals() {
             listContainer.innerHTML = '<p class="empty-list-message">Nenhuma solicitação de saque pendente.</p>';
             return;
         }
-        
         const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderWithdrawalRequests(requests);
-
+        renderPendingWithdrawals(requests);
     }, (error) => {
-        console.error("Erro ao buscar solicitações de saque: ", error);
+        console.error("Erro ao buscar solicitações pendentes: ", error);
         listContainer.innerHTML = '<p class="empty-list-message" style="color:var(--admin-danger-red);">Erro ao carregar solicitações.</p>';
     });
 }
 
-// Função para renderizar os cards de solicitação
-function renderWithdrawalRequests(requests) {
-    const listContainer = document.getElementById('saques-list-container');
+// --- NOVA FUNÇÃO PARA OUVIR OS SAQUES PAGOS (HISTÓRICO) ---
+function listenForPaidWithdrawals() {
+    const historyContainer = document.getElementById('saques-history-container');
+    if (!historyContainer) return;
 
+    const { collection, query, where, onSnapshot, orderBy, limit } = window.firebaseFirestore;
+    // Buscamos os pagos, ordenados pelos mais recentes, com um limite para não carregar tudo de uma vez
+    const q = query(collection(window.db, "withdrawal_requests"), where("status", "==", "paid"), orderBy("paidAt", "desc"), limit(20));
+
+    onSnapshot(q, (snapshot) => {
+        if (snapshot.empty) {
+            historyContainer.innerHTML = '<p class="empty-list-message">Nenhum saque no histórico.</p>';
+            return;
+        }
+        const requests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderPaidWithdrawalHistory(requests);
+    }, (error) => {
+        console.error("Erro ao buscar histórico de saques: ", error);
+        historyContainer.innerHTML = '<p class="empty-list-message" style="color:var(--admin-danger-red);">Erro ao carregar histórico.</p>';
+    });
+}
+
+
+// Função para renderizar os cards de solicitação PENDENTES
+function renderPendingWithdrawals(requests) {
+    const listContainer = document.getElementById('saques-list-container');
     listContainer.innerHTML = requests.map(req => {
         const requestedDate = req.requestedAt?.toDate ? req.requestedAt.toDate().toLocaleString('pt-BR') : 'Data indisponível';
-        
-        // Como o saldo agora é unificado, não precisamos mais do detalhamento aqui.
-        // Apenas mostramos o valor total solicitado.
         return `
             <div class="saque-card" data-request-id="${req.id}">
                 <div class="saque-header">
@@ -54,9 +72,7 @@ function renderWithdrawalRequests(requests) {
                 </div>
                 <div class="saque-body">
                     <div class="amount-total">${formatPrice(req.amount)}</div>
-                    <div class="amount-details">
-                        <span>(Valor total em caixa)</span>
-                    </div>
+                    <div class="amount-details">(Valor total em caixa)</div>
                 </div>
                 <div class="saque-footer">
                     <button class="btn btn-success btn-pagar-saque" data-driver-id="${req.driverId}" data-amount="${req.amount}">
@@ -66,10 +82,30 @@ function renderWithdrawalRequests(requests) {
             </div>
         `;
     }).join('');
-
-    // Adiciona os eventos aos novos botões
     addSaqueActionListeners();
 }
+
+// --- NOVA FUNÇÃO PARA RENDERIZAR O HISTÓRICO DE SAQUES PAGOS ---
+function renderPaidWithdrawalHistory(requests) {
+    const historyContainer = document.getElementById('saques-history-container');
+    historyContainer.innerHTML = requests.map(req => {
+        const paidDate = req.paidAt?.toDate ? req.paidAt.toDate().toLocaleString('pt-BR') : 'Data indisponível';
+        return `
+            <div class="saque-card paid">
+                <div class="saque-header">
+                    <span class="driver-name"><i class="fas fa-user-circle"></i> ${req.driverName}</span>
+                    <div class="saque-status">
+                        <i class="fas fa-check-double"></i> Pago em ${paidDate}
+                    </div>
+                </div>
+                <div class="saque-body">
+                    <div class="amount-total">${formatPrice(req.amount)}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
 
 // Função para adicionar eventos aos botões de "Pagar"
 function addSaqueActionListeners() {
@@ -81,7 +117,7 @@ function addSaqueActionListeners() {
             const driverId = e.target.dataset.driverId;
             const amount = parseFloat(e.target.dataset.amount);
 
-            if (confirm(`Confirma o pagamento de ${formatPrice(amount)} para este entregador? Esta ação irá zerar o saldo dele no sistema.`)) {
+            if (confirm(`Confirma o pagamento de ${formatPrice(amount)} para este entregador?`)) {
                 await processWithdrawal(requestId, driverId, amount);
             }
         });
@@ -95,14 +131,12 @@ async function processWithdrawal(requestId, driverId, amount) {
     const batch = writeBatch(db);
 
     try {
-        // 1. Atualiza a solicitação de saque para "pago"
         const requestRef = doc(db, "withdrawal_requests", requestId);
         batch.update(requestRef, {
             status: "paid",
             paidAt: serverTimestamp()
         });
 
-        // 2. Adiciona uma transação de "retirada" no caixa do entregador
         const movimentacaoRef = doc(collection(db, "delivery_people", driverId, "movimentacoesFinanceiras"));
         batch.set(movimentacaoRef, {
             tipo: "retirada",
@@ -112,7 +146,7 @@ async function processWithdrawal(requestId, driverId, amount) {
         });
 
         await batch.commit();
-        window.showToast("Saque processado e saldo zerado com sucesso!", "success");
+        window.showToast("Saque processado com sucesso!", "success");
 
     } catch (error) {
         console.error("Erro ao processar saque: ", error);
