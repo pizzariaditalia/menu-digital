@@ -539,6 +539,58 @@ if (closeModalBtn) closeModalBtn.addEventListener('click', closeDetailsModal);
 
 if (btnDeliveryAction) {
   btnDeliveryAction.addEventListener('click', async () => {
+    if (btnCompleteDelivery) {
+  btnCompleteDelivery.addEventListener('click', async () => {
+    if (!selectedOrder || !auth.currentUser) {
+      alert("Erro: Pedido ou entregador não selecionado.");
+      return;
+    }
+
+    btnCompleteDelivery.disabled = true;
+    btnCompleteDelivery.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finalizando...';
+
+    const orderRef = doc(db, "pedidos", selectedOrder.id);
+    const driverRef = doc(db, "delivery_people", auth.currentUser.uid);
+    const feeAmount = selectedOrder.delivery?.fee || 0;
+
+    try {
+      // Usando uma transação para garantir que ambas as operações ocorram juntas
+      await runTransaction(db, async (transaction) => {
+        // 1. Atualiza o status do pedido para "Entregue"
+        transaction.update(orderRef, {
+          status: "Entregue",
+          lastStatusUpdate: new Date()
+        });
+
+        // 2. Adiciona a taxa de entrega como uma nova receita no caixa
+        if (feeAmount > 0) {
+          const movimentacaoRef = doc(collection(db, "delivery_people", auth.currentUser.uid, "movimentacoesFinanceiras"));
+          transaction.set(movimentacaoRef, {
+            tipo: "receita",
+            valor: feeAmount,
+            descricao: `Taxa Pedido #${selectedOrder.id.substring(0, 6)}`,
+            data: serverTimestamp()
+          });
+        }
+      });
+
+      // 3. Checa por novas conquistas após a transação ser bem-sucedida
+      await checkAndAwardAchievements(driverRef);
+
+      // 4. Atualiza o card de resumo visual na tela inicial
+      await updateDailySummaryVisuals(auth.currentUser.uid);
+
+      closeDetailsModal();
+
+    } catch (error) {
+      console.error("Erro ao finalizar entrega:", error);
+      alert("Ocorreu um erro ao finalizar a entrega. Tente novamente.");
+    } finally {
+      btnCompleteDelivery.disabled = false;
+      btnCompleteDelivery.innerHTML = '<i class="fas fa-check-circle"></i> Entrega Finalizada';
+    }
+  });
+}
     if (!selectedOrder) return;
     btnDeliveryAction.disabled = true;
     btnDeliveryAction.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
