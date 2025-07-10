@@ -1,4 +1,4 @@
-// pedidos.js - VERSÃO COMPLETA E CORRIGIDA
+// pedidos.js - VERSÃO FINAL COMPLETA E CORRIGIDA
 
 // --- Variáveis de estado do módulo ---
 let ordersSectionInitialized = false;
@@ -38,17 +38,13 @@ async function updateOrderStatus(orderId, newStatus) {
     }
 }
 
-// Arquivo: pedidos.js
-
-// SUBSTITUA A FUNÇÃO INTEIRA PELA VERSÃO CORRIGIDA ABAIXO
 async function assignDriverToOrder(orderId, driverData) {
     const { doc, updateDoc } = window.firebaseFirestore;
     const orderRef = doc(window.db, "pedidos", orderId);
     try {
-        // AQUI ESTÁ A CORREÇÃO:
-        // Agora o objeto salvo corresponde exatamente à estrutura que o app do entregador espera.
+        // Objeto a ser salvo no Firestore, garantindo a estrutura correta.
         const dataToSave = driverData ? { 'delivery.assignedTo': { id: driverData.id, name: driverData.name } } : { 'delivery.assignedTo': null };
-
+        
         await updateDoc(orderRef, dataToSave);
 
         if (driverData) {
@@ -225,6 +221,7 @@ function getOrderActionHTML(order) {
     } else {
         return `
         <select class="status-select-card" data-order-id="${order.id}">
+            <option value="Aprovado" ${order.status === 'Aprovado' ? 'selected' : ''}>Aprovado</option>
             <option value="Em Preparo" ${order.status === 'Em Preparo' ? 'selected' : ''}>Em Preparo</option>
             <option value="Saiu para Entrega" ${order.status === 'Saiu para Entrega' ? 'selected' : ''}>Saiu para Entrega</option>
             <option value="Entregue" ${order.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
@@ -341,7 +338,7 @@ function addOrderCardEventListeners() {
 
     container.querySelectorAll('.accept-order-btn').forEach(btn => btn.addEventListener('click', (e) => {
         e.stopPropagation(); 
-        updateOrderStatus(btn.dataset.orderId, 'Em Preparo');
+        updateOrderStatus(btn.dataset.orderId, 'Aprovado');
     }));
 
     container.querySelectorAll('.refuse-order-btn').forEach(btn => btn.addEventListener('click', (e) => {
