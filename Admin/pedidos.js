@@ -1,4 +1,4 @@
-// pedidos.js - VERSÃO COMPLETA COM ALTERAÇÃO DE STATUS DE PAGAMENTO
+// pedidos.js - VERSÃO COMPLETA E CORRIGIDA
 
 // --- Variáveis de estado do módulo ---
 let ordersSectionInitialized = false;
@@ -43,7 +43,11 @@ async function assignDriverToOrder(orderId, driverData) {
     const orderRef = doc(window.db, "pedidos", orderId);
     try {
         await updateDoc(orderRef, { 'delivery.assignedTo': driverData });
-        window.showToast(`Entregador ${driverData.name} atribuído ao pedido!`);
+        if (driverData) {
+            window.showToast(`Entregador ${driverData.name} atribuído ao pedido!`);
+        } else {
+            window.showToast(`Entregador removido do pedido.`);
+        }
     } catch (error) {
         console.error("Erro ao atribuir entregador:", error);
         window.showToast("Falha ao atribuir entregador.", "error");
@@ -146,7 +150,7 @@ function openOrderDetailsModal(order) {
     
     const paymentSectionHTML = `<h4 class="modal-section-title"><i class="fas fa-file-invoice-dollar"></i> Financeiro</h4><div class="detail-grid">${paymentDetailsHTML}</div>`;
     
-    const deliveryPersonSelectorHTML = `<div class="delivery-assignment-section"><div class="form-group"><label for="modal-delivery-person-select">Atribuir Entregador:</label><div class="input-with-icon right-icon"><select id="modal-delivery-person-select" class="form-control"><option value="">-- Nenhum --</option>${allDeliveryPeople.map(p => p.googleUid ? `<option value="${p.googleUid}" data-whatsapp="${p.whatsapp}" data-name="${p.firstName}">${p.firstName} ${p.lastName}</option>` : '').join('')}</select><button id="modal-save-driver-btn" class="btn btn-sm btn-success" style="height: 100%; border-radius: 0 4px 4px 0;">Salvar</button></div><small>Ao salvar, o pedido aparecerá imediatamente para o entregador.</small></div></div>`;
+    const deliveryPersonSelectorHTML = `<div class="delivery-assignment-section"><div class="form-group"><label for="modal-delivery-person-select">Atribuir Entregador:</label><div class="input-with-icon right-icon"><select id="modal-delivery-person-select" class="form-control"><option value="">-- Nenhum --</option>${allDeliveryPeople.map(p => `<option value="${p.docId}" data-whatsapp="${p.whatsapp}" data-name="${p.firstName}">${p.firstName} ${p.lastName}</option>`).join('')}</select><button id="modal-save-driver-btn" class="btn btn-sm btn-success" style="height: 100%; border-radius: 0 4px 4px 0;">Salvar</button></div><small>Ao salvar, o pedido aparecerá imediatamente para o entregador.</small></div></div>`;
     
     modalBody.innerHTML = customerHTML + itemsSectionHTML + addressHTML + paymentSectionHTML + `<h4 class="modal-section-title"><i class="fas fa-motorcycle"></i> Entregador</h4>${deliveryPersonSelectorHTML}`;
     
@@ -159,7 +163,11 @@ function openOrderDetailsModal(order) {
     if (saveDriverBtn) {
         saveDriverBtn.addEventListener('click', () => {
             const selectedOption = deliveryPersonSelect.options[deliveryPersonSelect.selectedIndex];
-            if (!selectedOption.value) { return; }
+            if (!selectedOption.value) {
+                assignDriverToOrder(order.id, null);
+                closeOrderDetailsModal();
+                return;
+            }
             const driverData = { id: selectedOption.value, name: selectedOption.dataset.name };
             assignDriverToOrder(order.id, driverData);
             closeOrderDetailsModal();
