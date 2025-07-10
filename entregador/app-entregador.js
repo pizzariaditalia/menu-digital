@@ -334,7 +334,7 @@ function createDeliveryCard(order) {
 function openDetailsModal(order) {
   selectedOrder = order;
   const address = order.delivery.address || `${order.delivery.street}, ${order.delivery.number}`;
-  const mapLink = `https://maps.google.com/maps?q=${encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
+  const mapLink = `http://googleusercontent.com/maps.google.com/4{encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
   const customerHTML = `<div class="modal-section"><h4><i class="fas fa-user"></i> Cliente</h4><div class="detail-line"><span class="label">Nome</span><span class="value">${order.customer.firstName} ${order.customer.lastName}</span></div><a href="https://wa.me/55${order.customer.whatsapp}" target="_blank" class="btn" style="background-color:#25D366; width: 95%; margin: 10px auto 0 auto;"><i class="fab fa-whatsapp"></i> Chamar no WhatsApp</a></div><div class="modal-section"><h4><i class="fas fa-map-marker-alt"></i> Endereço</h4><div class="address-block">${address}<br>Bairro: ${order.delivery.neighborhood}<br>${order.delivery.complement ? `Comp: ${order.delivery.complement}<br>`: ''}${order.delivery.reference ? `Ref: ${order.delivery.reference}`: ''}</div><a href="${mapLink}" target="_blank" class="btn" style="background-color:#4285F4; width:95%; margin:10px auto 0 auto;"><i class="fas fa-map-signs"></i> Ver no Mapa</a></div>`;
   const {
     subtotal = 0,
@@ -350,7 +350,7 @@ function openDetailsModal(order) {
     modalFooter.style.display = 'none';
   } else {
     modalFooter.style.display = 'grid';
-    if (order.status === "Em Preparo") {
+    if (order.status === "Aprovado" || order.status === "Em Preparo") {
       btnDeliveryAction.style.display = 'grid';
       btnCompleteDelivery.style.display = 'none';
     } else if (order.status === "Saiu para Entrega") {
@@ -444,8 +444,7 @@ async function updateDailySummaryVisuals(driverId) {
 function listenForDeliveries(driverId) {
   if (!driverId) return;
 
-  // CORREÇÃO: Adicionado o status "Recebido" à consulta para que novos pedidos apareçam
-  const q = query(collection(db, "pedidos"), where("delivery.assignedTo.id", "==", driverId), where("status", "in", ["Recebido", "Em Preparo", "Saiu para Entrega"]));
+  const q = query(collection(db, "pedidos"), where("delivery.assignedTo.id", "==", driverId), where("status", "in", ["Aprovado", "Em Preparo", "Saiu para Entrega"]));
   
   onSnapshot(q, (snapshot) => {
     snapshot.docChanges().forEach((change) => {
@@ -464,7 +463,6 @@ function listenForDeliveries(driverId) {
     if (currentOrders.length === 0) {
       deliveryQueueList.innerHTML = `<div class="loading-state"><i class="fas fa-motorcycle" style="font-size: 3em; color: #ccc;"></i><p>Nenhuma entrega para você no momento. Aguardando...</p></div>`;
     } else {
-      // Ordena para mostrar os mais recentes primeiro
       currentOrders.sort((a, b) => (b.createdAt?.toDate() ?? 0) - (a.createdAt?.toDate() ?? 0));
       deliveryQueueList.innerHTML = currentOrders.map(createDeliveryCard).join('');
       addCardClickListeners(deliveryQueueList, currentOrders);
@@ -476,7 +474,6 @@ function listenForDeliveries(driverId) {
     }
   });
 }
-
 
 // --- LÓGICA DO CONTROLE FINANCEIRO (FONTE ÚNICA DO SALDO) ---
 if (formFinanceiro) {
@@ -529,7 +526,6 @@ function carregarRelatorioFinanceiro(driverId) {
         return `<li class="${mov.tipo}"><span>${mov.descricao}</span><span class="valor">${mov.tipo === 'receita' ? '+': '-'} ${valorFormatado}</span></li>`;
     }).join('');
 
-    // ATUALIZA TODOS OS SALDOS COM O VALOR CORRETO E UNIFICADO
     saldoAtualViewEl.textContent = formatPrice(saldo);
     driverBalanceSpan.textContent = formatPrice(saldo);
     
@@ -573,15 +569,12 @@ if (btnCompleteDelivery) {
     const feeAmount = selectedOrder.delivery?.fee || 0;
 
     try {
-      // Usando uma transação para garantir que ambas as operações ocorram juntas
       await runTransaction(db, async (transaction) => {
-        // 1. Atualiza o status do pedido para "Entregue"
         transaction.update(orderRef, {
           status: "Entregue",
           lastStatusUpdate: new Date() 
         });
 
-        // 2. Adiciona a taxa de entrega como uma nova receita no caixa
         if (feeAmount > 0) {
           const movimentacaoRef = doc(collection(db, "delivery_people", auth.currentUser.uid, "movimentacoesFinanceiras"));
           transaction.set(movimentacaoRef, {
@@ -593,10 +586,7 @@ if (btnCompleteDelivery) {
         }
       });
 
-      // 3. Checa por novas conquistas após a transação ser bem-sucedida
       await checkAndAwardAchievements(driverRef);
-      
-      // 4. Atualiza o card de resumo visual na tela inicial
       await updateDailySummaryVisuals(auth.currentUser.uid);
 
       closeDetailsModal();
@@ -643,7 +633,6 @@ if (requestWithdrawalBtn) {
             return;
         }
 
-        // Busca o saldo mais recente diretamente do caixa
         let totalBalance = 0;
         const q = query(collection(db, 'delivery_people', user.uid, 'movimentacoesFinanceiras'));
         const querySnapshot = await getDocs(q);
