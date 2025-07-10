@@ -31,7 +31,7 @@ messaging.onBackgroundMessage(function(payload) {
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-const CACHE_NAME = 'ditalia-admin-cache-v211';
+const CACHE_NAME = 'ditalia-admin-cache-v212';
 const URLS_TO_CACHE = [
   './login.html',
   './auth.js',
