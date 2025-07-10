@@ -443,7 +443,10 @@ async function updateDailySummaryVisuals(driverId) {
 
 function listenForDeliveries(driverId) {
   if (!driverId) return;
-  const q = query(collection(db, "pedidos"), where("delivery.assignedTo.id", "==", driverId), where("status", "in", ["Em Preparo", "Saiu para Entrega"]));
+
+  // CORREÇÃO: Adicionado o status "Recebido" à consulta para que novos pedidos apareçam
+  const q = query(collection(db, "pedidos"), where("delivery.assignedTo.id", "==", driverId), where("status", "in", ["Recebido", "Em Preparo", "Saiu para Entrega"]));
+  
   onSnapshot(q, (snapshot) => {
     snapshot.docChanges().forEach((change) => {
       if (change.type === "added" && !isFirstLoad) {
@@ -452,22 +455,28 @@ function listenForDeliveries(driverId) {
     });
     isFirstLoad = false;
     currentOrders = snapshot.docs.map(doc => ({
-      id: doc.id, ...doc.data()
+      id: doc.id,
+      ...doc.data()
     }));
+
     if (!deliveryQueueList) return;
+
     if (currentOrders.length === 0) {
       deliveryQueueList.innerHTML = `<div class="loading-state"><i class="fas fa-motorcycle" style="font-size: 3em; color: #ccc;"></i><p>Nenhuma entrega para você no momento. Aguardando...</p></div>`;
     } else {
+      // Ordena para mostrar os mais recentes primeiro
       currentOrders.sort((a, b) => (b.createdAt?.toDate() ?? 0) - (a.createdAt?.toDate() ?? 0));
       deliveryQueueList.innerHTML = currentOrders.map(createDeliveryCard).join('');
       addCardClickListeners(deliveryQueueList, currentOrders);
     }
-  },
-    (error) => {
-      console.error("Erro ao buscar entregas: ", error);
-      if (deliveryQueueList) deliveryQueueList.innerHTML = "<p>Ocorreu um erro ao carregar as entregas.</p>";
-    });
+  }, (error) => {
+    console.error("Erro ao buscar entregas: ", error);
+    if (deliveryQueueList) {
+      deliveryQueueList.innerHTML = "<p>Ocorreu um erro ao carregar as entregas.</p>";
+    }
+  });
 }
+
 
 // --- LÓGICA DO CONTROLE FINANCEIRO (FONTE ÚNICA DO SALDO) ---
 if (formFinanceiro) {
