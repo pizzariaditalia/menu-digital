@@ -38,11 +38,19 @@ async function updateOrderStatus(orderId, newStatus) {
     }
 }
 
+// Arquivo: pedidos.js
+
+// SUBSTITUA A FUNÇÃO INTEIRA PELA VERSÃO CORRIGIDA ABAIXO
 async function assignDriverToOrder(orderId, driverData) {
     const { doc, updateDoc } = window.firebaseFirestore;
     const orderRef = doc(window.db, "pedidos", orderId);
     try {
-        await updateDoc(orderRef, { 'delivery.assignedTo': driverData });
+        // AQUI ESTÁ A CORREÇÃO:
+        // Agora o objeto salvo corresponde exatamente à estrutura que o app do entregador espera.
+        const dataToSave = driverData ? { 'delivery.assignedTo': { id: driverData.id, name: driverData.name } } : { 'delivery.assignedTo': null };
+
+        await updateDoc(orderRef, dataToSave);
+
         if (driverData) {
             window.showToast(`Entregador ${driverData.name} atribuído ao pedido!`);
         } else {
