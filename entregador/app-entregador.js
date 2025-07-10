@@ -1,4 +1,4 @@
-// app-entregador.js - VERSÃO FINAL COMPLETA
+// app-entregador.js - VERSÃO FINAL COMPLETA E CORRIGIDA
 
 // Importa funções do Firebase
 import {
@@ -334,7 +334,7 @@ function createDeliveryCard(order) {
 function openDetailsModal(order) {
   selectedOrder = order;
   const address = order.delivery.address || `${order.delivery.street}, ${order.delivery.number}`;
-  const mapLink = `http://googleusercontent.com/maps.google.com/4{encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
+  const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
   const customerHTML = `<div class="modal-section"><h4><i class="fas fa-user"></i> Cliente</h4><div class="detail-line"><span class="label">Nome</span><span class="value">${order.customer.firstName} ${order.customer.lastName}</span></div><a href="https://wa.me/55${order.customer.whatsapp}" target="_blank" class="btn" style="background-color:#25D366; width: 95%; margin: 10px auto 0 auto;"><i class="fab fa-whatsapp"></i> Chamar no WhatsApp</a></div><div class="modal-section"><h4><i class="fas fa-map-marker-alt"></i> Endereço</h4><div class="address-block">${address}<br>Bairro: ${order.delivery.neighborhood}<br>${order.delivery.complement ? `Comp: ${order.delivery.complement}<br>`: ''}${order.delivery.reference ? `Ref: ${order.delivery.reference}`: ''}</div><a href="${mapLink}" target="_blank" class="btn" style="background-color:#4285F4; width:95%; margin:10px auto 0 auto;"><i class="fas fa-map-signs"></i> Ver no Mapa</a></div>`;
   const {
     subtotal = 0,
@@ -692,6 +692,24 @@ onAuthStateChanged(auth, async (user) => {
   const appContent = document.getElementById('app-content');
 
   if (user) {
+    // Primeiro, vamos descobrir o ID de documento do entregador
+    const q = query(collection(db, "delivery_people"), where("googleUid", "==", user.uid));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      // Se não encontrar, o e-mail não está autorizado. Desloga e volta para o login.
+      console.error("Entregador não encontrado no banco de dados com este Google UID.");
+      alert("Seu usuário Google não está registrado como um entregador válido.");
+      signOut(auth);
+      return;
+    }
+    
+    // Encontrou o entregador! Agora pegamos o ID correto (WhatsApp)
+    const driverDoc = querySnapshot.docs[0];
+    const correctDriverId = driverDoc.id;
+    currentDriverProfile = driverDoc.data();
+
+    // Agora que temos o ID correto, podemos iniciar o app
     appLoader.classList.add('hidden');
     appContent.classList.remove('hidden');
 
@@ -701,19 +719,15 @@ onAuthStateChanged(auth, async (user) => {
 
     setInterval(updateAllTimers, 1000);
 
-    const driverRef = doc(db, 'delivery_people', user.uid);
-    const driverSnap = await getDoc(driverRef);
-    currentDriverProfile = driverSnap.exists() ? driverSnap.data() : { totalDeliveries: 0, achievements: {} };
-
-    // --- ATIVANDO OS LISTENERS ---
-    listenForDeliveries(user.uid);
-    carregarRelatorioFinanceiro(user.uid);
-    updateDailySummaryVisuals(user.uid);
+    // --- ATIVANDO OS LISTENERS COM O ID CORRETO ---
+    listenForDeliveries(correctDriverId);
+    carregarRelatorioFinanceiro(correctDriverId);
+    updateDailySummaryVisuals(correctDriverId);
+    startLocationTracking(correctDriverId);
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    listenForHistory(user.uid, today, today);
-    startLocationTracking(user.uid);
+    listenForHistory(correctDriverId, today, today);
 
     // --- GERENCIAMENTO DAS TELAS ---
     showView('deliveries');
@@ -722,6 +736,7 @@ onAuthStateChanged(auth, async (user) => {
     financialBtn.addEventListener('click', () => showView('financial'));
 
   } else {
+    // Usuário não está logado
     stopLocationTracking();
     window.location.href = 'login.html';
   }
