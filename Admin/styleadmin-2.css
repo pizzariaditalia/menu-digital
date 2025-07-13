@@ -1539,3 +1539,19 @@ input:checked + .slider:before { transform: translateX(20px); }
     align-items: center;
     gap: 6px;
 }
+
+#notification-bell {
+  position: relative; 
+}
+
+/* Garante que o balão fique escondido quando tem a classe 'hidden' */
+#notification-badge.hidden {
+  display: none !important;
+}
+
+/* Força o balão a aparecer quando a classe 'hidden' é removida */
+#notification-badge {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+}
