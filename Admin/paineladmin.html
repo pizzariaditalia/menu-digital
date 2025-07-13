@@ -26,12 +26,12 @@
 </div>
 
 <div class="header-actions-right">
-<button id="admin-enable-notifications-btn" class="menu-drawer-button" title="Ativar notificações neste dispositivo">
-<i class="fas fa-bell-slash"></i>
-</button>
-<button id="chat-notification-bell" class="menu-drawer-button">
+<!-- <button id="admin-enable-notifications-btn" class="menu-drawer-button" title="Ativar notificações neste dispositivo">
+    <i class="fas fa-bell-slash"></i>
+  </button> -->
+<button id="notification-bell" class="menu-drawer-button">
 <i class="fas fa-bell"></i>
-<span id="chat-badge" class="notification-badge hidden"></span>
+<span id="notification-badge" class="notification-badge hidden"></span>
 </button>
 <button id="open-drawer-menu" class="menu-drawer-button">
 <i class="fas fa-bars"></i>
@@ -50,6 +50,7 @@
 <li><a href="#" data-section-target="map-view"><i class="fas fa-map-marked-alt"></i> Mapa em Tempo Real</a></li>
 <li><a href="#" data-section-target="pdv-content"><i class="fas fa-cash-register"></i> PDV (Ponto de Venda)</a></li>
 <li><a href="#" data-section-target="vendas-view"><i class="fas fa-chart-line"></i> Relatório de Vendas</a></li>
+<li><a href="#" data-section-target="financeiro-view"><i class="fas fa-dollar-sign"></i> Gestão Financeira</a></li>
 <li><a href="#" data-section-target="saques-view"><i class="fas fa-hand-holding-usd"></i> Solicitações de Saque</a></li>
 <li><a href="#" data-section-target="cardapio-view"><i class="fas fa-utensils"></i> Gerenciar Cardápio</a></li>
 <li><a href="#" data-section-target="customers-content"><i class="fas fa-users"></i> Clientes</a></li>
@@ -77,6 +78,103 @@
 Acompanhe em tempo real a posição dos entregadores que estão com o aplicativo aberto. O mapa será centralizado no primeiro entregador ativo.
 </p>
 <div id="realtime-map-container" style="height: 75vh; border-radius: 8px; border: 1px solid var(--admin-border-color); background-color: #f0f2f5;">
+</div>
+</section>
+
+<section id="financeiro-view" class="admin-view">
+<div class="view-header">
+<h2><i class="fas fa-dollar-sign"></i> Gestão Financeira</h2>
+</div>
+
+<div class="admin-form" style="margin-bottom: var(--space-lg);">
+<div class="form-row">
+<div class="form-group">
+<label for="financial-start-date">Data de Início</label>
+<input type="date" id="financial-start-date" class="form-control">
+</div>
+<div class="form-group">
+<label for="financial-end-date">Data de Fim</label>
+<input type="date" id="financial-end-date" class="form-control">
+</div>
+<div class="form-actions">
+<button id="filter-financial-btn" class="btn btn-primary"><i class="fas fa-filter"></i> Analisar Período</button>
+</div>
+</div>
+</div>
+
+<div class="sales-summary-container-v2">
+<div class="summary-box-v2">
+<div class="icon">
+<i class="fas fa-cash-register"></i>
+</div>
+<div class="text">
+<span class="label">Faturamento Bruto (Vendas)</span>
+<span class="value" id="faturamento-bruto-value">R$ 0,00</span>
+</div>
+</div>
+<div class="summary-box-v2">
+<div class="icon" style="color: var(--admin-danger-red); background-color: #f8d7da;">
+<i class="fas fa-arrow-down"></i>
+</div>
+<div class="text">
+<span class="label">Despesas Totais</span>
+<span class="value" id="despesas-totais-value">R$ 0,00</span>
+</div>
+</div>
+<div class="summary-box-v2">
+<div class="icon" style="color: var(--admin-success-green); background-color: #d1e7dd;">
+<i class="fas fa-chart-pie"></i>
+</div>
+<div class="text">
+<span class="label">Lucro Líquido</span>
+<span class="value" id="lucro-liquido-value">R$ 0,00</span>
+</div>
+</div>
+<div class="summary-box-v2">
+<div class="icon" style="color: var(--admin-secondary-gray); background-color: #e2e3e5;">
+<i class="fas fa-ticket-alt"></i>
+</div>
+<div class="text">
+<span class="label">Ticket Médio</span>
+<span class="value" id="ticket-medio-value">R$ 0,00</span>
+</div>
+</div>
+</div>
+
+<div class="admin-form" style="margin-top: var(--space-lg);">
+<h3><i class="fas fa-plus-circle"></i> Adicionar Novo Lançamento</h3>
+<form id="lancamento-form">
+<div class="form-row">
+<div class="form-group" style="flex: 2;">
+<label for="lancamento-descricao">Descrição</label>
+<input type="text" id="lancamento-descricao" placeholder="Ex: Compra de queijo, Salário, Conta de luz" required>
+</div>
+<div class="form-group">
+<label for="lancamento-valor">Valor (R$)</label>
+<input type="number" id="lancamento-valor" step="0.01" min="0" required>
+</div>
+<div class="form-group">
+<label for="lancamento-tipo">Tipo</label>
+<select id="lancamento-tipo" required>
+<option value="saida">Saída (Despesa)</option>
+<option value="entrada">Entrada (Outros)</option>
+</select>
+</div>
+<div class="form-group">
+<label for="lancamento-data">Data do Lançamento</label>
+<input type="date" id="lancamento-data" required>
+</div>
+</div>
+<div class="form-actions">
+<button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Salvar Lançamento</button>
+</div>
+</form>
+</div>
+
+<div id="lancamentos-history-container" style="margin-top: var(--space-lg);">
+<p class="empty-list-message">
+Carregando lançamentos...
+</p>
 </div>
 </section>
 
@@ -1016,37 +1114,41 @@ Nenhum cupom de desconto disponível no momento.
 
 </section>
 <section id="saques-view" class="admin-view">
-      <div class="view-header">
-        <h2><i class="fas fa-hand-holding-usd"></i> Solicitações de Saque</h2>
-      </div>
-      <p class="form-instruction">
-        Abaixo estão as solicitações de saque feitas pelos entregadores. Ao clicar em "Marcar como Pago", o Sistema registrará uma retirada no caixa do entregador no valor total solicitado, zerando seu saldo.
-      </p>
-      
-      <div id="saques-list-container" class="saques-list-grid">
-        <p class="empty-list-message">Carregando solicitações...</p>
-      </div>
+<div class="view-header">
+<h2><i class="fas fa-hand-holding-usd"></i> Solicitações de Saque</h2>
+</div>
+<p class="form-instruction">
+Abaixo estão as solicitações de saque feitas pelos entregadores. Ao clicar em "Marcar como Pago", o Sistema registrará uma retirada no caixa do entregador no valor total solicitado, zerando seu saldo.
+</p>
 
-      <hr style="margin: 40px 0;">
+<div id="saques-list-container" class="saques-list-grid">
+<p class="empty-list-message">
+Carregando solicitações...
+</p>
+</div>
 
-      <div class="view-header">
-          <h3><i class="fas fa-history"></i> Histórico de Saques Aprovados</h3>
-      </div>
-      
-      <div id="saques-history-container" class="saques-list-grid">
-          <p class="empty-list-message">Carregando histórico...</p>
-      </div>
-      </section>
+<hr style="margin: 40px 0;">
+
+<div class="view-header">
+<h3><i class="fas fa-history"></i> Histórico de Saques Aprovados</h3>
+</div>
+
+<div id="saques-history-container" class="saques-list-grid">
+<p class="empty-list-message">
+Carregando histórico...
+</p>
+</div>
+</section>
 </main>
 </div>
 
-<div id="chat-dropdown" class="chat-dropdown-container hidden">
+<div id="notification-dropdown" class="chat-dropdown-container hidden">
 <div class="chat-dropdown-header">
-Mensagens dos Entregadores
+Central de Notificações
 </div>
-<div id="chat-dropdown-list" class="chat-dropdown-body">
+<div id="notification-dropdown-list" class="chat-dropdown-body">
 <p class="empty-message">
-Nenhuma nova mensagem.
+Nenhuma nova notificação.
 </p>
 </div>
 </div>
@@ -1056,7 +1158,7 @@ Nenhuma nova mensagem.
 import {
 initializeApp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-// ADICIONADO `documentId` À LISTA DE IMPORTS
+// CORREÇÃO: Adicionado 'addDoc' à lista de imports
 import {
 getFirestore,
 doc,
@@ -1077,7 +1179,8 @@ limit,
 arrayUnion,
 arrayRemove,
 increment,
-documentId
+documentId,
+addDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
 getAuth,
@@ -1113,7 +1216,7 @@ if (user) {
 // Expondo os serviços do Firebase para outros scripts
 window.auth = auth;
 window.db = db;
-// ADICIONADO `documentId` ao objeto global
+// CORREÇÃO: Adicionado 'addDoc' ao objeto global
 window.firebaseFirestore = {
 doc,
 getDoc,
@@ -1133,7 +1236,8 @@ limit,
 arrayUnion,
 arrayRemove,
 increment,
-documentId
+documentId,
+addDoc
 };
 window.firebaseMessaging = {
 getMessaging,
@@ -1148,8 +1252,11 @@ startAdminPanel();
 if (typeof setupAdminNotifications === 'function') {
 setupAdminNotifications();
 }
+if (typeof window.initializeChatListener === 'function') {
+window.initializeChatListener();
+}
 
-const logoutButton = document.getElementById('logout-btn-drawer');
+const logoutButton = document.getElementById('logout-button');
 if (logoutButton) {
 logoutButton.addEventListener('click', () => {
 signOut(auth).then(() => {
@@ -1179,6 +1286,7 @@ window.location.href = 'login.html';
 <script src="importar.js" defer></script>
 <script src="saques.js" defer></script>
 <script src="mapa.js" defer></script>
+<script src="financeiro.js" defer></script>
 
 </body>
 </html>
