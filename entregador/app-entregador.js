@@ -43,7 +43,9 @@ function startLocationTracking(driverId) {
   if ("geolocation" in navigator) {
     locationWatcherId = navigator.geolocation.watchPosition(
       async (position) => {
-        const { latitude, longitude } = position.coords;
+        const {
+          latitude, longitude
+        } = position.coords;
         const user = auth.currentUser;
 
         if (!user) return;
@@ -89,10 +91,30 @@ function stopLocationTracking() {
 
 // --- Define a estrutura das conquistas ---
 const ACHIEVEMENTS = {
-  '10_deliveries': { name: 'Entregador Iniciante', description: 'Complete 10 entregas', requiredCount: 10, icon: 'fa-baby-carriage' },
-  '50_deliveries': { name: 'Entregador Experiente', description: 'Complete 50 entregas', requiredCount: 50, icon: 'fa-motorcycle' },
-  '100_deliveries': { name: 'Profissional da Entrega', description: 'Complete 100 entregas', requiredCount: 100, icon: 'fa-rocket' },
-  '250_deliveries': { name: 'Lenda das Ruas', description: 'Complete 250 entregas', requiredCount: 250, icon: 'fa-crown' }
+  '10_deliveries': {
+    name: 'Entregador Iniciante',
+    description: 'Complete 10 entregas',
+    requiredCount: 10,
+    icon: 'fa-baby-carriage'
+  },
+  '50_deliveries': {
+    name: 'Entregador Experiente',
+    description: 'Complete 50 entregas',
+    requiredCount: 50,
+    icon: 'fa-motorcycle'
+  },
+  '100_deliveries': {
+    name: 'Profissional da Entrega',
+    description: 'Complete 100 entregas',
+    requiredCount: 100,
+    icon: 'fa-rocket'
+  },
+  '250_deliveries': {
+    name: 'Lenda das Ruas',
+    description: 'Complete 250 entregas',
+    requiredCount: 250,
+    icon: 'fa-crown'
+  }
 };
 
 // --- USA AS INSTÂNCIAS GLOBAIS CRIADAS PELO HTML ---
@@ -142,7 +164,9 @@ const todayCountEl = document.getElementById('today-deliveries-count');
 const requestWithdrawalBtn = document.getElementById('request-withdrawal-btn');
 
 // --- FUNÇÕES UTILITÁRIAS ---
-const formatPrice = (price) => typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
+const formatPrice = (price) => typeof price === 'number' ? price.toLocaleString('pt-BR', {
+  style: 'currency', currency: 'BRL'
+}): 'R$ 0,00';
 
 function showView(viewName) {
   for (const key in mainViews) {
@@ -156,6 +180,32 @@ function showView(viewName) {
   financialBtn.classList.toggle('active', viewName === 'financial');
 }
 
+window.showToast = function(message, type = 'success') {
+  const existingToast = document.querySelector('.toast-notification');
+  if (existingToast) {
+    existingToast.remove();
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `toast-notification ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 100);
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      if (toast.parentElement) {
+        toast.parentElement.removeChild(toast);
+      }
+    },
+      500);
+  }, 3000);
+}
+
 // --- LÓGICA DO CHAT DE MENSAGENS RÁPIDAS ---
 if (btnSendMessage) {
   btnSendMessage.addEventListener('click', () => {
@@ -166,6 +216,7 @@ if (btnSendMessage) {
     }
   });
 }
+
 if (closeMessageModalBtn) {
   closeMessageModalBtn.addEventListener('click', () => quickMessageModal.classList.remove('show'));
 }
@@ -300,7 +351,7 @@ function createDeliveryCard(order) {
   const status = order.status || 'Indefinido';
   let cardClass = 'delivery-card';
   if (status === 'Entregue') cardClass += ' history-card';
-  const createdAtISO = order.createdAt?.toDate ? order.createdAt.toDate().toISOString() : new Date().toISOString();
+  const createdAtISO = order.createdAt?.toDate ? order.createdAt.toDate().toISOString(): new Date().toISOString();
   let timerHTML = '';
   if (status !== 'Entregue' && status !== 'Cancelado') {
     timerHTML = `<div class="order-timer" data-created-at="${createdAtISO}">00:00</div>`;
@@ -309,7 +360,7 @@ function createDeliveryCard(order) {
   const paymentMethod = order.payment?.method || 'N/A';
   if (paymentMethod === 'Pix') {
     const isPaid = order.payment?.pixPaid === true;
-    paymentTagHTML = isPaid ? '<span class="tag tag-payment-paid">Pix (Pago)</span>' : '<span class="tag tag-payment-unpaid">Pix (Não Pago)</span>';
+    paymentTagHTML = isPaid ? '<span class="tag tag-payment-paid">Pix (Pago)</span>': '<span class="tag tag-payment-unpaid">Pix (Não Pago)</span>';
   } else {
     const paymentClass = paymentMethod.toLowerCase().replace(/ /g, '-').replace(/[^a-z0-9-]/g, '');
     paymentTagHTML = `<span class="tag tag-payment-delivery ${paymentClass}">${paymentMethod}</span>`;
@@ -334,7 +385,10 @@ function createDeliveryCard(order) {
 function openDetailsModal(order) {
   selectedOrder = order;
   const address = order.delivery.address || `${order.delivery.street}, ${order.delivery.number}`;
+
+  // --- LINHA CORRIGIDA AQUI ---
   const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
+
   const customerHTML = `<div class="modal-section"><h4><i class="fas fa-user"></i> Cliente</h4><div class="detail-line"><span class="label">Nome</span><span class="value">${order.customer.firstName} ${order.customer.lastName}</span></div><a href="https://wa.me/55${order.customer.whatsapp}" target="_blank" class="btn" style="background-color:#25D366; width: 95%; margin: 10px auto 0 auto;"><i class="fab fa-whatsapp"></i> Chamar no WhatsApp</a></div><div class="modal-section"><h4><i class="fas fa-map-marker-alt"></i> Endereço</h4><div class="address-block">${address}<br>Bairro: ${order.delivery.neighborhood}<br>${order.delivery.complement ? `Comp: ${order.delivery.complement}<br>`: ''}${order.delivery.reference ? `Ref: ${order.delivery.reference}`: ''}</div><a href="${mapLink}" target="_blank" class="btn" style="background-color:#4285F4; width:95%; margin:10px auto 0 auto;"><i class="fas fa-map-signs"></i> Ver no Mapa</a></div>`;
   const {
     subtotal = 0,
@@ -360,6 +414,7 @@ function openDetailsModal(order) {
   }
   deliveryDetailsModal.classList.add('show');
 }
+
 function closeDetailsModal() {
   if (deliveryDetailsModal) deliveryDetailsModal.classList.remove('show');
 }
@@ -417,35 +472,35 @@ async function listenForHistory(driverId, startDate = null, endDate = null) {
 
 // --- FUNÇÃO PARA ATUALIZAR O RESUMO VISUAL DO DIA ---
 async function updateDailySummaryVisuals(driverId) {
-    if (!driverId || !todayFeesEl || !todayCountEl) return;
+  if (!driverId || !todayFeesEl || !todayCountEl) return;
 
-    const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-    
-    const q = query(
-        collection(db, "pedidos"),
-        where("delivery.assignedTo.id", "==", driverId),
-        where("status", "==", "Entregue"),
-        where("lastStatusUpdate", ">=", Timestamp.fromDate(startOfDay))
-    );
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
 
-    try {
-        const querySnapshot = await getDocs(q);
-        const dailyOrders = querySnapshot.docs.map(doc => doc.data());
-        const totalFees = dailyOrders.reduce((sum, order) => sum + (order.delivery?.fee || 0), 0);
-        const totalCount = dailyOrders.length;
-        todayFeesEl.textContent = formatPrice(totalFees);
-        todayCountEl.textContent = totalCount;
-    } catch (error) {
-        console.error("Erro ao buscar resumo visual do dia:", error);
-    }
+  const q = query(
+    collection(db, "pedidos"),
+    where("delivery.assignedTo.id", "==", driverId),
+    where("status", "==", "Entregue"),
+    where("lastStatusUpdate", ">=", Timestamp.fromDate(startOfDay))
+  );
+
+  try {
+    const querySnapshot = await getDocs(q);
+    const dailyOrders = querySnapshot.docs.map(doc => doc.data());
+    const totalFees = dailyOrders.reduce((sum, order) => sum + (order.delivery?.fee || 0), 0);
+    const totalCount = dailyOrders.length;
+    todayFeesEl.textContent = formatPrice(totalFees);
+    todayCountEl.textContent = totalCount;
+  } catch (error) {
+    console.error("Erro ao buscar resumo visual do dia:", error);
+  }
 }
 
 function listenForDeliveries(driverId) {
   if (!driverId) return;
 
   const q = query(collection(db, "pedidos"), where("delivery.assignedTo.id", "==", driverId), where("status", "in", ["Aprovado", "Em Preparo", "Saiu para Entrega"]));
-  
+
   onSnapshot(q, (snapshot) => {
     snapshot.docChanges().forEach((change) => {
       if (change.type === "added" && !isFirstLoad) {
@@ -467,12 +522,13 @@ function listenForDeliveries(driverId) {
       deliveryQueueList.innerHTML = currentOrders.map(createDeliveryCard).join('');
       addCardClickListeners(deliveryQueueList, currentOrders);
     }
-  }, (error) => {
-    console.error("Erro ao buscar entregas: ", error);
-    if (deliveryQueueList) {
-      deliveryQueueList.innerHTML = "<p>Ocorreu um erro ao carregar as entregas.</p>";
-    }
-  });
+  },
+    (error) => {
+      console.error("Erro ao buscar entregas: ", error);
+      if (deliveryQueueList) {
+        deliveryQueueList.innerHTML = "<p>Ocorreu um erro ao carregar as entregas.</p>";
+      }
+    });
 }
 
 // --- LÓGICA DO CONTROLE FINANCEIRO (FONTE ÚNICA DO SALDO) ---
@@ -481,7 +537,7 @@ if (formFinanceiro) {
     e.preventDefault();
     const user = auth.currentUser;
     if (!user) return alert('Você precisa estar logado para fazer um lançamento.');
-    
+
     const valor = parseFloat(valorMovimentacao.value);
     const descricao = descricaoMovimentacao.value;
     const tipo = tipoMovimentacao.value;
@@ -516,28 +572,28 @@ function carregarRelatorioFinanceiro(driverId) {
   onSnapshot(q, (querySnapshot) => {
     let saldo = 0;
     if (!listaHistoricoEl || !saldoAtualViewEl || !driverBalanceSpan) return;
-    
+
     const movimentacoes = querySnapshot.docs.map(doc => doc.data());
-    
+
     saldo = movimentacoes.reduce((acc, mov) => {
-        return mov.tipo === 'receita' ? acc + mov.valor : acc - mov.valor;
+      return mov.tipo === 'receita' ? acc + mov.valor: acc - mov.valor;
     }, 0);
 
-    listaHistoricoEl.innerHTML = querySnapshot.empty ? '<li>Nenhum lançamento encontrado.</li>' : movimentacoes.map(mov => {
-        const valorFormatado = formatPrice(mov.valor);
-        return `<li class="${mov.tipo}"><span>${mov.descricao}</span><span class="valor">${mov.tipo === 'receita' ? '+': '-'} ${valorFormatado}</span></li>`;
+    listaHistoricoEl.innerHTML = querySnapshot.empty ? '<li>Nenhum lançamento encontrado.</li>': movimentacoes.map(mov => {
+      const valorFormatado = formatPrice(mov.valor);
+      return `<li class="${mov.tipo}"><span>${mov.descricao}</span><span class="valor">${mov.tipo === 'receita' ? '+': '-'} ${valorFormatado}</span></li>`;
     }).join('');
 
     saldoAtualViewEl.textContent = formatPrice(saldo);
     driverBalanceSpan.textContent = formatPrice(saldo);
-    
-    const color = saldo < 0 ? 'var(--primary-red)' : 'var(--success-green)';
+
+    const color = saldo < 0 ? 'var(--primary-red)': 'var(--success-green)';
     saldoAtualViewEl.style.color = color;
     driverBalanceSpan.style.color = color;
   },
-  error => {
-    console.error("Erro ao carregar relatório financeiro:", error);
-  });
+    error => {
+      console.error("Erro ao carregar relatório financeiro:", error);
+    });
 }
 
 // --- LÓGICA DE AÇÃO DOS BOTÕES ---
@@ -549,38 +605,51 @@ if (btnDeliveryAction) {
     btnDeliveryAction.disabled = true;
     btnDeliveryAction.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
     const orderRef = doc(db, "pedidos", selectedOrder.id);
-    await updateDoc(orderRef, { status: "Saiu para Entrega", lastStatusUpdate: new Date() });
+    await updateDoc(orderRef, {
+      status: "Saiu para Entrega", lastStatusUpdate: new Date()
+    });
     btnDeliveryAction.disabled = false;
     btnDeliveryAction.innerHTML = '<i class="fas fa-motorcycle"></i> Peguei o Pedido';
     closeDetailsModal();
   });
 }
 
+// Em app-entregador.js, substitua todo este bloco
+
 if (btnCompleteDelivery) {
   btnCompleteDelivery.addEventListener('click', async () => {
-    if (!selectedOrder || !auth.currentUser) {
-      alert("Erro: Pedido ou entregador não selecionado.");
+    if (!selectedOrder || !auth.currentUser || !currentDriverProfile) {
+      alert("Erro: Pedido ou entregador não identificado.");
       return;
     }
 
     btnCompleteDelivery.disabled = true;
     btnCompleteDelivery.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finalizando...';
 
-    const driverId = (await getDocs(query(collection(db, "delivery_people"), where("googleUid", "==", auth.currentUser.uid)))).docs[0].id;
+    const driverDocId = currentDriverProfile.whatsapp;
     const orderRef = doc(db, "pedidos", selectedOrder.id);
-    const driverRef = doc(db, "delivery_people", driverId);
+    const driverRef = doc(db, "delivery_people", driverDocId);
     const feeAmount = selectedOrder.delivery?.fee || 0;
 
+    // --- CORREÇÃO APLICADA AQUI ---
+    // A referência para o novo documento de movimentação é criada ANTES da transação.
+    // Isso garante que, mesmo que a transação seja repetida pelo Firestore,
+    // ela sempre tentará escrever no MESMO novo documento, evitando duplicatas.
+    const movimentacaoRef = doc(collection(db, "delivery_people", driverDocId, "movimentacoesFinanceiras"));
+
     try {
+      // Agora a transação usa a referência pré-criada.
       await runTransaction(db, async (transaction) => {
+        // 1. Atualiza o status do pedido para "Entregue"
         transaction.update(orderRef, {
           status: "Entregue",
-          lastStatusUpdate: new Date() 
+          lastStatusUpdate: serverTimestamp()
         });
 
+        // 2. Adiciona a taxa de entrega como uma "receita" na conta do entregador
         if (feeAmount > 0) {
-          const movimentacaoRef = doc(collection(db, "delivery_people", driverId, "movimentacoesFinanceiras"));
           transaction.set(movimentacaoRef, {
+            // Usa a referência externa
             tipo: "receita",
             valor: feeAmount,
             descricao: `Taxa Pedido #${selectedOrder.id.substring(0, 6)}`,
@@ -589,13 +658,17 @@ if (btnCompleteDelivery) {
         }
       });
 
+      // 3. Após a transação, executa as outras lógicas
       await checkAndAwardAchievements(driverRef);
-      await updateDailySummaryVisuals(driverId);
+      await updateDailySummaryVisuals(driverDocId);
 
+      window.showToast("Entrega finalizada com sucesso!",
+        "success");
       closeDetailsModal();
 
     } catch (error) {
-      console.error("Erro ao finalizar entrega:", error);
+      console.error("Erro ao finalizar entrega:",
+        error);
       alert("Ocorreu um erro ao finalizar a entrega. Tente novamente.");
     } finally {
       btnCompleteDelivery.disabled = false;
@@ -620,75 +693,70 @@ if (filterHistoryBtn) {
       return;
     }
     const startDate = new Date(startDateValue + 'T00:00:00');
-    const endDate = endDateValue ? new Date(endDateValue + 'T00:00:00') : null;
+    const endDate = endDateValue ? new Date(endDateValue + 'T00:00:00'): null;
     const user = auth.currentUser;
     if (user) {
-        const driverId = (await getDocs(query(collection(db, "delivery_people"), where("googleUid", "==", user.uid)))).docs[0].id;
+      const driverId = (await getDocs(query(collection(db, "delivery_people"), where("googleUid", "==", user.uid)))).docs[0].id;
       listenForHistory(driverId, startDate, endDate);
     }
   });
 }
 
 if (requestWithdrawalBtn) {
-    requestWithdrawalBtn.addEventListener('click', async () => {
-        const user = auth.currentUser;
-        if (!user) {
-            alert("Erro: Usuário não identificado.");
-            return;
-        }
+  requestWithdrawalBtn.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    if (!user) {
+      alert("Erro: Usuário não identificado.");
+      return;
+    }
 
-        let totalBalance = 0;
-        const driverId = (await getDocs(query(collection(db, "delivery_people"), where("googleUid", "==", user.uid)))).docs[0].id;
-        const q = query(collection(db, 'delivery_people', driverId, 'movimentacoesFinanceiras'));
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach(doc => {
-            const mov = doc.data();
-            totalBalance += mov.tipo === 'receita' ? mov.valor : -mov.valor;
-        });
+    let totalBalance = 0;
+    // Esta variável 'driverId' já contém o ID correto (o número do WhatsApp)
+    const driverId = (await getDocs(query(collection(db, "delivery_people"), where("googleUid", "==", user.uid)))).docs[0].id;
 
-        if (totalBalance <= 0) {
-            alert("Você não possui saldo positivo para solicitar um saque.");
-            return;
-        }
-
-        requestWithdrawalBtn.disabled = true;
-        requestWithdrawalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
-
-        try {
-            const requestData = {
-                driverId: user.uid,
-                driverName: user.displayName || "Entregador",
-                amount: totalBalance,
-                status: "pending",
-                requestedAt: serverTimestamp(),
-            };
-            
-            const docRef = await addDoc(collection(db, "withdrawal_requests"), requestData);
-
-            const adminWhatsappNumber = "12996052425";
-            const message = `
-*===== Nova Solicitação de Saque =====*
-
-*Entregador:* ${user.displayName || "Entregador"}
-*ID da Solicitação:* ${docRef.id}
-
-Uma nova solicitação de saque no valor de *${formatPrice(totalBalance)}* foi registrada no sistema. Por favor, verifique o painel administrativo para aprovar.
-
-Obrigado!
-            `.trim().replace(/\n\s+/g, '\n');
-
-            const whatsappUrl = `https://wa.me/55${adminWhatsappNumber}?text=${encodeURIComponent(message)}`;
-            window.open(whatsappUrl, '_blank');
-            alert("Sua solicitação foi registrada e a mensagem enviada ao administrador!");
-
-        } catch (error) {
-            console.error("Erro ao registrar solicitação de saque:", error);
-            alert("Ocorreu um erro ao registrar sua solicitação. Tente novamente.");
-        } finally {
-            requestWithdrawalBtn.disabled = false;
-            requestWithdrawalBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Solicitar Saque';
-        }
+    const q = query(collection(db, 'delivery_people', driverId, 'movimentacoesFinanceiras'));
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach(doc => {
+      const mov = doc.data();
+      totalBalance += mov.tipo === 'receita' ? mov.valor: -mov.valor;
     });
+
+    if (totalBalance <= 0) {
+      alert("Você não possui saldo positivo para solicitar um saque.");
+      return;
+    }
+
+    requestWithdrawalBtn.disabled = true;
+    requestWithdrawalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
+
+    try {
+      // --- CORREÇÃO APLICADA AQUI ---
+      // Agora estamos salvando o ID do documento (WhatsApp) em vez do user.uid
+      const requestData = {
+        driverId: driverId,
+        driverName: user.displayName || "Entregador",
+        amount: totalBalance,
+        status: "pending",
+        requestedAt: serverTimestamp(),
+      };
+
+      const docRef = await addDoc(collection(db, "withdrawal_requests"), requestData);
+
+      const adminWhatsappNumber = "12996052425"; // Mantenha o número do admin aqui
+      const message = `*===== Nova Solicitação de Saque =====*\n\n*Entregador:* ${user.displayName || "Entregador"}\n*ID da Solicitação:* ${docRef.id}\n\nUma nova solicitação de saque no valor de *${formatPrice(totalBalance)}* foi registrada no sistema. Por favor, verifique o painel administrativo para aprovar.\n\nObrigado!`.trim().replace(/\n\s+/g, '\n');
+
+      const whatsappUrl = `https://wa.me/55${adminWhatsappNumber}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+      alert("Sua solicitação foi registrada e a mensagem enviada ao administrador!");
+
+    } catch (error) {
+      console.error("Erro ao registrar solicitação de saque:", error);
+      alert("Ocorreu um erro ao registrar sua solicitação. Tente novamente.");
+    } finally {
+      requestWithdrawalBtn.disabled = false;
+      requestWithdrawalBtn.innerHTML = '<i class="fab fa-whatsapp"></i> Solicitar Saque';
+    }
+  });
 }
 
 // --- LÓGICA DE AUTENTICAÇÃO E INICIALIZAÇÃO ---
@@ -730,7 +798,7 @@ onAuthStateChanged(auth, async (user) => {
       console.log("Entregador recorrente identificado por googleUid.");
       driverDoc = querySnapshot.docs[0];
     }
-    
+
     // Se chegou até aqui, temos o documento do entregador em 'driverDoc'.
     // Agora podemos iniciar o aplicativo com os dados corretos.
     const correctDriverId = driverDoc.id;
@@ -740,7 +808,7 @@ onAuthStateChanged(auth, async (user) => {
     appContent.classList.remove('hidden');
 
     if (driverNameSpan) {
-      driverNameSpan.textContent = user.displayName ? user.displayName.split(' ')[0] : "Entregador";
+      driverNameSpan.textContent = user.displayName ? user.displayName.split(' ')[0]: "Entregador";
     }
 
     setInterval(updateAllTimers, 1000);
@@ -749,11 +817,11 @@ onAuthStateChanged(auth, async (user) => {
     listenForDeliveries(correctDriverId);
     carregarRelatorioFinanceiro(correctDriverId);
     updateDailySummaryVisuals(correctDriverId);
-    startLocationTracking(correctDriverId);
-    
+    startLocationTracking(user.uid);
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    listenForHistory(correctDriverId, today, today);
+    startLocationTracking(user.uid);
 
     // --- GERENCIAMENTO DAS TELAS ---
     showView('deliveries');
