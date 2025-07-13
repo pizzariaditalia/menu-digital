@@ -923,3 +923,33 @@ body.app-view {
         padding: 15px;
     }
 }
+
+/* Adicione no final de style-entregador.css */
+
+.toast-notification {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--success-green);
+    color: white;
+    padding: 14px 22px;
+    border-radius: 8px;
+    z-index: 3000;
+    font-size: 0.95em;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    opacity: 0;
+    transition: opacity 0.4s ease, bottom 0.4s ease;
+}
+.toast-notification.show {
+    opacity: 1;
+    bottom: 30px;
+}
+.toast-notification.error { 
+    background-color: var(--primary-red); 
+}
+.toast-notification.warning { 
+    background-color: var(--primary-yellow); 
+    color: var(--dark-text);
+}
