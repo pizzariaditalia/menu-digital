@@ -1,4 +1,4 @@
-// Arquivo: comunicados.js - VERSÃO COMPLETA COM ENVIO DE PUSH E WHATSAPP
+// Arquivo: comunicados.js - VERSÃO FINAL COM FUNÇÃO CHAMÁVEL (CALLABLE FUNCTION)
 
 let comunicadosSectionInitialized = false;
 
@@ -108,7 +108,7 @@ async function initializeComunicadosSection() {
         });
     }
     
-    // Listener para o NOVO botão de enviar notificação push
+    // Listener para o botão de enviar notificação push (versão corrigida)
     if (enviarPushBtn) {
         enviarPushBtn.addEventListener('click', async () => {
             const title = comunicadoTituloInput.value.trim();
@@ -127,38 +127,17 @@ async function initializeComunicadosSection() {
             enviarPushBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
 
             try {
-                const { getAuth } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
-                const auth = getAuth(window.firebaseApp);
+                // Usa a nova forma de chamar a função a partir do objeto global
+                const { httpsCallable, functions } = window.firebaseFunctions;
+                const sendBroadcastNotification = httpsCallable(functions, 'sendbroadcastnotification');
                 
-                if (!auth.currentUser) {
-                    throw new Error("Admin não autenticado.");
-                }
-                
-                const idToken = await auth.currentUser.getIdToken(true);
-                
-                const projectId = window.firebaseApp.options.projectId;
-                const functionRegion = "us-central1"; 
-                const broadcastUrl = `https://${functionRegion}-${projectId}.cloudfunctions.net/sendbroadcastnotification`;
+                const result = await sendBroadcastNotification({ title, body });
 
-                const response = await fetch(broadcastUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${idToken}`
-                    },
-                    body: JSON.stringify({ title, body })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Falha na resposta do servidor.');
-                }
-
-                const result = await response.json();
-                window.showToast(result.message, "success");
+                // O resultado da função 'onCall' vem dentro da propriedade 'data'
+                window.showToast(result.data.message, "success");
 
             } catch (error) {
-                console.error("Erro ao enviar notificação em massa:", error);
+                console.error("Erro ao chamar a função de notificação:", error);
                 window.showToast(error.message || "Ocorreu um erro.", "error");
             } finally {
                 enviarPushBtn.disabled = false;
