@@ -1154,125 +1154,109 @@ Nenhuma nova notificação.
 </div>
 
 <script type="module">
-// Importa os módulos necessários do Firebase
-import {
-initializeApp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-// CORREÇÃO: Adicionado 'addDoc' à lista de imports
-import {
-getFirestore,
-doc,
-getDoc,
-getDocs,
-setDoc,
-updateDoc,
-collection,
-query,
-where,
-orderBy,
-onSnapshot,
-deleteDoc,
-writeBatch,
-serverTimestamp,
-Timestamp,
-limit,
-arrayUnion,
-arrayRemove,
-increment,
-documentId,
-addDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import {
-getAuth,
-onAuthStateChanged,
-signOut
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {
-getMessaging,
-getToken,
-onMessage
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+  // Importa os módulos necessários do Firebase
+  import {
+    initializeApp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    getDocs,
+    setDoc,
+    updateDoc,
+    collection,
+    query,
+    where,
+    orderBy,
+    onSnapshot,
+    deleteDoc,
+    writeBatch,
+    serverTimestamp,
+    Timestamp,
+    limit,
+    arrayUnion,
+    arrayRemove,
+    increment,
+    documentId,
+    addDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import {
+    getAuth,
+    onAuthStateChanged,
+    signOut
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getMessaging,
+    getToken,
+    onMessage
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
-// Sua configuração do Firebase
-const firebaseConfig = {
-apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
-authDomain: "app-ditalia.firebaseapp.com",
-projectId: "app-ditalia",
-storageBucket: "app-ditalia.firebasestorage.app",
-messagingSenderId: "122567535166",
-appId: "1:122567535166:web:19de7b8925042027063f6f",
-measurementId: "G-5QW3MVGYME"
-};
+  // Sua configuração do Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
+    authDomain: "app-ditalia.firebaseapp.com",
+    projectId: "app-ditalia",
+    storageBucket: "app-ditalia.firebasestorage.app",
+    messagingSenderId: "122567535166",
+    appId: "1:122567535166:web:19de7b8925042027063f6f",
+    measurementId: "G-5QW3MVGYME"
+  };
 
-// Inicializa os serviços do Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const messaging = getMessaging(app);
+  // --- CORREÇÃO APLICADA AQUI ---
+  // Inicializa os serviços e os disponibiliza globalmente IMEDIATAMENTE.
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const messaging = getMessaging(app);
 
-// Monitora o estado de autenticação do usuário
-onAuthStateChanged(auth, (user) => {
-if (user) {
-// Expondo os serviços do Firebase para outros scripts
-window.auth = auth;
-window.db = db;
-// CORREÇÃO: Adicionado 'addDoc' ao objeto global
-window.firebaseFirestore = {
-doc,
-getDoc,
-getDocs,
-setDoc,
-updateDoc,
-collection,
-query,
-where,
-orderBy,
-onSnapshot,
-deleteDoc,
-writeBatch,
-serverTimestamp,
-Timestamp,
-limit,
-arrayUnion,
-arrayRemove,
-increment,
-documentId,
-addDoc
-};
-window.firebaseMessaging = {
-getMessaging,
-getToken,
-onMessage,
-messagingInstance: messaging
-};
+  window.firebaseApp = app; // Garante que esteja sempre disponível
+  window.db = db;
+  window.auth = auth;
+  
+  window.firebaseFirestore = {
+    doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where,
+    orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp,
+    limit, arrayUnion, arrayRemove, increment, documentId, addDoc
+  };
 
-if (typeof startAdminPanel === 'function') {
-startAdminPanel();
-}
-if (typeof setupAdminNotifications === 'function') {
-setupAdminNotifications();
-}
-if (typeof window.initializeChatListener === 'function') {
-window.initializeChatListener();
-}
+  window.firebaseMessaging = {
+    getMessaging, getToken, onMessage, messagingInstance: messaging
+  };
+  // --- FIM DA CORREÇÃO ---
 
-const logoutButton = document.getElementById('logout-button');
-if (logoutButton) {
-logoutButton.addEventListener('click', () => {
-signOut(auth).then(() => {
-window.location.href = 'login.html';
-}).catch((error) => {
-console.error("Erro ao fazer logout: ", error);
-});
-});
-}
 
-} else {
-window.location.href = 'login.html';
-}
-});
+  // Monitora o estado de autenticação do usuário
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // Se o usuário está logado, inicia o painel
+      if (typeof startAdminPanel === 'function') {
+        startAdminPanel();
+      }
+      if (typeof setupAdminNotifications === 'function') {
+        setupAdminNotifications();
+      }
+      if (typeof window.initializeChatListener === 'function') {
+        window.initializeChatListener();
+      }
+
+      const logoutButton = document.getElementById('logout-button');
+      if (logoutButton) {
+        logoutButton.addEventListener('click', () => {
+          signOut(auth).then(() => {
+            window.location.href = 'login.html';
+          }).catch((error) => {
+            console.error("Erro ao fazer logout: ", error);
+          });
+        });
+      }
+
+    } else {
+      // Se não está logado, redireciona para a página de login
+      window.location.href = 'login.html';
+    }
+  });
 </script>
-
 <script src="appearance.js" defer></script>
 <script src="config.js" defer></script>
 <script src="admin.js" defer></script>
