@@ -1154,7 +1154,7 @@ Nenhuma nova notificação.
 </div>
 
 <script type="module">
-  // Importa os módulos necessários do Firebase
+  // 1. Importa todos os módulos necessários do Firebase
   import {
     initializeApp
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -1191,8 +1191,13 @@ Nenhuma nova notificação.
     getToken,
     onMessage
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+  // Import para as Funções Chamáveis (Callable Functions)
+  import {
+    getFunctions,
+    httpsCallable
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
-  // Sua configuração do Firebase
+  // 2. Sua configuração do Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
     authDomain: "app-ditalia.firebaseapp.com",
@@ -1203,43 +1208,63 @@ Nenhuma nova notificação.
     measurementId: "G-5QW3MVGYME"
   };
 
-  // --- CORREÇÃO APLICADA AQUI ---
-  // Inicializa os serviços e os disponibiliza globalmente IMEDIATAMENTE.
+  // 3. Inicializa os serviços e os define globalmente para evitar erros de carregamento
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const auth = getAuth(app);
   const messaging = getMessaging(app);
+  const functions = getFunctions(app, 'us-central1'); // Define a região da sua função
 
-  window.firebaseApp = app; // Garante que esteja sempre disponível
+  window.firebaseApp = app;
   window.db = db;
   window.auth = auth;
-  
+
   window.firebaseFirestore = {
-    doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where,
-    orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp,
-    limit, arrayUnion, arrayRemove, increment, documentId, addDoc
+    doc,
+    getDoc,
+    getDocs,
+    setDoc,
+    updateDoc,
+    collection,
+    query,
+    where,
+    orderBy,
+    onSnapshot,
+    deleteDoc,
+    writeBatch,
+    serverTimestamp,
+    Timestamp,
+    limit,
+    arrayUnion,
+    arrayRemove,
+    increment,
+    documentId,
+    addDoc
   };
 
   window.firebaseMessaging = {
-    getMessaging, getToken, onMessage, messagingInstance: messaging
+    getMessaging,
+    getToken,
+    onMessage,
+    messagingInstance: messaging
   };
-  // --- FIM DA CORREÇÃO ---
 
+  window.firebaseFunctions = {
+    httpsCallable,
+    functions
+  };
 
-  // Monitora o estado de autenticação do usuário
+  // 4. Monitora o estado de autenticação para iniciar o painel ou redirecionar
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      // Se o usuário está logado, inicia o painel
+      // Usuário está logado, inicia a lógica do painel
       if (typeof startAdminPanel === 'function') {
         startAdminPanel();
       }
       if (typeof setupAdminNotifications === 'function') {
         setupAdminNotifications();
       }
-      if (typeof window.initializeChatListener === 'function') {
-        window.initializeChatListener();
-      }
-
+      
       const logoutButton = document.getElementById('logout-button');
       if (logoutButton) {
         logoutButton.addEventListener('click', () => {
@@ -1252,7 +1277,7 @@ Nenhuma nova notificação.
       }
 
     } else {
-      // Se não está logado, redireciona para a página de login
+      // Usuário não está logado, redireciona para a tela de login
       window.location.href = 'login.html';
     }
   });
