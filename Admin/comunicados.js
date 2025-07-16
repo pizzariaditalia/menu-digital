@@ -1,4 +1,4 @@
-// Arquivo: comunicados.js - VERSÃO FINAL COM FUNÇÃO CHAMÁVEL (CALLABLE FUNCTION)
+// comunicados.js - VERSÃO FINAL COM CHAMADA AUTENTICADA CORRETA
 
 let comunicadosSectionInitialized = false;
 
@@ -108,7 +108,7 @@ async function initializeComunicadosSection() {
         });
     }
     
-    // Listener para o botão de enviar notificação push (versão corrigida)
+    // Listener para o botão de enviar notificação push
     if (enviarPushBtn) {
         enviarPushBtn.addEventListener('click', async () => {
             const title = comunicadoTituloInput.value.trim();
@@ -127,13 +127,14 @@ async function initializeComunicadosSection() {
             enviarPushBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
 
             try {
-                // Usa a nova forma de chamar a função a partir do objeto global
+                // CORREÇÃO FINAL: Usa a instância de 'functions' que foi preparada e 
+                // disponibilizada globalmente no 'paineladmin.html'.
+                // O SDK anexa as informações de autenticação automaticamente.
                 const { httpsCallable, functions } = window.firebaseFunctions;
                 const sendBroadcastNotification = httpsCallable(functions, 'sendbroadcastnotification');
                 
                 const result = await sendBroadcastNotification({ title: title, body: body });
 
-                // O resultado da função 'onCall' vem dentro da propriedade 'data'
                 window.showToast(result.data.message, "success");
 
             } catch (error) {
