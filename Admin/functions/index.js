@@ -1,4 +1,4 @@
-// functions/index.js - VERSÃO FINAL, COMPLETA E VERIFICADA
+// functions/index.js - VERSÃO FINAL E COMPLETA
 
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
@@ -24,7 +24,7 @@ exports.onorderstatuschange = onDocumentUpdated("pedidos/{orderId}", async (even
 
     const customerId = afterData.customer?.id;
     const customerFirstName = afterData.customer?.firstName || "cliente";
-
+    
     let notificationTitle = "";
     let notificationBody = "";
 
@@ -39,7 +39,7 @@ exports.onorderstatuschange = onDocumentUpdated("pedidos/{orderId}", async (even
     if (notificationTitle) {
         await sendNotificationToCustomer(customerId, notificationTitle, notificationBody);
     }
-
+    
     if (afterData.status === "Entregue" || afterData.status === "Finalizado") {
         await scheduleReviewNotificationTask(customerId, event.params.orderId);
     }
@@ -68,9 +68,13 @@ exports.sendreviewnotification = onRequest({ cors: true }, async (req, res) => {
 });
 
 
-// --- FUNÇÃO PARA ENVIAR NOTIFICAÇÕES EM MASSA (VERSÃO onCall CORRIGIDA) ---
+// --- FUNÇÃO PARA ENVIAR NOTIFICAÇÕES EM MASSA (VERSÃO FINAL onCall) ---
 exports.sendbroadcastnotification = functions.https.onCall(async (data, context) => {
-    // 1. Verifica se o usuário que está chamando a função é um administrador.
+    // 1. Verificação de autenticação do administrador
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'A requisição deve ser autenticada por um usuário logado.');
+    }
+
     const adminEmails = [
         'brunotendr@gmail.com',
         'eloy.soares@gmail.com',
@@ -80,12 +84,11 @@ exports.sendbroadcastnotification = functions.https.onCall(async (data, context)
         'santiagoresende889@gmail.com'
     ];
 
-    if (!context.auth || !adminEmails.includes(context.auth.token.email)) {
-        logger.error("Chamada não autorizada por um administrador.", { email: context.auth.token.email });
+    if (!adminEmails.includes(context.auth.token.email)) {
         throw new functions.https.HttpsError('permission-denied', 'Apenas administradores podem executar esta ação.');
     }
 
-    // 2. Pega o título e o corpo da mensagem diretamente do primeiro argumento 'data'
+    // 2. Pega os dados da requisição
     const { title, body } = data;
     if (!title || !body) {
         throw new functions.https.HttpsError('invalid-argument', 'O título e o corpo da mensagem são obrigatórios.');
@@ -104,13 +107,12 @@ exports.sendbroadcastnotification = functions.https.onCall(async (data, context)
         });
 
         if (allTokens.length === 0) {
-            logger.info("Nenhum token encontrado para enviar notificações.");
+            console.log("Nenhum token encontrado para enviar notificações.");
             return { success: true, message: "Nenhum cliente para notificar." };
         }
         
         const uniqueTokens = [...new Set(allTokens)];
-        logger.info(`Enviando notificação para ${uniqueTokens.length} tokens únicos.`);
-
+        
         const message = {
             notification: { title, body, icon: "https://www.pizzaditalia.com.br/img/icons/icon.png" },
             webpush: { fcm_options: { link: "https://www.pizzaditalia.com.br" } },
@@ -118,19 +120,18 @@ exports.sendbroadcastnotification = functions.https.onCall(async (data, context)
         };
 
         const messaging = admin.messaging();
-        // CORREÇÃO FINAL: Usando o método correto 'sendEachForMulticast'
         const response = await messaging.sendEachForMulticast(message);
         
-        logger.info(`Notificações enviadas com sucesso: ${response.successCount} de ${uniqueTokens.length}`);
+        console.log(`Notificações enviadas com sucesso: ${response.successCount} de ${uniqueTokens.length}`);
         
         if (response.failureCount > 0) {
-            logger.warn(`Falha ao enviar para ${response.failureCount} tokens.`);
+            console.warn(`Falha ao enviar para ${response.failureCount} tokens.`);
         }
 
         return { success: true, message: `Notificação enviada para ${response.successCount} dispositivos.` };
 
     } catch (error) {
-        logger.error("Erro interno detalhado durante o envio em massa:", error);
+        console.error("Erro interno detalhado durante o envio em massa:", error);
         throw new functions.https.HttpsError('internal', 'Ocorreu um erro interno no servidor ao tentar enviar as notificações.');
     }
 });
