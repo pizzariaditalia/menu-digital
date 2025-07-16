@@ -1,16 +1,15 @@
-// functions/index.js - VERSÃO FINAL E COMPLETA
+// functions/index.js - VERSÃO FINAL COMPLETA E CORRIGIDA
 
-const functions = require("firebase-functions");
-const admin = require("firebase-admin");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
-const { onRequest } = require("firebase-functions/v2/https");
+const { onRequest, onCall } = require("firebase-functions/v2/https");
 const { logger } = require("firebase-functions");
 const { CloudTasksClient } = require("@google-cloud/tasks");
+const admin = require("firebase-admin");
 
 admin.initializeApp();
 
 
-// --- FUNÇÃO DE NOTIFICAÇÃO DE STATUS DO PEDIDO ---
+// --- FUNÇÃO PRINCIPAL DE NOTIFICAÇÃO DE STATUS E AGENDAMENTO ---
 exports.onorderstatuschange = onDocumentUpdated("pedidos/{orderId}", async (event) => {
     logger.info(`Iniciando onorderstatuschange para o pedido ${event.params.orderId}`);
 
@@ -69,8 +68,11 @@ exports.sendreviewnotification = onRequest({ cors: true }, async (req, res) => {
 
 
 // --- FUNÇÃO PARA ENVIAR NOTIFICAÇÕES EM MASSA (VERSÃO CORRIGIDA COMO 'onCall') ---
-exports.sendbroadcastnotification = functions.https.onCall(async (data, context) => {
+exports.sendbroadcastnotification = onCall(async (request) => {
     // 1. Verifica se o usuário que está chamando a função é um administrador.
+    if (!request.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'A requisição deve ser autenticada.');
+    }
     const adminEmails = [
         'brunotendr@gmail.com',
         'eloy.soares@gmail.com',
@@ -79,69 +81,73 @@ exports.sendbroadcastnotification = functions.https.onCall(async (data, context)
         'alvesdossantosw16@gmail.com',
         'santiagoresende889@gmail.com'
     ];
-
-    if (!context.auth || !adminEmails.includes(context.auth.token.email)) {
-        logger.error("Chamada não autorizada por um administrador.", { email: context.auth.token.email });
+    if (!adminEmails.includes(request.auth.token.email)) {
+        logger.error("Chamada não autorizada por um administrador.", { email: request.auth.token.email });
         throw new functions.https.HttpsError('permission-denied', 'Apenas administradores podem executar esta ação.');
     }
 
-    // 2. Pega o título e o corpo da mensagem diretamente do primeiro argumento 'data'
-    const { title, body } = data;
-
+    // 2. Pega os dados da requisição.
+    const { title, body } = request.data;
     if (!title || !body) {
         throw new functions.https.HttpsError('invalid-argument', 'O título e o corpo da mensagem são obrigatórios.');
     }
 
     try {
-        const customersSnapshot = await admin.firestore().collection("customer").get();
-        let allTokens = [];
+        const db = admin.firestore();
+        const customersSnapshot = await db.collection("customer").get();
+        
+        const allTokens = [];
         customersSnapshot.forEach(doc => {
             const tokens = doc.data().notificationTokens;
-            if (tokens && Array.isArray(tokens)) {
+            if (tokens && Array.isArray(tokens) && tokens.length > 0) {
                 allTokens.push(...tokens);
             }
         });
-        allTokens = [...new Set(allTokens)]; // Remove tokens duplicados
 
         if (allTokens.length === 0) {
+            logger.info("Nenhum token encontrado para enviar notificações.");
             return { success: true, message: "Nenhum cliente para notificar." };
         }
-
-        logger.info(`Iniciando envio em massa para ${allTokens.length} tokens.`);
         
+        const uniqueTokens = [...new Set(allTokens)];
+        logger.info(`Enviando notificação para ${uniqueTokens.length} tokens únicos.`);
+
         const message = {
             notification: { title, body, icon: "https://www.pizzaditalia.com.br/img/icons/icon.png" },
             webpush: { fcm_options: { link: "https://www.pizzaditalia.com.br" } },
-            tokens: allTokens,
+            tokens: uniqueTokens,
         };
-        const response = await admin.messaging().sendEachForMulticast(message);
 
-        logger.info("Notificação em massa enviada com sucesso.");
-        return { success: true, message: `Notificação enviada para ${response.successCount} de ${allTokens.length} dispositivos.` };
+        const messaging = admin.messaging();
+        const response = await messaging.sendMulticast(message);
+        
+        logger.info(`Notificações enviadas com sucesso: ${response.successCount} de ${uniqueTokens.length}`);
+        
+        if (response.failureCount > 0) {
+            logger.warn(`Falha ao enviar para ${response.failureCount} tokens.`);
+        }
+
+        return { success: true, message: `Notificação enviada para ${response.successCount} dispositivos.` };
 
     } catch (error) {
-        logger.error("Erro durante o envio em massa:", error);
-        throw new functions.https.HttpsError('internal', 'Ocorreu um erro interno ao enviar as notificações.');
+        logger.error("Erro interno detalhado durante o envio em massa:", error);
+        throw new functions.https.HttpsError('internal', 'Ocorreu um erro interno no servidor ao tentar enviar as notificações.');
     }
 });
 
 
 // --- FUNÇÕES AUXILIARES (HELPERS) ---
-
 async function sendNotificationToCustomer(customerId, title, body) {
     if (!customerId) {
         logger.warn("ID do cliente não fornecido para envio de notificação.");
         return;
     }
-
     const customerDoc = await admin.firestore().collection("customer").doc(customerId).get();
     if (!customerDoc.exists || !customerDoc.data().notificationTokens || customerDoc.data().notificationTokens.length === 0) {
         logger.warn(`Cliente ${customerId} não encontrado ou sem tokens.`);
         return;
     }
-
     const notificationTokens = customerDoc.data().notificationTokens;
-    
     const message = {
         notification: {
             title: title,
@@ -155,7 +161,6 @@ async function sendNotificationToCustomer(customerId, title, body) {
         },
         tokens: notificationTokens,
     };
-
     try {
         logger.info(`Enviando notificação "${title}" para o cliente ${customerId}`);
         await admin.messaging().sendEachForMulticast(message);
@@ -172,11 +177,9 @@ async function scheduleReviewNotificationTask(customerId, orderId) {
         
         const tasksClient = new CloudTasksClient();
         const queuePath = tasksClient.queuePath(project, location, queue);
-
         const url = `https://${location}-${project}.cloudfunctions.net/sendreviewnotification`;
         const payload = { customerId, orderId };
         const twoHoursInSeconds = 2 * 60 * 60;
-
         const task = {
             httpRequest: {
                 httpMethod: "POST",
@@ -186,7 +189,6 @@ async function scheduleReviewNotificationTask(customerId, orderId) {
             },
             scheduleTime: { seconds: Date.now() / 1000 + twoHoursInSeconds },
         };
-
         await tasksClient.createTask({ parent: queuePath, task });
         logger.info(`Tarefa de avaliação agendada para o pedido ${orderId}.`);
     } catch (error) {
