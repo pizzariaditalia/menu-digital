@@ -131,7 +131,7 @@ async function initializeComunicadosSection() {
                 const { httpsCallable, functions } = window.firebaseFunctions;
                 const sendBroadcastNotification = httpsCallable(functions, 'sendbroadcastnotification');
                 
-                const result = await sendBroadcastNotification({ title, body });
+                const result = await sendBroadcastNotification({ title: title, body: body });
 
                 // O resultado da função 'onCall' vem dentro da propriedade 'data'
                 window.showToast(result.data.message, "success");
