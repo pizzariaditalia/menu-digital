@@ -1,15 +1,16 @@
-// functions/index.js - VERSÃO FINAL COMPLETA E CORRIGIDA
+// functions/index.js - VERSÃO FINAL, COMPLETA E VERIFICADA
 
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
-const { onRequest, onCall } = require("firebase-functions/v2/https");
+const { onRequest } = require("firebase-functions/v2/https");
 const { logger } = require("firebase-functions");
 const { CloudTasksClient } = require("@google-cloud/tasks");
-const admin = require("firebase-admin");
 
 admin.initializeApp();
 
 
-// --- FUNÇÃO PRINCIPAL DE NOTIFICAÇÃO DE STATUS E AGENDAMENTO ---
+// --- FUNÇÃO DE NOTIFICAÇÃO DE STATUS DO PEDIDO ---
 exports.onorderstatuschange = onDocumentUpdated("pedidos/{orderId}", async (event) => {
     logger.info(`Iniciando onorderstatuschange para o pedido ${event.params.orderId}`);
 
@@ -23,7 +24,7 @@ exports.onorderstatuschange = onDocumentUpdated("pedidos/{orderId}", async (even
 
     const customerId = afterData.customer?.id;
     const customerFirstName = afterData.customer?.firstName || "cliente";
-    
+
     let notificationTitle = "";
     let notificationBody = "";
 
@@ -38,7 +39,7 @@ exports.onorderstatuschange = onDocumentUpdated("pedidos/{orderId}", async (even
     if (notificationTitle) {
         await sendNotificationToCustomer(customerId, notificationTitle, notificationBody);
     }
-    
+
     if (afterData.status === "Entregue" || afterData.status === "Finalizado") {
         await scheduleReviewNotificationTask(customerId, event.params.orderId);
     }
@@ -67,12 +68,9 @@ exports.sendreviewnotification = onRequest({ cors: true }, async (req, res) => {
 });
 
 
-// --- FUNÇÃO PARA ENVIAR NOTIFICAÇÕES EM MASSA (VERSÃO CORRIGIDA COMO 'onCall') ---
-exports.sendbroadcastnotification = onCall(async (request) => {
+// --- FUNÇÃO PARA ENVIAR NOTIFICAÇÕES EM MASSA (VERSÃO onCall CORRIGIDA) ---
+exports.sendbroadcastnotification = functions.https.onCall(async (data, context) => {
     // 1. Verifica se o usuário que está chamando a função é um administrador.
-    if (!request.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'A requisição deve ser autenticada.');
-    }
     const adminEmails = [
         'brunotendr@gmail.com',
         'eloy.soares@gmail.com',
@@ -81,13 +79,14 @@ exports.sendbroadcastnotification = onCall(async (request) => {
         'alvesdossantosw16@gmail.com',
         'santiagoresende889@gmail.com'
     ];
-    if (!adminEmails.includes(request.auth.token.email)) {
-        logger.error("Chamada não autorizada por um administrador.", { email: request.auth.token.email });
+
+    if (!context.auth || !adminEmails.includes(context.auth.token.email)) {
+        logger.error("Chamada não autorizada por um administrador.", { email: context.auth.token.email });
         throw new functions.https.HttpsError('permission-denied', 'Apenas administradores podem executar esta ação.');
     }
 
-    // 2. Pega os dados da requisição.
-    const { title, body } = request.data;
+    // 2. Pega o título e o corpo da mensagem diretamente do primeiro argumento 'data'
+    const { title, body } = data;
     if (!title || !body) {
         throw new functions.https.HttpsError('invalid-argument', 'O título e o corpo da mensagem são obrigatórios.');
     }
@@ -119,7 +118,8 @@ exports.sendbroadcastnotification = onCall(async (request) => {
         };
 
         const messaging = admin.messaging();
-        const response = await messaging.sendMulticast(message);
+        // CORREÇÃO FINAL: Usando o método correto 'sendEachForMulticast'
+        const response = await messaging.sendEachForMulticast(message);
         
         logger.info(`Notificações enviadas com sucesso: ${response.successCount} de ${uniqueTokens.length}`);
         
