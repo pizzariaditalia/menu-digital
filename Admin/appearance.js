@@ -53,40 +53,40 @@ async function updateVideoList(indexToRemove, newFileName) {
 // Em appearance.js, substitua a função renderCarouselVideoItems por esta:
 
 function renderCarouselVideoItems(videos) {
-    const carouselVideosListContainer = document.getElementById('carousel-videos-list');
-    if (!carouselVideosListContainer) return;
+  const carouselVideosListContainer = document.getElementById('carousel-videos-list');
+  if (!carouselVideosListContainer) return;
 
-    if (!videos || videos.length === 0) {
-        carouselVideosListContainer.innerHTML = "<p>Nenhum vídeo no carrossel. Adicione um novo.</p>";
-        return;
-    }
+  if (!videos || videos.length === 0) {
+    carouselVideosListContainer.innerHTML = "<p>Nenhum vídeo no carrossel. Adicione um novo.</p>";
+    return;
+  }
 
-    carouselVideosListContainer.innerHTML = videos.map((video, index) => {
-        const videoPathForAdminPreview = `../${video.path}`;
-        return `
-            <div class="image-preview-item">
-                <video src="${videoPathForAdminPreview}" muted loop class="preview-thumbnail" title="${video.path}"></video>
-                <button class="btn-icon btn-danger-outline delete-video-btn" data-index="${index}" title="Excluir Vídeo">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
-            </div>
-        `;
-    }).join('');
+  carouselVideosListContainer.innerHTML = videos.map((video, index) => {
+    const videoPathForAdminPreview = `../${video.path}`;
+    return `
+    <div class="image-preview-item">
+    <video src="${videoPathForAdminPreview}" muted loop class="preview-thumbnail" title="${video.path}"></video>
+    <button type="button" class="btn-icon btn-danger-outline delete-video-btn" data-index="${index}" title="Excluir Vídeo">
+    <i class="fas fa-trash-alt"></i>
+    </button>
+    </div>
+    `;
+  }).join('');
 
-    // Adiciona os eventos de clique para os botões de excluir recém-criados
-    carouselVideosListContainer.querySelectorAll('.delete-video-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            // --- CORREÇÃO APLICADA AQUI ---
-            // Esta linha impede que o formulário principal seja enviado e a página recarregue.
-            e.preventDefault();
-            // --- FIM DA CORREÇÃO ---
+  // Adiciona os eventos de clique para os botões de excluir recém-criados
+  carouselVideosListContainer.querySelectorAll('.delete-video-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+      // --- CORREÇÃO APLICADA AQUI ---
+      // Esta linha impede que o formulário principal seja enviado e a página recarregue.
+      e.preventDefault();
+      // --- FIM DA CORREÇÃO ---
 
-            const indexToDelete = parseInt(e.target.closest('button').dataset.index);
-            if (confirm("Tem certeza que deseja remover este vídeo do carrossel?")) {
-                updateVideoList(indexToDelete, null);
-            }
-        });
+      const indexToDelete = parseInt(e.target.closest('button').dataset.index);
+      if (confirm("Tem certeza que deseja remover este vídeo do carrossel?")) {
+        updateVideoList(indexToDelete, null);
+      }
     });
+  });
 }
 
 // Esta função busca os dados do Firestore
