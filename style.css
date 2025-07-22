@@ -2242,3 +2242,111 @@ body {
     flex-shrink: 0;
     padding: 8px 12px;
 }
+
+/* ============================================= */
+/* --- ESTILOS PARA ACOMPANHAMENTO DE PEDIDO --- */
+/* ============================================= */
+.order-tracker-bar {
+    position: fixed;
+    bottom: 75px; /* Altura da barra do carrinho + um respiro */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 95%;
+    max-width: 500px;
+    background-color: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    gap: 12px;
+    z-index: 150;
+    opacity: 0;
+    transition: opacity 0.5s, bottom 0.5s;
+    pointer-events: none;
+}
+.order-tracker-bar:not(.hidden) {
+    opacity: 1;
+    pointer-events: auto;
+}
+.tracker-icon {
+    font-size: 1.5em;
+    color: var(--primary-red);
+}
+.tracker-info {
+    flex-grow: 1;
+}
+.tracker-title {
+    font-weight: 500;
+    font-size: 0.9em;
+    color: var(--dark-gray);
+}
+.tracker-progress-bar {
+    width: 100%;
+    height: 6px;
+    background-color: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 4px;
+}
+.tracker-progress-bar .progress {
+    width: 0%;
+    height: 100%;
+    background-color: var(--green-status);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+.tracker-action button {
+    background-color: transparent;
+    border: 1px solid var(--primary-red);
+    color: var(--primary-red);
+    font-weight: bold;
+    font-size: 0.85em;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+#order-tracking-modal .tracking-list {
+    position: relative;
+    padding-left: 20px;
+    border-left: 3px solid var(--border-color);
+}
+.tracking-item {
+    position: relative;
+    margin-bottom: 24px;
+}
+.tracking-item:last-child {
+    margin-bottom: 0;
+}
+.tracking-item::before {
+    content: '';
+    position: absolute;
+    left: -29px;
+    top: 4px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background-color: var(--border-color);
+    border: 3px solid var(--white);
+}
+.tracking-item.completed::before {
+    background-color: var(--green-status);
+}
+.tracking-item.active::before {
+    background-color: var(--primary-red);
+    transform: scale(1.2);
+}
+.tracking-item .tracking-time {
+    font-size: 0.8em;
+    color: var(--medium-gray);
+}
+.tracking-item .tracking-description {
+    font-size: 1.1em;
+    font-weight: 500;
+    color: var(--dark-gray);
+}
+.tracking-item.completed .tracking-description {
+    color: var(--green-status);
+}
