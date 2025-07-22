@@ -508,75 +508,135 @@ Ative as notificações para receber cupons exclusivos, saber o status do seu pe
 </div>
 
 <div id="order-status-tracker" class="order-tracker-bar hidden">
-  <div class="tracker-icon">
-    <i class="fas fa-receipt"></i>
-  </div>
-  <div class="tracker-info">
-    <span class="tracker-title">Seu pedido está sendo preparado</span>
-    <div class="tracker-progress-bar">
-      <div class="progress"></div>
-    </div>
-  </div>
-  <div class="tracker-action">
-    <button id="view-tracker-details-btn">Acompanhar</button>
-  </div>
+<div class="tracker-icon">
+<i class="fas fa-receipt"></i>
+</div>
+<div class="tracker-info">
+<span class="tracker-title">Seu pedido está sendo preparado</span>
+<div class="tracker-progress-bar">
+<div class="progress"></div>
+</div>
+</div>
+<div class="tracker-action">
+<button id="view-tracker-details-btn">Acompanhar</button>
+</div>
 </div>
 
 <div id="order-tracking-modal" class="modal">
-  <div class="modal-content">
-    <button class="close-button">&times;</button>
-    <div class="modal-header" style="text-align: center; border-bottom: 1px solid #eee; padding-bottom: 16px;">
-      <h3 style="margin:0; font-size: 1.2em;">Acompanhe seu Pedido</h3>
-      <p style="margin: 5px 0 0 0; color: #757575; font-size: 0.9em;">Pedido <strong id="tracking-order-id">#0000</strong></p>
-    </div>
-    <div class="modal-scrollable-content" style="padding: 24px;">
-      <div id="tracking-status-list" class="tracking-list">
-        </div>
-    </div>
-  </div>
+<div class="modal-content">
+<button class="close-button">&times;</button>
+<div class="modal-header" style="text-align: center; border-bottom: 1px solid #eee; padding-bottom: 16px;">
+<h3 style="margin:0; font-size: 1.2em;">Acompanhe seu Pedido</h3>
+<p style="margin: 5px 0 0 0; color: #757575; font-size: 0.9em;">
+Pedido <strong id="tracking-order-id">#0000</strong>
+</p>
+</div>
+<div class="modal-scrollable-content" style="padding: 24px;">
+<div id="tracking-status-list" class="tracking-list">
+</div>
+</div>
+</div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
 <script src="./libs/Winwheel.min.js"></script>
 
 <script type="module">
-    // Importando módulos do App, Firestore e Autenticação
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    
-    // CORREÇÃO: Adicionamos 'arrayRemove' à lista de imports
-    import { getFirestore, doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, arrayRemove, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    
-    import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+// Importando módulos do App, Firestore e Autenticação
+import {
+initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-    // Sua configuração do Firebase (não muda)
-    const firebaseConfig = {
-      apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
-      authDomain: "app-ditalia.firebaseapp.com",
-      projectId: "app-ditalia",
-      storageBucket: "app-ditalia.firebasestorage.app",
-      messagingSenderId: "122567535166",
-      appId: "1:122567535166:web:19de7b8925042027063f6f",
-      measurementId: "G-5QW3MVGYME"
-    };
+// CORREÇÃO: Adicionamos 'arrayRemove' à lista de imports
+import {
+getFirestore,
+doc,
+getDoc,
+getDocs,
+setDoc,
+updateDoc,
+collection,
+query,
+where,
+orderBy,
+onSnapshot,
+deleteDoc,
+writeBatch,
+serverTimestamp,
+Timestamp,
+limit,
+arrayUnion,
+arrayRemove,
+increment
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // Inicialização
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-    const auth = getAuth(app); 
-    const messaging = getMessaging(app);
+import {
+getAuth,
+GoogleAuthProvider,
+signInWithPopup
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+getMessaging,
+getToken,
+onMessage
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
-    // Disponibiliza TUDO globalmente para os outros scripts poderem usar
-    window.firebaseApp = app;
-    window.db = db;
-    
-    // CORREÇÃO: Adicionamos 'arrayRemove' ao objeto global também
-    window.firebaseFirestore = { doc, getDoc, getDocs, setDoc, updateDoc, collection, query, where, orderBy, onSnapshot, deleteDoc, writeBatch, serverTimestamp, Timestamp, limit, arrayUnion, arrayRemove, increment };
-    
-    window.firebaseAuth = { getAuth, GoogleAuthProvider, signInWithPopup }; 
-    window.firebaseMessaging = { getMessaging, getToken, onMessage, messagingInstance: messaging };
+// Sua configuração do Firebase (não muda)
+const firebaseConfig = {
+apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
+authDomain: "app-ditalia.firebaseapp.com",
+projectId: "app-ditalia",
+storageBucket: "app-ditalia.firebasestorage.app",
+messagingSenderId: "122567535166",
+appId: "1:122567535166:web:19de7b8925042027063f6f",
+measurementId: "G-5QW3MVGYME"
+};
 
-    console.log("Firebase (modular), Firestore, Auth e Messaging inicializados para o Site Principal!");
+// Inicialização
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const messaging = getMessaging(app);
+
+// Disponibiliza TUDO globalmente para os outros scripts poderem usar
+window.firebaseApp = app;
+window.db = db;
+
+// CORREÇÃO: Adicionamos 'arrayRemove' ao objeto global também
+window.firebaseFirestore = {
+doc,
+getDoc,
+getDocs,
+setDoc,
+updateDoc,
+collection,
+query,
+where,
+orderBy,
+onSnapshot,
+deleteDoc,
+writeBatch,
+serverTimestamp,
+Timestamp,
+limit,
+arrayUnion,
+arrayRemove,
+increment
+};
+
+window.firebaseAuth = {
+getAuth,
+GoogleAuthProvider,
+signInWithPopup
+};
+window.firebaseMessaging = {
+getMessaging,
+getToken,
+onMessage,
+messagingInstance: messaging
+};
+
+console.log("Firebase (modular), Firestore, Auth e Messaging inicializados para o Site Principal!");
 </script>
 
 <script src="menu.js" defer></script>
@@ -588,6 +648,7 @@ Ative as notificações para receber cupons exclusivos, saber o status do seu pe
 <script src="checkout.js" defer></script>
 <script src="scripts.js" defer></script>
 <script src="roulette.js" defer></script>
+<script src="order-tracking.js" defer></script>
 <script src="search.js" defer></script>
 <script src="reviews-modal.js" defer></script>
 
