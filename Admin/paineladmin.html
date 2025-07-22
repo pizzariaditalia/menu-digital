@@ -70,55 +70,57 @@
 <div class="drawer-overlay" id="drawer-overlay"></div>
 
 <main class="admin-main-content">
-  
+
 <section id="marketing-view" class="admin-view">
-  <div class="view-header">
-    <h2><i class="fas fa-bullhorn"></i> Planejador de Marketing</h2>
-  </div>
+<div class="view-header">
+<h2><i class="fas fa-bullhorn"></i> Planejador de Marketing</h2>
+</div>
 
-  <div class="admin-form">
-    <h3 id="marketing-form-title"><i class="fas fa-plus-circle"></i> Agendar Nova Postagem</h3>
-    <form id="marketing-form">
-      <input type="hidden" id="marketing-post-id">
-      <div class="form-row">
-        <div class="form-group" style="flex: 2;">
-          <label for="post-title">Título Interno (para seu controle)</label>
-          <input type="text" id="post-title" class="form-control" placeholder="Ex: Promoção de Terça, Post de Sexta" required>
-        </div>
-        <div class="form-group">
-          <label for="post-scheduled-at">Agendar Para (Data e Hora)</label>
-          <input type="datetime-local" id="post-scheduled-at" class="form-control" required>
-        </div>
-      </div>
-      <div class="form-group">
-        <label for="post-caption">Legenda da Postagem</label>
-        <div class="input-with-button">
-            <textarea id="post-caption" rows="5" class="form-control" placeholder="Escreva a legenda aqui ou clique no botão de ideias..."></textarea>
-            <button type="button" id="open-caption-ideas-btn" class="btn btn-secondary" title="Ideias de Legenda"><i class="fas fa-lightbulb"></i></button>
-        </div>
-      </div>
-      <div class="form-actions">
-        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Salvar Agendamento</button>
-        <button type="button" id="cancel-edit-post-btn" class="btn btn-secondary hidden">Cancelar Edição</button>
-      </div>
-    </form>
-  </div>
+<div class="admin-form">
+<h3 id="marketing-form-title"><i class="fas fa-plus-circle"></i> Agendar Nova Postagem</h3>
+<form id="marketing-form">
+<input type="hidden" id="marketing-post-id">
+<div class="form-row">
+<div class="form-group" style="flex: 2;">
+<label for="post-title">Título Interno (para seu controle)</label>
+<input type="text" id="post-title" class="form-control" placeholder="Ex: Promoção de Terça, Post de Sexta" required>
+</div>
+<div class="form-group">
+<label for="post-scheduled-at">Agendar Para (Data e Hora)</label>
+<input type="datetime-local" id="post-scheduled-at" class="form-control" required>
+</div>
+</div>
+<div class="form-group">
+<label for="post-caption">Legenda da Postagem</label>
+<div class="input-with-button">
+<textarea id="post-caption" rows="5" class="form-control" placeholder="Escreva a legenda aqui ou clique no botão de ideias..."></textarea>
+<button type="button" id="open-caption-ideas-btn" class="btn btn-secondary" title="Ideias de Legenda"><i class="fas fa-lightbulb"></i></button>
+</div>
+</div>
+<div class="form-actions">
+<button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Salvar Agendamento</button>
+<button type="button" id="cancel-edit-post-btn" class="btn btn-secondary hidden">Cancelar Edição</button>
+</div>
+</form>
+</div>
 
-  <div style="margin-top: var(--space-lg);">
-    <h3><i class="fas fa-clock"></i> Próximos Agendamentos</h3>
-    <div id="scheduled-posts-container">
-      <p class="empty-list-message">Nenhuma postagem agendada.</p>
-    </div>
-  </div>
+<div style="margin-top: var(--space-lg);">
+<h3><i class="fas fa-clock"></i> Próximos Agendamentos</h3>
+<div id="scheduled-posts-container">
+<p class="empty-list-message">
+Nenhuma postagem agendada.
+</p>
+</div>
+</div>
 </section>
 
 <div id="caption-ideas-modal" class="admin-modal">
-    <div class="modal-content" style="max-width: 700px;">
-        <button class="close-modal-btn">&times;</button>
-        <h3><i class="fas fa-lightbulb"></i> Banco de Ideias Criativas</h3>
-        <div class="modal-body" id="caption-ideas-list" style="max-height: 60vh; overflow-y: auto;">
-            </div>
-    </div>
+<div class="modal-content" style="max-width: 700px;">
+<button class="close-modal-btn">&times;</button>
+<h3><i class="fas fa-lightbulb"></i> Banco de Ideias Criativas</h3>
+<div class="modal-body" id="caption-ideas-list" style="max-height: 60vh; overflow-y: auto;">
+</div>
+</div>
 </div>
 
 <section id="map-view" class="admin-view">
@@ -1205,133 +1207,133 @@ Nenhuma nova notificação.
 </div>
 
 <script type="module">
-  // 1. Importa todos os módulos necessários do Firebase
-  import {
-    initializeApp
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import {
-    getFirestore,
-    doc,
-    getDoc,
-    getDocs,
-    setDoc,
-    updateDoc,
-    collection,
-    query,
-    where,
-    orderBy,
-    onSnapshot,
-    deleteDoc,
-    writeBatch,
-    serverTimestamp,
-    Timestamp,
-    limit,
-    arrayUnion,
-    arrayRemove,
-    increment,
-    documentId,
-    addDoc
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import {
-    getAuth,
-    onAuthStateChanged,
-    signOut
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-  import {
-    getMessaging,
-    getToken,
-    onMessage
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
-  // Import para as Funções Chamáveis (Callable Functions)
-  import {
-    getFunctions,
-    httpsCallable
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+// 1. Importa todos os módulos necessários do Firebase
+import {
+initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+getFirestore,
+doc,
+getDoc,
+getDocs,
+setDoc,
+updateDoc,
+collection,
+query,
+where,
+orderBy,
+onSnapshot,
+deleteDoc,
+writeBatch,
+serverTimestamp,
+Timestamp,
+limit,
+arrayUnion,
+arrayRemove,
+increment,
+documentId,
+addDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+getAuth,
+onAuthStateChanged,
+signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+getMessaging,
+getToken,
+onMessage
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
+// Import para as Funções Chamáveis (Callable Functions)
+import {
+getFunctions,
+httpsCallable
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
-  // 2. Sua configuração do Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
-    authDomain: "app-ditalia.firebaseapp.com",
-    projectId: "app-ditalia",
-    storageBucket: "app-ditalia.firebasestorage.app",
-    messagingSenderId: "122567535166",
-    appId: "1:122567535166:web:19de7b8925042027063f6f",
-    measurementId: "G-5QW3MVGYME"
-  };
+// 2. Sua configuração do Firebase
+const firebaseConfig = {
+apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
+authDomain: "app-ditalia.firebaseapp.com",
+projectId: "app-ditalia",
+storageBucket: "app-ditalia.firebasestorage.app",
+messagingSenderId: "122567535166",
+appId: "1:122567535166:web:19de7b8925042027063f6f",
+measurementId: "G-5QW3MVGYME"
+};
 
-  // 3. Inicializa os serviços e os define globalmente para evitar erros de carregamento
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
-  const messaging = getMessaging(app);
-  const functions = getFunctions(app, 'us-central1'); // Define a região da sua função
+// 3. Inicializa os serviços e os define globalmente para evitar erros de carregamento
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const messaging = getMessaging(app);
+const functions = getFunctions(app, 'us-central1'); // Define a região da sua função
 
-  window.firebaseApp = app;
-  window.db = db;
-  window.auth = auth;
+window.firebaseApp = app;
+window.db = db;
+window.auth = auth;
 
-  window.firebaseFirestore = {
-    doc,
-    getDoc,
-    getDocs,
-    setDoc,
-    updateDoc,
-    collection,
-    query,
-    where,
-    orderBy,
-    onSnapshot,
-    deleteDoc,
-    writeBatch,
-    serverTimestamp,
-    Timestamp,
-    limit,
-    arrayUnion,
-    arrayRemove,
-    increment,
-    documentId,
-    addDoc
-  };
+window.firebaseFirestore = {
+doc,
+getDoc,
+getDocs,
+setDoc,
+updateDoc,
+collection,
+query,
+where,
+orderBy,
+onSnapshot,
+deleteDoc,
+writeBatch,
+serverTimestamp,
+Timestamp,
+limit,
+arrayUnion,
+arrayRemove,
+increment,
+documentId,
+addDoc
+};
 
-  window.firebaseMessaging = {
-    getMessaging,
-    getToken,
-    onMessage,
-    messagingInstance: messaging
-  };
+window.firebaseMessaging = {
+getMessaging,
+getToken,
+onMessage,
+messagingInstance: messaging
+};
 
-  window.firebaseFunctions = {
-    httpsCallable,
-    functions
-  };
+window.firebaseFunctions = {
+httpsCallable,
+functions
+};
 
-  // 4. Monitora o estado de autenticação para iniciar o painel ou redirecionar
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      // Usuário está logado, inicia a lógica do painel
-      if (typeof startAdminPanel === 'function') {
-        startAdminPanel();
-      }
-      if (typeof setupAdminNotifications === 'function') {
-        setupAdminNotifications();
-      }
-      
-      const logoutButton = document.getElementById('logout-button');
-      if (logoutButton) {
-        logoutButton.addEventListener('click', () => {
-          signOut(auth).then(() => {
-            window.location.href = 'login.html';
-          }).catch((error) => {
-            console.error("Erro ao fazer logout: ", error);
-          });
-        });
-      }
+// 4. Monitora o estado de autenticação para iniciar o painel ou redirecionar
+onAuthStateChanged(auth, (user) => {
+if (user) {
+// Usuário está logado, inicia a lógica do painel
+if (typeof startAdminPanel === 'function') {
+startAdminPanel();
+}
+if (typeof setupAdminNotifications === 'function') {
+setupAdminNotifications();
+}
 
-    } else {
-      // Usuário não está logado, redireciona para a tela de login
-      window.location.href = 'login.html';
-    }
-  });
+const logoutButton = document.getElementById('logout-button');
+if (logoutButton) {
+logoutButton.addEventListener('click', () => {
+signOut(auth).then(() => {
+window.location.href = 'login.html';
+}).catch((error) => {
+console.error("Erro ao fazer logout: ", error);
+});
+});
+}
+
+} else {
+// Usuário não está logado, redireciona para a tela de login
+window.location.href = 'login.html';
+}
+});
 </script>
 <script src="appearance.js" defer></script>
 <script src="config.js" defer></script>
@@ -1344,6 +1346,7 @@ Nenhuma nova notificação.
 <script src="pdv.js" defer></script>
 <script src="comunicados.js" defer></script>
 <script src="importar.js" defer></script>
+<script src="marketing.js" defer></script>
 <script src="saques.js" defer></script>
 <script src="mapa.js" defer></script>
 <script src="financeiro.js" defer></script>
