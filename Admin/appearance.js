@@ -8,37 +8,50 @@ const VIDEO_BASE_PATH = "img/banner/";
 
 // Esta função atualiza a lista de vídeos no Firestore
 async function updateVideoList(indexToRemove, newFileName) {
-    const { doc, getDoc, setDoc } = window.firebaseFirestore;
-    const settingsRef = doc(window.db, "configuracoes", SETTINGS_DOC_ID);
+  const {
+    doc,
+    getDoc,
+    setDoc
+  } = window.firebaseFirestore;
+  const settingsRef = doc(window.db, "configuracoes", SETTINGS_DOC_ID);
 
-    try {
-        const docSnap = await getDoc(settingsRef);
-        let currentVideos = (docSnap.exists() && docSnap.data().videos) ? docSnap.data().videos : [];
+  try {
+    const docSnap = await getDoc(settingsRef);
+    let currentVideos = (docSnap.exists() && docSnap.data().videos) ? docSnap.data().videos: [];
 
-        if (indexToRemove !== null) { // Se for para remover
-            currentVideos.splice(indexToRemove, 1);
-            window.showToast("Vídeo removido com sucesso!", "success");
-        }
-
-        if (newFileName) { // Se for para adicionar
-            const fullPath = `${VIDEO_BASE_PATH}${newFileName}`;
-            currentVideos.push({ path: fullPath, addedAt: new Date().toISOString() });
-            window.showToast("Vídeo adicionado com sucesso!", "success");
-        }
-
-        // Salva o array de vídeos de volta no documento `mainSettings`
-        await setDoc(settingsRef, { videos: currentVideos }, { merge: true });
-
-        // Recarrega a visualização dos vídeos na tela
-        await loadAndRenderCarouselVideos();
-
-    } catch (error) {
-        console.error("Erro ao atualizar a lista de vídeos:", error);
-        window.showToast("Ocorreu um erro ao salvar.", "error");
+    if (indexToRemove !== null) {
+      // Se for para remover
+      currentVideos.splice(indexToRemove, 1);
+      window.showToast("Vídeo removido com sucesso!", "success");
     }
+
+    if (newFileName) {
+      // Se for para adicionar
+      const fullPath = `${VIDEO_BASE_PATH}${newFileName}`;
+      currentVideos.push({
+        path: fullPath, addedAt: new Date().toISOString()
+      });
+      window.showToast("Vídeo adicionado com sucesso!", "success");
+    }
+
+    // Salva o array de vídeos de volta no documento `mainSettings`
+    await setDoc(settingsRef, {
+      videos: currentVideos
+    }, {
+      merge: true
+    });
+
+    // Recarrega a visualização dos vídeos na tela
+    await loadAndRenderCarouselVideos();
+
+  } catch (error) {
+    console.error("Erro ao atualizar a lista de vídeos:", error);
+    window.showToast("Ocorreu um erro ao salvar.", "error");
+  }
 }
 
-// Esta função renderiza os itens na tela do painel
+// Em appearance.js, substitua a função renderCarouselVideoItems por esta:
+
 function renderCarouselVideoItems(videos) {
     const carouselVideosListContainer = document.getElementById('carousel-videos-list');
     if (!carouselVideosListContainer) return;
@@ -63,6 +76,11 @@ function renderCarouselVideoItems(videos) {
     // Adiciona os eventos de clique para os botões de excluir recém-criados
     carouselVideosListContainer.querySelectorAll('.delete-video-btn').forEach(button => {
         button.addEventListener('click', (e) => {
+            // --- CORREÇÃO APLICADA AQUI ---
+            // Esta linha impede que o formulário principal seja enviado e a página recarregue.
+            e.preventDefault();
+            // --- FIM DA CORREÇÃO ---
+
             const indexToDelete = parseInt(e.target.closest('button').dataset.index);
             if (confirm("Tem certeza que deseja remover este vídeo do carrossel?")) {
                 updateVideoList(indexToDelete, null);
@@ -73,55 +91,58 @@ function renderCarouselVideoItems(videos) {
 
 // Esta função busca os dados do Firestore
 async function loadAndRenderCarouselVideos() {
-    const carouselVideosListContainer = document.getElementById('carousel-videos-list');
-    if (!carouselVideosListContainer) return;
-    carouselVideosListContainer.innerHTML = "<p>Carregando vídeos...</p>";
+  const carouselVideosListContainer = document.getElementById('carousel-videos-list');
+  if (!carouselVideosListContainer) return;
+  carouselVideosListContainer.innerHTML = "<p>Carregando vídeos...</p>";
 
-    const { doc, getDoc } = window.firebaseFirestore;
-    const settingsRef = doc(window.db, "configuracoes", SETTINGS_DOC_ID);
+  const {
+    doc,
+    getDoc
+  } = window.firebaseFirestore;
+  const settingsRef = doc(window.db, "configuracoes", SETTINGS_DOC_ID);
 
-    try {
-        const docSnap = await getDoc(settingsRef);
-        const videos = (docSnap.exists() && docSnap.data().videos) ? docSnap.data().videos : [];
-        renderCarouselVideoItems(videos);
-    } catch (error) {
-        console.error("Erro ao carregar vídeos do carrossel:", error);
-        carouselVideosListContainer.innerHTML = "<p>Erro ao carregar vídeos.</p>";
-    }
+  try {
+    const docSnap = await getDoc(settingsRef);
+    const videos = (docSnap.exists() && docSnap.data().videos) ? docSnap.data().videos: [];
+    renderCarouselVideoItems(videos);
+  } catch (error) {
+    console.error("Erro ao carregar vídeos do carrossel:", error);
+    carouselVideosListContainer.innerHTML = "<p>Erro ao carregar vídeos.</p>";
+  }
 }
 
 // Função principal que inicializa tudo na aba "Aparência"
 async function initializeAppearanceSection() {
-    if (!appearanceSectionInitialized) {
-        console.log("Módulo Aparência.js: Inicializando PELA PRIMEIRA VEZ...");
-        appearanceSectionInitialized = true;
-    }
+  if (!appearanceSectionInitialized) {
+    console.log("Módulo Aparência.js: Inicializando PELA PRIMEIRA VEZ...");
+    appearanceSectionInitialized = true;
+  }
 
-    const videoFileNameInput = document.getElementById('carousel-video-filename-input');
-    const addVideoBtn = document.getElementById('add-video-btn');
+  const videoFileNameInput = document.getElementById('carousel-video-filename-input');
+  const addVideoBtn = document.getElementById('add-video-btn');
 
-    // Listener do botão "Adicionar"
-    if (addVideoBtn) {
-        // Previne múltiplos listeners sendo adicionados
-        if (!addVideoBtn.dataset.listener) {
-            addVideoBtn.dataset.listener = 'true';
-            addVideoBtn.addEventListener('click', (event) => {
-                // Impede que o botão recarregue a página
-                event.preventDefault(); 
-                
-                const newFileName = videoFileNameInput.value.trim();
-                if (newFileName && newFileName.endsWith('.mp4')) {
-                    updateVideoList(null, newFileName);
-                    videoFileNameInput.value = '';
-                } else {
-                    window.showToast("Por favor, insira um nome de arquivo .mp4 válido.", "warning");
-                }
-            });
+  // Listener do botão "Adicionar"
+  if (addVideoBtn) {
+    // Previne múltiplos listeners sendo adicionados
+    if (!addVideoBtn.dataset.listener) {
+      addVideoBtn.dataset.listener = 'true';
+      addVideoBtn.addEventListener('click', (event) => {
+        // Impede que o botão recarregue a página
+        event.preventDefault();
+
+        const newFileName = videoFileNameInput.value.trim();
+        if (newFileName && newFileName.endsWith('.mp4')) {
+          updateVideoList(null, newFileName);
+          videoFileNameInput.value = '';
+        } else {
+          window.showToast("Por favor, insira um nome de arquivo .mp4 válido.", "warning");
         }
+      });
     }
+  }
 
-    // Carrega os vídeos sempre que a aba é aberta
-    await loadAndRenderCarouselVideos();
+  // Carrega os vídeos sempre que a aba é aberta
+  await loadAndRenderCarouselVideos();
 }
 
 window.initializeAppearanceSection = initializeAppearanceSection;
