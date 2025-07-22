@@ -18,6 +18,7 @@ async function saveOrderToFirestore(orderData) {
         };
         await setDoc(orderDocRef, finalOrderData);
         console.log(`Pedido ${orderId} salvo com sucesso no Firestore!`);
+        window.dispatchEvent(new CustomEvent('newOrderPlaced', { detail: { orderId: orderId } }));
         return orderId;
     } catch (error) {
         console.error("Erro ao salvar o pedido no Firestore:", error);
