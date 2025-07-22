@@ -1,4 +1,4 @@
-// Arquivo: appearance.js - VERSÃO FINAL COM CORREÇÃO NO FORMULÁRIO PRINCIPAL
+// Arquivo: appearance.js - VERSÃO COM CORREÇÃO NO FORMULÁRIO PRINCIPAL
 
 let appearanceSectionInitialized = false;
 
@@ -140,7 +140,7 @@ async function initializeAppearanceSection() {
     const videoFileNameInput = document.getElementById('carousel-video-filename-input');
     const addVideoBtn = document.getElementById('add-video-btn');
 
-    // --- CORREÇÃO APLICADA AQUI ---
+    // --- CÓDIGO DE CORREÇÃO ADICIONADO AQUI ---
     // Adiciona o listener para o formulário principal para impedir o recarregamento
     if (appearanceForm && !appearanceForm.dataset.listener) {
         appearanceForm.dataset.listener = 'true';
