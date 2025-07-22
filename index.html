@@ -507,6 +507,35 @@ Ative as notificações para receber cupons exclusivos, saber o status do seu pe
 </div>
 </div>
 
+<div id="order-status-tracker" class="order-tracker-bar hidden">
+  <div class="tracker-icon">
+    <i class="fas fa-receipt"></i>
+  </div>
+  <div class="tracker-info">
+    <span class="tracker-title">Seu pedido está sendo preparado</span>
+    <div class="tracker-progress-bar">
+      <div class="progress"></div>
+    </div>
+  </div>
+  <div class="tracker-action">
+    <button id="view-tracker-details-btn">Acompanhar</button>
+  </div>
+</div>
+
+<div id="order-tracking-modal" class="modal">
+  <div class="modal-content">
+    <button class="close-button">&times;</button>
+    <div class="modal-header" style="text-align: center; border-bottom: 1px solid #eee; padding-bottom: 16px;">
+      <h3 style="margin:0; font-size: 1.2em;">Acompanhe seu Pedido</h3>
+      <p style="margin: 5px 0 0 0; color: #757575; font-size: 0.9em;">Pedido <strong id="tracking-order-id">#0000</strong></p>
+    </div>
+    <div class="modal-scrollable-content" style="padding: 24px;">
+      <div id="tracking-status-list" class="tracking-list">
+        </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
 <script src="./libs/Winwheel.min.js"></script>
 
