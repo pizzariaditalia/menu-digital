@@ -1,10 +1,10 @@
-// admin.js - VERSÃO COMPLETA COM CENTRAL DE NOTIFICAÇÕES E MÓDULO DE MARKETING
+// admin.js - VERSÃO COM CONCLUSÃO DE POSTS DE MARKETING
 
 // --- Variáveis de estado para notificações ---
 let newOrdersNotifications = [];
 let newChatNotifications = [];
 let newWithdrawalNotifications = [];
-let newMarketingNotifications = []; // Array para as novas notificações de marketing
+let newMarketingNotifications = [];
 
 // --- Função unificada para renderizar o dropdown de notificações ---
 function renderNotificationsDropdown() {
@@ -12,7 +12,6 @@ function renderNotificationsDropdown() {
     const badge = document.getElementById('notification-badge');
     if (!listContainer || !badge) return;
 
-    // Junta todas as notificações de diferentes fontes
     const allNotifications = [
         ...newOrdersNotifications,
         ...newChatNotifications,
@@ -20,12 +19,9 @@ function renderNotificationsDropdown() {
         ...newMarketingNotifications
     ];
 
-    // Ordena por data, as mais recentes primeiro
     allNotifications.sort((a, b) => b.timestamp - a.timestamp);
-
     const totalCount = allNotifications.length;
 
-    // Atualiza o balãozinho vermelho (badge)
     if (totalCount > 0) {
         badge.textContent = totalCount;
         badge.classList.remove('hidden');
@@ -33,7 +29,6 @@ function renderNotificationsDropdown() {
         badge.classList.add('hidden');
     }
 
-    // Renderiza a lista no dropdown
     if (totalCount === 0) {
         listContainer.innerHTML = '<p class="empty-message">Nenhuma nova notificação.</p>';
         return;
@@ -56,9 +51,11 @@ function renderNotificationsDropdown() {
                 icon = '<i class="fas fa-hand-holding-usd" style="color: var(--admin-success-green);"></i>';
                 actionButton = `<a href="#" class="btn btn-sm btn-secondary-outline view-notification-btn" data-type="withdrawal" data-id="${notif.id}">Ver Saques</a>`;
                 break;
+            // --- CORREÇÃO APLICADA AQUI ---
             case 'marketing_reminder':
                 icon = '<i class="fas fa-calendar-check" style="color: #6f42c1;"></i>';
-                actionButton = `<a href="#" class="btn btn-sm btn-secondary-outline view-notification-btn" data-type="marketing" data-id="${notif.id}">Ver Post</a>`;
+                // O botão agora tem uma classe específica para a ação de concluir
+                actionButton = `<button class="btn btn-sm btn-success complete-marketing-post-btn" data-type="marketing" data-id="${notif.id}"><i class="fas fa-check"></i> Marcar como Postado</button>`;
                 break;
         }
 
@@ -186,6 +183,17 @@ function initializeNotificationCenter() {
             }
         }
 
+        // --- CORREÇÃO APLICADA AQUI ---
+        // Adiciona a lógica para o novo botão de concluir post de marketing
+        if (target.matches('.complete-marketing-post-btn')) {
+            if (type === 'marketing') {
+                const { doc, updateDoc } = window.firebaseFirestore;
+                // Atualiza o status do post para "concluido" no banco de dados
+                await updateDoc(doc(window.db, "scheduled_posts", id), { status: "concluido" });
+                window.showToast("Post marcado como concluído!", "success");
+            }
+        }
+
         if (target.matches('.view-notification-btn')) {
             if (type === 'withdrawal') {
                 document.querySelector('a[data-section-target="saques-view"]')?.click();
@@ -199,16 +207,12 @@ function initializeNotificationCenter() {
                     }
                 }
             }
-            if (type === 'marketing') {
-                document.querySelector('a[data-section-target="marketing-view"]')?.click();
-            }
             if (notificationDropdown) notificationDropdown.classList.add('hidden');
         }
     });
 }
 
 // --- LÓGICA DO PAINEL (INICIALIZAÇÃO, MENU, ETC) ---
-
 async function startAdminPanel() {
   console.log("Admin.js: startAdminPanel() iniciado.");
   
