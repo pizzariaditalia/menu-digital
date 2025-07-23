@@ -47,35 +47,42 @@ function startTypingAnimation() {
 // LÓGICA DO CONTADOR DE VISITAS
 // ======================================================================
 async function logPageView() {
-    if (sessionStorage.getItem('sessionLogged')) {
-        console.log("Sessão já registrada. Não vou contar de novo.");
-        return;
+  if (sessionStorage.getItem('sessionLogged')) {
+    console.log("Sessão já registrada. Não vou contar de novo.");
+    return;
+  }
+  const executeLog = async () => {
+    try {
+      sessionStorage.setItem('sessionLogged', 'true');
+      const {
+        doc,
+        setDoc,
+        serverTimestamp,
+        increment
+      } = window.firebaseFirestore;
+      const db = window.db;
+      const today = new Date();
+      const dateString = today.toISOString().split('T')[0];
+      const analyticsDocRef = doc(db, 'analytics', dateString);
+      await setDoc(analyticsDocRef, {
+        page_views: increment(1),
+        last_view: serverTimestamp()
+      }, {
+        merge: true
+      });
+      console.log('Sessão do usuário registrada com sucesso no Firestore.');
+    } catch (error) {
+      console.error('Erro final ao registrar a visualização da página:', error);
     }
-    const executeLog = async () => {
-        try {
-            sessionStorage.setItem('sessionLogged', 'true');
-            const { doc, setDoc, serverTimestamp, increment } = window.firebaseFirestore;
-            const db = window.db;
-            const today = new Date();
-            const dateString = today.toISOString().split('T')[0];
-            const analyticsDocRef = doc(db, 'analytics', dateString);
-            await setDoc(analyticsDocRef, {
-                page_views: increment(1),
-                last_view: serverTimestamp()
-            }, { merge: true });
-            console.log('Sessão do usuário registrada com sucesso no Firestore.');
-        } catch (error) {
-            console.error('Erro final ao registrar a visualização da página:', error);
-        }
-    };
-    const waitForFirebase = () => {
-        if (window.firebaseFirestore && window.firebaseFirestore.increment) {
-            executeLog();
-        } else {
-            setTimeout(waitForFirebase, 100);
-        }
-    };
-    waitForFirebase();
+  };
+  const waitForFirebase = () => {
+    if (window.firebaseFirestore && window.firebaseFirestore.increment) {
+      executeLog();
+    } else {
+      setTimeout(waitForFirebase, 100);
+    }
+  };
+  waitForFirebase();
 }
 
 // Função para aplicar as customizações de aparência
@@ -88,14 +95,14 @@ function applyCustomAppearance(appearanceSettings) {
 
   // Função para carregar a fonte do Google dinamicamente
   function loadGoogleFont(fontName) {
-      const fontId = `google-font-${fontName.replace(/\s+/g, '-')}`;
-      if (document.getElementById(fontId)) return; // Já carregou
+    const fontId = `google-font-${fontName.replace(/\s+/g, '-')}`;
+    if (document.getElementById(fontId)) return; // Já carregou
 
-      const link = document.createElement('link');
-      link.id = fontId;
-      link.rel = 'stylesheet';
-      link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s+/g, '+')}:wght@300;400;500;700&display=swap`;
-      document.head.appendChild(link);
+    const link = document.createElement('link');
+    link.id = fontId;
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s+/g, '+')}:wght@300;400;500;700&display=swap`;
+    document.head.appendChild(link);
   }
 
   // Aplica as cores
@@ -111,14 +118,15 @@ function applyCustomAppearance(appearanceSettings) {
 
   // Aplica a fonte
   if (appearanceSettings.mainFont) {
-      loadGoogleFont(appearanceSettings.mainFont);
-      root.style.setProperty('font-family', `'${appearanceSettings.mainFont}', sans-serif`);
+    loadGoogleFont(appearanceSettings.mainFont);
+    root.style.setProperty('font-family', `'${appearanceSettings.mainFont}', sans-serif`);
   }
 }
 
 // ======================================================================
 // LÓGICA DE CARREGAMENTO DE DADOS DO FIRESTORE
 // ======================================================================
+
 async function loadDataFromFirestore() {
   logPageView();
   const loadingIndicator = document.getElementById('loading-indicator');
@@ -134,11 +142,11 @@ async function loadDataFromFirestore() {
   const db = window.db;
 
   try {
-    const menuDocRef = doc(db, FIRESTORE_MENU_COLLECTION_SITE, FIRESTORE_MENU_DOC_ID_SITE);
-    const settingsDocRef = doc(db, FIRESTORE_SETTINGS_COLLECTION_SITE, FIRESTORE_SETTINGS_DOC_ID_SITE);
-    const promotionsCollectionRef = collection(db, FIRESTORE_PROMOTIONS_COLLECTION_SITE);
-    const crustsQuery = query(collection(db, FIRESTORE_CRUSTS_COLLECTION_SITE));
-    const couponsQuery = query(collection(db, FIRESTORE_COUPONS_COLLECTION_SITE), where("active", "==", true));
+    const menuDocRef = doc(db, "menus", "principal");
+    const settingsDocRef = doc(db, "configuracoes", "mainSettings");
+    const promotionsCollectionRef = collection(db, "promotions");
+    const crustsQuery = query(collection(db, "stuffed_crusts"));
+    const couponsQuery = query(collection(db, "coupons"), where("active", "==", true));
 
     const [menuDocSnap, settingsDocSnap, promotionsSnap, crustsSnap, couponsSnap] = await Promise.all([
         getDoc(menuDocRef),
@@ -152,6 +160,15 @@ async function loadDataFromFirestore() {
     if (settingsDocSnap.exists()) {
       window.appSettings = settingsDocSnap.data();
       window.carouselVideos = settingsDocSnap.data().videos || [];
+
+      // --- CORREÇÃO ADICIONADA AQUI ---
+      // Após carregar as configurações em window.appSettings,
+      // chamamos a função para aplicar a aparência ao site.
+      if (window.appSettings.appearance) {
+          applyCustomAppearance(window.appSettings.appearance);
+      }
+      // --- FIM DA CORREÇÃO ---
+
     } else {
       window.appSettings = { operatingHours: {} };
       window.carouselVideos = [];
@@ -182,7 +199,12 @@ function generateCategoryUI() {
     return;
   }
 
-  const preferredOrder = ['pizzas-tradicionais', 'pizzas-especiais', 'pizzas-doces', 'calzones-salgados', 'calzones-doces', 'bebidas'];
+  const preferredOrder = ['pizzas-tradicionais',
+    'pizzas-especiais',
+    'pizzas-doces',
+    'calzones-salgados',
+    'calzones-doces',
+    'bebidas'];
   tabsContainer.innerHTML = '';
   contentContainer.innerHTML = '';
   const allKeysFromFirebase = Object.keys(window.menuData);
@@ -239,7 +261,10 @@ function findItemAcrossCategories(itemId) {
     if (window.menuData[categoryKey] && window.menuData[categoryKey].items) {
       const foundItem = window.menuData[categoryKey].items.find(item => item.id === itemId);
       if (foundItem) {
-        return { ...foundItem, category: categoryKey };
+        return {
+          ...foundItem,
+          category: categoryKey
+        };
       }
     }
   }
@@ -247,153 +272,173 @@ function findItemAcrossCategories(itemId) {
 }
 
 function createPromoCardHTML(promo) {
-    const formatPrice = (price) => price && typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : String(price);
-    const imagePath = (promo.image || 'img/placeholder.png').replace('../', '');
-    const discountPercentage = Math.round(((promo.originalPrice - promo.newPrice) / promo.originalPrice) * 100);
-    return `
-    <div class="promo-card-horizontal" data-item-id="${promo.itemId}">
-        ${discountPercentage > 0 ? `<div class="promo-discount-tag">-${discountPercentage}%</div>`: ''}
-        <img src="${imagePath}" alt="${promo.name}" class="promo-card-image" onerror="this.onerror=null;this.src='img/placeholder.png';">
-        <div class="promo-card-details">
-        <h4>${promo.name}</h4>
-        <p class="promo-card-description">${promo.description || ''}</p>
-        <div class="promo-card-pricing">
-            <span class="promo-price">${formatPrice(promo.newPrice)}</span>
-            <span class="original-price-text">${formatPrice(promo.originalPrice)}</span>
-        </div>
-        </div>
-    </div>`;
+  const formatPrice = (price) => price && typeof price === 'number' ? price.toLocaleString('pt-BR', {
+    style: 'currency', currency: 'BRL'
+  }): String(price);
+  const imagePath = (promo.image || 'img/placeholder.png').replace('../', '');
+  const discountPercentage = Math.round(((promo.originalPrice - promo.newPrice) / promo.originalPrice) * 100);
+  return `
+  <div class="promo-card-horizontal" data-item-id="${promo.itemId}">
+  ${discountPercentage > 0 ? `<div class="promo-discount-tag">-${discountPercentage}%</div>`: ''}
+  <img src="${imagePath}" alt="${promo.name}" class="promo-card-image" onerror="this.onerror=null;this.src='img/placeholder.png';">
+  <div class="promo-card-details">
+  <h4>${promo.name}</h4>
+  <p class="promo-card-description">${promo.description || ''}</p>
+  <div class="promo-card-pricing">
+  <span class="promo-price">${formatPrice(promo.newPrice)}</span>
+  <span class="original-price-text">${formatPrice(promo.originalPrice)}</span>
+  </div>
+  </div>
+  </div>`;
 }
 
 function renderPromotions() {
-    const promoSection = document.getElementById('horizontal-promos-section');
-    const promoListDiv = document.getElementById('horizontal-promos-list');
-    if (!promoSection || !promoListDiv) return;
-    const visiblePromotions = window.promoData.filter(p => p.active !== false && findItemAcrossCategories(p.itemId)?.isVisible !== false);
-    if (visiblePromotions && visiblePromotions.length > 0) {
-        promoListDiv.innerHTML = visiblePromotions.map(p => createPromoCardHTML(p)).join('');
-        promoSection.style.display = 'block';
-        promoListDiv.querySelectorAll('.promo-card-horizontal').forEach(card => {
-            card.addEventListener('click', () => {
-                const promotion = visiblePromotions.find(p => p.itemId === card.dataset.itemId);
-                const originalItem = findItemAcrossCategories(card.dataset.itemId);
-                if (originalItem && promotion && window.openProductModal) {
-                    window.openProductModal({ ...originalItem, price: promotion.newPrice, originalPrice: promotion.originalPrice, isPromotion: true });
-                }
-            });
-        });
-    } else {
-        promoSection.style.display = 'none';
-    }
+  const promoSection = document.getElementById('horizontal-promos-section');
+  const promoListDiv = document.getElementById('horizontal-promos-list');
+  if (!promoSection || !promoListDiv) return;
+  const visiblePromotions = window.promoData.filter(p => p.active !== false && findItemAcrossCategories(p.itemId)?.isVisible !== false);
+  if (visiblePromotions && visiblePromotions.length > 0) {
+    promoListDiv.innerHTML = visiblePromotions.map(p => createPromoCardHTML(p)).join('');
+    promoSection.style.display = 'block';
+    promoListDiv.querySelectorAll('.promo-card-horizontal').forEach(card => {
+      card.addEventListener('click', () => {
+        const promotion = visiblePromotions.find(p => p.itemId === card.dataset.itemId);
+        const originalItem = findItemAcrossCategories(card.dataset.itemId);
+        if (originalItem && promotion && window.openProductModal) {
+          window.openProductModal({
+            ...originalItem, price: promotion.newPrice, originalPrice: promotion.originalPrice, isPromotion: true
+          });
+        }
+      });
+    });
+  } else {
+    promoSection.style.display = 'none';
+  }
 }
 
 function setupOperatingHoursToggle() {
-    const toggleButton = document.querySelector('.operating-hours');
-    const detailsContainer = document.querySelector('.operating-hours-details');
-    if (!toggleButton || !detailsContainer || !window.appSettings || !window.appSettings.operatingHours) {
-        console.warn("Não foi possível inicializar a seção de horários de funcionamento.");
-        return;
+  const toggleButton = document.querySelector('.operating-hours');
+  const detailsContainer = document.querySelector('.operating-hours-details');
+  if (!toggleButton || !detailsContainer || !window.appSettings || !window.appSettings.operatingHours) {
+    console.warn("Não foi possível inicializar a seção de horários de funcionamento.");
+    return;
+  }
+  const hours = window.appSettings.operatingHours;
+  const daysOrder = ["Domingo",
+    "Segunda-feira",
+    "Terça-feira",
+    "Quarta-feira",
+    "Quinta-feira",
+    "Sexta-feira",
+    "Sábado"];
+  let hoursHtml = '<ul>';
+  daysOrder.forEach(day => {
+    if (hours[day]) {
+      hoursHtml += `<li><span class="day">${day}</span><span class="time">${hours[day]}</span></li>`;
     }
-    const hours = window.appSettings.operatingHours;
-    const daysOrder = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
-    let hoursHtml = '<ul>';
-    daysOrder.forEach(day => {
-        if (hours[day]) {
-            hoursHtml += `<li><span class="day">${day}</span><span class="time">${hours[day]}</span></li>`;
-        }
-    });
-    hoursHtml += '</ul>';
-    detailsContainer.innerHTML = hoursHtml;
-    toggleButton.addEventListener('click', () => {
-        toggleButton.classList.toggle('expanded');
-        detailsContainer.classList.toggle('show');
+  });
+  hoursHtml += '</ul>';
+  detailsContainer.innerHTML = hoursHtml;
+  toggleButton.addEventListener('click',
+    () => {
+      toggleButton.classList.toggle('expanded');
+      detailsContainer.classList.toggle('show');
     });
 }
 
 function initializeNotificationPrompt() {
-    const promptModal = document.getElementById('notification-prompt-modal');
-    if (!promptModal) return;
-    const permissionStatus = Notification.permission;
-    const hasBeenShown = sessionStorage.getItem('notificationPromptShown');
-    if ('Notification' in window && permissionStatus === 'default' && !hasBeenShown) {
-        setTimeout(() => {
-            promptModal.classList.add('show');
-            sessionStorage.setItem('notificationPromptShown', 'true');
-        }, 5000);
-    }
-    const activateBtn = document.getElementById('prompt-activate-notifications-btn');
-    const declineBtn = document.getElementById('prompt-decline-notifications-btn');
-    const closeModal = () => promptModal.classList.remove('show');
-    if (activateBtn) {
-        activateBtn.addEventListener('click', () => {
-            if (typeof requestNotificationPermission === 'function') {
-                requestNotificationPermission();
-            }
-            closeModal();
-        });
-    }
-    if (declineBtn) {
-        declineBtn.addEventListener('click', closeModal);
-    }
+  const promptModal = document.getElementById('notification-prompt-modal');
+  if (!promptModal) return;
+  const permissionStatus = Notification.permission;
+  const hasBeenShown = sessionStorage.getItem('notificationPromptShown');
+  if ('Notification' in window && permissionStatus === 'default' && !hasBeenShown) {
+    setTimeout(() => {
+      promptModal.classList.add('show');
+      sessionStorage.setItem('notificationPromptShown', 'true');
+    }, 5000);
+  }
+  const activateBtn = document.getElementById('prompt-activate-notifications-btn');
+  const declineBtn = document.getElementById('prompt-decline-notifications-btn');
+  const closeModal = () => promptModal.classList.remove('show');
+  if (activateBtn) {
+    activateBtn.addEventListener('click', () => {
+      if (typeof requestNotificationPermission === 'function') {
+        requestNotificationPermission();
+      }
+      closeModal();
+    });
+  }
+  if (declineBtn) {
+    declineBtn.addEventListener('click', closeModal);
+  }
 }
 
 // --- LÓGICA DE FAVORITAR ITENS ---
 async function handleFavoriteClick(event) {
-    event.stopPropagation();
-    const icon = event.currentTarget;
-    const itemId = icon.dataset.itemId;
+  event.stopPropagation();
+  const icon = event.currentTarget;
+  const itemId = icon.dataset.itemId;
 
-    if (!window.currentCustomerDetails) {
-        alert("Você precisa fazer login para favoritar itens!");
-        return;
+  if (!window.currentCustomerDetails) {
+    alert("Você precisa fazer login para favoritar itens!");
+    return;
+  }
+
+  const customerId = window.currentCustomerDetails.id;
+  const {
+    doc,
+    updateDoc,
+    arrayUnion,
+    arrayRemove
+  } = window.firebaseFirestore;
+  const customerRef = doc(window.db, "customer", customerId);
+
+  const isFavorited = icon.classList.contains('fas');
+
+  try {
+    if (isFavorited) {
+      await updateDoc(customerRef, {
+        favoriteItems: arrayRemove(itemId)
+      });
+      icon.classList.remove('fas');
+      icon.classList.add('far');
+      window.currentCustomerDetails.favoriteItems = window.currentCustomerDetails.favoriteItems.filter(id => id !== itemId);
+    } else {
+      await updateDoc(customerRef, {
+        favoriteItems: arrayUnion(itemId)
+      });
+      icon.classList.remove('far');
+      icon.classList.add('fas');
+      if (!window.currentCustomerDetails.favoriteItems) {
+        window.currentCustomerDetails.favoriteItems = [];
+      }
+      window.currentCustomerDetails.favoriteItems.push(itemId);
     }
-
-    const customerId = window.currentCustomerDetails.id;
-    const { doc, updateDoc, arrayUnion, arrayRemove } = window.firebaseFirestore;
-    const customerRef = doc(window.db, "customer", customerId);
-
-    const isFavorited = icon.classList.contains('fas');
-
-    try {
-        if (isFavorited) {
-            await updateDoc(customerRef, { favoriteItems: arrayRemove(itemId) });
-            icon.classList.remove('fas');
-            icon.classList.add('far');
-            window.currentCustomerDetails.favoriteItems = window.currentCustomerDetails.favoriteItems.filter(id => id !== itemId);
-        } else {
-            await updateDoc(customerRef, { favoriteItems: arrayUnion(itemId) });
-            icon.classList.remove('far');
-            icon.classList.add('fas');
-            if (!window.currentCustomerDetails.favoriteItems) {
-                window.currentCustomerDetails.favoriteItems = [];
-            }
-            window.currentCustomerDetails.favoriteItems.push(itemId);
-        }
-    } catch (error) {
-        console.error("Erro ao atualizar favoritos:", error);
-        alert("Ocorreu um erro ao salvar seu favorito. Tente novamente.");
-    }
+  } catch (error) {
+    console.error("Erro ao atualizar favoritos:", error);
+    alert("Ocorreu um erro ao salvar seu favorito. Tente novamente.");
+  }
 }
 
 function updateFavoriteIcons() {
-    if (!window.currentCustomerDetails || !window.currentCustomerDetails.favoriteItems) {
-        document.querySelectorAll('.favorite-icon').forEach(icon => {
-            icon.classList.remove('fas');
-            icon.classList.add('far');
-        });
-        return;
-    }
-    const favoriteIds = new Set(window.currentCustomerDetails.favoriteItems);
+  if (!window.currentCustomerDetails || !window.currentCustomerDetails.favoriteItems) {
     document.querySelectorAll('.favorite-icon').forEach(icon => {
-        const itemId = icon.dataset.itemId;
-        if (favoriteIds.has(itemId)) {
-            icon.classList.remove('far');
-            icon.classList.add('fas');
-        } else {
-            icon.classList.remove('fas');
-            icon.classList.add('far');
-        }
+      icon.classList.remove('fas');
+      icon.classList.add('far');
     });
+    return;
+  }
+  const favoriteIds = new Set(window.currentCustomerDetails.favoriteItems);
+  document.querySelectorAll('.favorite-icon').forEach(icon => {
+    const itemId = icon.dataset.itemId;
+    if (favoriteIds.has(itemId)) {
+      icon.classList.remove('far');
+      icon.classList.add('fas');
+    } else {
+      icon.classList.remove('fas');
+      icon.classList.add('far');
+    }
+  });
 }
 window.updateFavoriteIcons = updateFavoriteIcons;
 
@@ -407,16 +452,24 @@ function initializeSiteLogic() {
 
   renderDynamicCarousel();
   if (typeof window.initializeCarousel === 'function') {
-      window.initializeCarousel();
+    window.initializeCarousel();
   }
 
   generateCategoryUI();
 
   const tabs = document.querySelectorAll('.tab-button');
   const restaurantStatusDiv = document.querySelector('.status');
-  const daysOfWeek = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+  const daysOfWeek = ["Domingo",
+    "Segunda-feira",
+    "Terça-feira",
+    "Quarta-feira",
+    "Quinta-feira",
+    "Sexta-feira",
+    "Sábado"];
 
-  const formatPrice = (price) => price && typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : String(price);
+  const formatPrice = (price) => price && typeof price === 'number' ? price.toLocaleString('pt-BR', {
+    style: 'currency', currency: 'BRL'
+  }): String(price);
 
   const minOrderLine = document.getElementById('min-order-line');
   const minOrderValueSpan = document.getElementById('min-order-value');
@@ -427,32 +480,34 @@ function initializeSiteLogic() {
   }
 
   function createMenuItemHTML(item) {
-    let priceSectionHTML = item.originalPrice ? `<p class="item-description">De: <span class="original-price-text">${formatPrice(item.originalPrice)}</span></p><p class="promo-price">${formatPrice(item.price)}</p>` : `<p class="item-price">${formatPrice(item.price)}</p>`;
-    let descriptionHTML = item.description ? `<p class="item-description">${item.description}</p>` : '';
+    let priceSectionHTML = item.originalPrice ? `<p class="item-description">De: <span class="original-price-text">${formatPrice(item.originalPrice)}</span></p><p class="promo-price">${formatPrice(item.price)}</p>`: `<p class="item-price">${formatPrice(item.price)}</p>`;
+    let descriptionHTML = item.description ? `<p class="item-description">${item.description}</p>`: '';
     const imagePath = (item.image || 'img/placeholder.png').replace('../', '');
     return `
     <div class="menu-item" data-item-id="${item.id}" data-category="${item.category || ''}">
-        <div class="favorite-icon-container">
-            <i class="far fa-heart favorite-icon" data-item-id="${item.id}"></i>
-        </div>
-        <img src="${imagePath}" alt="${item.name}" class="item-image" onerror="this.onerror=null;this.src='img/placeholder.png';">
-        <div class="item-details">
-            <h4>${item.name}</h4>
-            ${descriptionHTML}
-            ${priceSectionHTML}
-        </div>
-        <button class="add-to-cart-button" data-item-id="${item.id}" data-category="${item.category || ''}">+</button>
+    <div class="favorite-icon-container">
+    <i class="far fa-heart favorite-icon" data-item-id="${item.id}"></i>
+    </div>
+    <img src="${imagePath}" alt="${item.name}" class="item-image" onerror="this.onerror=null;this.src='img/placeholder.png';">
+    <div class="item-details">
+    <h4>${item.name}</h4>
+    ${descriptionHTML}
+    ${priceSectionHTML}
+    </div>
+    <button class="add-to-cart-button" data-item-id="${item.id}" data-category="${item.category || ''}">+</button>
     </div>`;
   }
 
   function renderCategory(categoryName) {
     const contentDiv = document.getElementById(`${categoryName}-content`);
     if (!contentDiv) return;
-    const categoryData = window.menuData ? window.menuData[categoryName] : undefined;
-    const items = categoryData ? categoryData.items : [];
+    const categoryData = window.menuData ? window.menuData[categoryName]: undefined;
+    const items = categoryData ? categoryData.items: [];
     const visibleItems = items.filter(item => item.isVisible !== false);
     if (visibleItems && visibleItems.length > 0) {
-      contentDiv.innerHTML = visibleItems.map(item => createMenuItemHTML({ ...item, category: item.category || categoryName })).join('');
+      contentDiv.innerHTML = visibleItems.map(item => createMenuItemHTML( {
+        ...item, category: item.category || categoryName
+      })).join('');
     } else {
       contentDiv.innerHTML = '<p style="text-align:center; color: #777; padding: 20px;">Nenhum item nesta categoria.</p>';
     }
@@ -460,18 +515,26 @@ function initializeSiteLogic() {
     document.querySelectorAll('.favorite-icon').forEach(icon => icon.addEventListener('click', handleFavoriteClick));
     updateFavoriteIcons();
     if (typeof initializeSearch === 'function') {
-        initializeSearch();
+      initializeSearch();
     }
   }
 
   window.showCategory = function(categoryKey) {
     const allContent = document.querySelectorAll('.category-content');
-    allContent.forEach(content => { content.style.display = 'none'; });
+    allContent.forEach(content => {
+      content.style.display = 'none';
+    });
     const activeContent = document.getElementById(`${categoryKey}-content`);
-    if (activeContent) { activeContent.style.display = 'block'; }
-    tabs.forEach(tab => { tab.classList.remove('active'); });
+    if (activeContent) {
+      activeContent.style.display = 'block';
+    }
+    tabs.forEach(tab => {
+      tab.classList.remove('active');
+    });
     const activeTab = document.querySelector(`.tab-button[data-category="${categoryKey}"]`);
-    if (activeTab) { activeTab.classList.add('active'); }
+    if (activeTab) {
+      activeTab.classList.add('active');
+    }
   };
 
   function updateRestaurantStatus() {
@@ -483,8 +546,10 @@ function initializeSiteLogic() {
     if (operatingHoursStr && operatingHoursStr.toLowerCase() !== "fechado") {
       const parts = operatingHoursStr.split(' - ');
       if (parts.length === 2) {
-        const [startHour, startMinute] = parts[0].split(':').map(Number);
-        const [endHour, endMinute] = parts[1].split(':').map(Number);
+        const [startHour,
+          startMinute] = parts[0].split(':').map(Number);
+        const [endHour,
+          endMinute] = parts[1].split(':').map(Number);
         let startTimeTotalMinutes = startHour * 60 + startMinute;
         let endTimeTotalMinutes = endHour * 60 + endMinute;
         if (endTimeTotalMinutes <= startTimeTotalMinutes) endTimeTotalMinutes += 24 * 60;
@@ -493,11 +558,15 @@ function initializeSiteLogic() {
         if (currentTimeInMinutes >= startTimeTotalMinutes && currentTimeInMinutes < endTimeTotalMinutes) isOpen = true;
       }
     }
-    restaurantStatusDiv.textContent = isOpen ? "ABERTO" : "FECHADO";
-    restaurantStatusDiv.style.backgroundColor = isOpen ? "var(--green-status)" : "var(--primary-red)";
+    restaurantStatusDiv.textContent = isOpen ? "ABERTO": "FECHADO";
+    restaurantStatusDiv.style.backgroundColor = isOpen ? "var(--green-status)": "var(--primary-red)";
     document.querySelectorAll('.add-to-cart-button, #add-to-cart-modal-button, #cart-modal .checkout-button').forEach(button => {
       button.disabled = !isOpen;
-      if (!isOpen) { button.style.cursor = 'not-allowed'; } else { button.style.cursor = ''; }
+      if (!isOpen) {
+        button.style.cursor = 'not-allowed';
+      } else {
+        button.style.cursor = '';
+      }
     });
   }
 
@@ -516,57 +585,74 @@ function initializeSiteLogic() {
     const category = button.dataset.category;
     const item = window.menuData[category]?.items.find(p => p.id === itemId);
     if (item) {
-      const itemForInteraction = { ...item, category };
+      const itemForInteraction = {
+        ...item,
+        category
+      };
       if (itemForInteraction.category.includes('pizzas-') || item.name.toLowerCase().includes('pizza') || itemForInteraction.category.includes('calzones-')) {
         if (window.openProductModal) window.openProductModal(itemForInteraction);
       } else {
-        if (window.addToCart) window.addToCart({ id: item.id, name: item.name, image: item.image, price: item.price, quantity: 1, selectedSize: 'único', notes: '', unitPrice: item.price, category: item.category });
+        if (window.addToCart) window.addToCart({
+          id: item.id, name: item.name, image: item.image, price: item.price, quantity: 1, selectedSize: 'único', notes: '', unitPrice: item.price, category: item.category
+        });
       }
     }
   }
-  
+
   function initializeCouponsFeature() {
     const banner = document.getElementById('coupons-banner');
     const modal = document.getElementById('coupons-modal');
     if (!banner || !modal) return;
     const viewButton = document.getElementById('view-coupons-button');
     const closeButton = modal.querySelector('.close-button');
-    if (window.activeCoupons && window.activeCoupons.length > 0) { banner.style.display = 'flex'; } else { banner.style.display = 'none'; }
-    const openModal = () => { renderCouponsInModal(); modal.classList.add('show'); document.body.style.overflow = 'hidden'; };
-    const closeModal = () => { modal.classList.remove('show'); document.body.style.overflow = ''; };
-    if(viewButton) viewButton.addEventListener('click', openModal);
+    if (window.activeCoupons && window.activeCoupons.length > 0) {
+      banner.style.display = 'flex';
+    } else {
+      banner.style.display = 'none';
+    }
+    const openModal = () => {
+      renderCouponsInModal(); modal.classList.add('show'); document.body.style.overflow = 'hidden';
+    };
+    const closeModal = () => {
+      modal.classList.remove('show'); document.body.style.overflow = '';
+    };
+    if (viewButton) viewButton.addEventListener('click', openModal);
     if (closeButton) closeButton.addEventListener('click', closeModal);
-    modal.addEventListener('click', (event) => { if (event.target === modal) closeModal(); });
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) closeModal();
+    });
   }
 
   function renderCouponsInModal() {
     const listContainer = document.getElementById('coupons-list');
     if (!listContainer) return;
     if (!window.activeCoupons || window.activeCoupons.length === 0) {
-        listContainer.innerHTML = '<p>Nenhum cupom de desconto disponível no momento.</p>';
-        return;
+      listContainer.innerHTML = '<p>Nenhum cupom de desconto disponível no momento.</p>';
+      return;
     }
     listContainer.innerHTML = window.activeCoupons.map(coupon => `<div class="coupon-card"><div class="coupon-info"><div class="coupon-header">${coupon.description}</div><div class="coupon-code">Código: <strong>${coupon.code}</strong></div></div><div class="coupon-actions"><button class="btn-apply-coupon" data-coupon-code="${coupon.code}">Aplicar</button></div></div>`).join('');
     listContainer.querySelectorAll('.btn-apply-coupon').forEach(button => {
-        button.addEventListener('click', async (event) => {
-            const code = event.target.dataset.couponCode;
-            if (typeof window.validateAndApplyCoupon === 'function') {
-                const result = await window.validateAndApplyCoupon(code);
-                if (result.success) {
-                    alert('Cupom aplicado com sucesso!');
-                    const modal = document.getElementById('coupons-modal');
-                    if (modal) modal.classList.remove('show');
-                    if (typeof window.openCartModal === 'function') window.openCartModal();
-                } else {
-                    alert(`Não foi possível aplicar o cupom: ${result.message}`);
-                }
-            }
-        });
+      button.addEventListener('click', async (event) => {
+        const code = event.target.dataset.couponCode;
+        if (typeof window.validateAndApplyCoupon === 'function') {
+          const result = await window.validateAndApplyCoupon(code);
+          if (result.success) {
+            alert('Cupom aplicado com sucesso!');
+            const modal = document.getElementById('coupons-modal');
+            if (modal) modal.classList.remove('show');
+            if (typeof window.openCartModal === 'function') window.openCartModal();
+          } else {
+            alert(`Não foi possível aplicar o cupom: ${result.message}`);
+          }
+        }
+      });
     });
   }
 
   if (tabs.length > 0) {
-    tabs.forEach(tab => { tab.addEventListener('click', () => showCategory(tab.dataset.category)); });
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => showCategory(tab.dataset.category));
+    });
   }
 
   if (window.menuData && window.appSettings) {
@@ -600,6 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (splashScreen) {
         splashScreen.classList.add('hidden');
       }
-    }, 250);
+    },
+      250);
   });
 });
