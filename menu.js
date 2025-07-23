@@ -81,20 +81,38 @@ async function logPageView() {
 // Função para aplicar as customizações de aparência
 function applyCustomAppearance(appearanceSettings) {
   if (!appearanceSettings) return;
+
   const root = document.documentElement;
   const bannerImage = document.querySelector('.banner-image');
   const logoImage = document.querySelector('.restaurant-logo');
-  if (appearanceSettings.primaryColor) {
-    root.style.setProperty('--primary-red', appearanceSettings.primaryColor);
+
+  // Função para carregar a fonte do Google dinamicamente
+  function loadGoogleFont(fontName) {
+      const fontId = `google-font-${fontName.replace(/\s+/g, '-')}`;
+      if (document.getElementById(fontId)) return; // Já carregou
+
+      const link = document.createElement('link');
+      link.id = fontId;
+      link.rel = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s+/g, '+')}:wght@300;400;500;700&display=swap`;
+      document.head.appendChild(link);
   }
-  if (appearanceSettings.backgroundColor) {
-    root.style.setProperty('--light-gray', appearanceSettings.backgroundColor);
-  }
-  if (appearanceSettings.logoUrl && logoImage) {
-    logoImage.src = appearanceSettings.logoUrl.replace('../', '');
-  }
-  if (appearanceSettings.bannerUrl && bannerImage) {
-    bannerImage.src = appearanceSettings.bannerUrl.replace('../', '');
+
+  // Aplica as cores
+  if (appearanceSettings.primaryColor) root.style.setProperty('--primary-red', appearanceSettings.primaryColor);
+  if (appearanceSettings.backgroundColor) root.style.setProperty('--light-gray', appearanceSettings.backgroundColor);
+  if (appearanceSettings.cardBgColor) root.style.setProperty('--white', appearanceSettings.cardBgColor); // Fundo dos cards
+  if (appearanceSettings.mainTextColor) root.style.setProperty('--dark-gray', appearanceSettings.mainTextColor); // Texto principal
+  if (appearanceSettings.secondaryTextColor) root.style.setProperty('--medium-gray', appearanceSettings.secondaryTextColor); // Texto secundário
+
+  // Aplica as imagens
+  if (appearanceSettings.logoUrl && logoImage) logoImage.src = appearanceSettings.logoUrl.replace('../', '');
+  if (appearanceSettings.bannerUrl && bannerImage) bannerImage.src = appearanceSettings.bannerUrl.replace('../', '');
+
+  // Aplica a fonte
+  if (appearanceSettings.mainFont) {
+      loadGoogleFont(appearanceSettings.mainFont);
+      root.style.setProperty('font-family', `'${appearanceSettings.mainFont}', sans-serif`);
   }
 }
 
