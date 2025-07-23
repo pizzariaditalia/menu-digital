@@ -95,31 +95,33 @@ function applyCustomAppearance(appearanceSettings) {
 
   // Função para carregar a fonte do Google dinamicamente
   function loadGoogleFont(fontName) {
-    const fontId = `google-font-${fontName.replace(/\s+/g, '-')}`;
-    if (document.getElementById(fontId)) return; // Já carregou
+      const fontId = `google-font-${fontName.replace(/\s+/g, '-')}`;
+      if (document.getElementById(fontId)) return;
 
-    const link = document.createElement('link');
-    link.id = fontId;
-    link.rel = 'stylesheet';
-    link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s+/g, '+')}:wght@300;400;500;700&display=swap`;
-    document.head.appendChild(link);
+      const link = document.createElement('link');
+      link.id = fontId;
+      link.rel = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s+/g, '+')}:wght@300;400;500;700&display=swap`;
+      document.head.appendChild(link);
   }
 
-  // Aplica as cores
+  // Aplica as cores (lógica sem alteração)
   if (appearanceSettings.primaryColor) root.style.setProperty('--primary-red', appearanceSettings.primaryColor);
   if (appearanceSettings.backgroundColor) root.style.setProperty('--light-gray', appearanceSettings.backgroundColor);
-  if (appearanceSettings.cardBgColor) root.style.setProperty('--white', appearanceSettings.cardBgColor); // Fundo dos cards
-  if (appearanceSettings.mainTextColor) root.style.setProperty('--dark-gray', appearanceSettings.mainTextColor); // Texto principal
-  if (appearanceSettings.secondaryTextColor) root.style.setProperty('--medium-gray', appearanceSettings.secondaryTextColor); // Texto secundário
+  if (appearanceSettings.cardBgColor) root.style.setProperty('--white', appearanceSettings.cardBgColor);
+  if (appearanceSettings.mainTextColor) root.style.setProperty('--dark-gray', appearanceSettings.mainTextColor);
+  if (appearanceSettings.secondaryTextColor) root.style.setProperty('--medium-gray', appearanceSettings.secondaryTextColor);
 
-  // Aplica as imagens
+  // Aplica as imagens (lógica sem alteração)
   if (appearanceSettings.logoUrl && logoImage) logoImage.src = appearanceSettings.logoUrl.replace('../', '');
   if (appearanceSettings.bannerUrl && bannerImage) bannerImage.src = appearanceSettings.bannerUrl.replace('../', '');
 
-  // Aplica a fonte
+  // --- CORREÇÃO APLICADA AQUI ---
+  // Aplica a fonte diretamente no elemento 'body' para garantir a prioridade.
   if (appearanceSettings.mainFont) {
-    loadGoogleFont(appearanceSettings.mainFont);
-    root.style.setProperty('font-family', `'${appearanceSettings.mainFont}', sans-serif`);
+      loadGoogleFont(appearanceSettings.mainFont);
+      // Em vez de 'root', aplicamos a fonte ao 'document.body'
+      document.body.style.fontFamily = `'${appearanceSettings.mainFont}', sans-serif`;
   }
 }
 
