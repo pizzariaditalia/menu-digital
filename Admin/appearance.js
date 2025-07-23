@@ -1,11 +1,11 @@
-// Arquivo: appearance.js - VERSÃO COM CORREÇÃO NO FORMULÁRIO PRINCIPAL
+// Arquivo: appearance.js - VERSÃO COM MAIS OPÇÕES DE CUSTOMIZAÇÃO
 
 let appearanceSectionInitialized = false;
 
 const SETTINGS_DOC_ID = "mainSettings";
 const VIDEO_BASE_PATH = "img/banner/";
 
-// Função para salvar as configurações de aparência (cores, logo, banner)
+// Função para salvar as configurações de aparência (cores, logo, banner, fontes)
 async function saveAppearanceSettings() {
     const { doc, setDoc } = window.firebaseFirestore;
     const settingsRef = doc(window.db, "configuracoes", SETTINGS_DOC_ID);
@@ -15,7 +15,11 @@ async function saveAppearanceSettings() {
             logoUrl: document.getElementById('logo-path-input').value.trim(),
             bannerUrl: document.getElementById('banner-path-input').value.trim(),
             primaryColor: document.getElementById('primary-color-input').value,
-            backgroundColor: document.getElementById('background-color-input').value
+            backgroundColor: document.getElementById('background-color-input').value,
+            cardBgColor: document.getElementById('card-bg-color-input').value,
+            mainTextColor: document.getElementById('main-text-color-input').value,
+            secondaryTextColor: document.getElementById('secondary-text-color-input').value,
+            mainFont: document.getElementById('main-font-select').value
         }
     };
 
@@ -41,36 +45,34 @@ async function loadAppearanceSettings() {
             document.getElementById('banner-path-input').value = settings.bannerUrl || '';
             document.getElementById('primary-color-input').value = settings.primaryColor || '#ea1d2c';
             document.getElementById('background-color-input').value = settings.backgroundColor || '#f7f7f7';
+            document.getElementById('card-bg-color-input').value = settings.cardBgColor || '#ffffff';
+            document.getElementById('main-text-color-input').value = settings.mainTextColor || '#3f3f3f';
+            document.getElementById('secondary-text-color-input').value = settings.secondaryTextColor || '#757575';
+            document.getElementById('main-font-select').value = settings.mainFont || 'Roboto';
         }
     } catch (error) {
         console.error("Erro ao carregar configurações de aparência:", error);
     }
 }
 
-
 // Esta função atualiza a lista de vídeos no Firestore
 async function updateVideoList(indexToRemove, newFileName) {
     const { doc, getDoc, setDoc } = window.firebaseFirestore;
     const settingsRef = doc(window.db, "configuracoes", SETTINGS_DOC_ID);
-
     try {
         const docSnap = await getDoc(settingsRef);
         let currentVideos = (docSnap.exists() && docSnap.data().videos) ? docSnap.data().videos : [];
-
         if (indexToRemove !== null) {
             currentVideos.splice(indexToRemove, 1);
             window.showToast("Vídeo removido com sucesso!", "success");
         }
-
         if (newFileName) {
             const fullPath = `${VIDEO_BASE_PATH}${newFileName}`;
             currentVideos.push({ path: fullPath, addedAt: new Date().toISOString() });
             window.showToast("Vídeo adicionado com sucesso!", "success");
         }
-        
         await setDoc(settingsRef, { videos: currentVideos }, { merge: true });
         await loadAndRenderCarouselVideos();
-
     } catch (error) {
         console.error("Erro ao atualizar a lista de vídeos:", error);
         window.showToast("Ocorreu um erro ao salvar.", "error");
@@ -81,12 +83,10 @@ async function updateVideoList(indexToRemove, newFileName) {
 function renderCarouselVideoItems(videos) {
     const carouselVideosListContainer = document.getElementById('carousel-videos-list');
     if (!carouselVideosListContainer) return;
-
     if (!videos || videos.length === 0) {
         carouselVideosListContainer.innerHTML = "<p>Nenhum vídeo no carrossel. Adicione um novo.</p>";
         return;
     }
-
     carouselVideosListContainer.innerHTML = videos.map((video, index) => {
         const videoPathForAdminPreview = `../${video.path}`;
         return `
@@ -98,7 +98,6 @@ function renderCarouselVideoItems(videos) {
             </div>
         `;
     }).join('');
-
     carouselVideosListContainer.querySelectorAll('.delete-video-btn').forEach(button => {
         button.addEventListener('click', (e) => {
             e.preventDefault();
@@ -115,10 +114,8 @@ async function loadAndRenderCarouselVideos() {
     const carouselVideosListContainer = document.getElementById('carousel-videos-list');
     if (!carouselVideosListContainer) return;
     carouselVideosListContainer.innerHTML = "<p>Carregando vídeos...</p>";
-    
     const { doc, getDoc } = window.firebaseFirestore;
-    const settingsRef = doc(window.db, "configuracoes", SETTINGS_DOC_ID); 
-    
+    const settingsRef = doc(window.db, "configuracoes", SETTINGS_DOC_ID);
     try {
         const docSnap = await getDoc(settingsRef);
         const videos = (docSnap.exists() && docSnap.data().videos) ? docSnap.data().videos : [];
@@ -135,26 +132,22 @@ async function initializeAppearanceSection() {
         console.log("Módulo Aparência.js: Inicializando PELA PRIMEIRA VEZ...");
         appearanceSectionInitialized = true;
     }
-
     const appearanceForm = document.getElementById('appearance-form');
     const videoFileNameInput = document.getElementById('carousel-video-filename-input');
     const addVideoBtn = document.getElementById('add-video-btn');
 
-    // --- CÓDIGO DE CORREÇÃO ADICIONADO AQUI ---
-    // Adiciona o listener para o formulário principal para impedir o recarregamento
     if (appearanceForm && !appearanceForm.dataset.listener) {
         appearanceForm.dataset.listener = 'true';
         appearanceForm.addEventListener('submit', (event) => {
-            event.preventDefault(); // Impede o recarregamento da página
-            saveAppearanceSettings(); // Chama a função para salvar as cores e imagens
+            event.preventDefault();
+            saveAppearanceSettings();
         });
     }
-    // --- FIM DA CORREÇÃO ---
 
     if (addVideoBtn && !addVideoBtn.dataset.listener) {
         addVideoBtn.dataset.listener = 'true';
         addVideoBtn.addEventListener('click', (event) => {
-            event.preventDefault(); 
+            event.preventDefault();
             const newFileName = videoFileNameInput.value.trim();
             if (newFileName && newFileName.endsWith('.mp4')) {
                 updateVideoList(null, newFileName);
@@ -164,7 +157,7 @@ async function initializeAppearanceSection() {
             }
         });
     }
-
+    
     // Carrega os dados sempre que a aba é aberta
     await loadAppearanceSettings();
     await loadAndRenderCarouselVideos();
