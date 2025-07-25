@@ -1,17 +1,102 @@
-// Arquivo: financeiro.js - VERSÃO SEM A FUNÇÃO 'formatPrice' DUPLICADA
+// Arquivo: financeiro.js - VERSÃO COM CÁLCULO AUTOMÁTICO DE CUSTO VARIÁVEL
 
 let financeiroSectionInitialized = false;
 const LANCAMENTOS_COLLECTION = "lancamentos_financeiros";
 
 // --- NOVA LÓGICA DE PROJEÇÕES ---
+
+// Função que calcula o custo de um único item com base na sua ficha técnica
+function calculateItemCost(item, allIngredients) {
+    if (!item.recipe || !Array.isArray(item.recipe) || !allIngredients) return 0;
+    
+    function getCostPerBaseUnit(ingredient) {
+        if (!ingredient || typeof ingredient.price !== 'number' || typeof ingredient.quantity !== 'number' || ingredient.quantity === 0) return 0;
+        if (ingredient.unit === 'kg' || ingredient.unit === 'l') return ingredient.price / (ingredient.quantity * 1000);
+        if (ingredient.unit === 'g' || ingredient.unit === 'ml') return ingredient.price / ingredient.quantity;
+        return ingredient.price / ingredient.quantity;
+    }
+
+    return item.recipe.reduce((total, recipeItem) => {
+        const ingredient = allIngredients.find(i => i.id === recipeItem.id);
+        return total + (getCostPerBaseUnit(ingredient) * recipeItem.quantity);
+    }, 0);
+}
+
+// Função principal que busca as vendas e calcula o custo variável real
+async function calculateAndUpdateVariableCost() {
+    const calcButton = document.getElementById('calculate-variable-cost-btn');
+    calcButton.disabled = true;
+    calcButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    window.showToast("Analisando vendas e fichas técnicas do último mês...", "info");
+
+    const { collection, query, where, getDocs, Timestamp } = window.firebaseFirestore;
+    const db = window.db;
+
+    // Pega o último mês de vendas para ter uma boa média
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 1);
+
+    try {
+        const ordersQuery = query(collection(db, "pedidos"), where('createdAt', '>=', Timestamp.fromDate(startDate)), where('createdAt', '<=', Timestamp.fromDate(endDate)));
+        const ingredientsQuery = query(collection(db, "ingredientes"));
+
+        const [ordersSnapshot, ingredientsSnapshot] = await Promise.all([
+            getDocs(ordersQuery),
+            getDocs(ingredientsQuery)
+        ]);
+
+        const allIngredients = ingredientsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        let totalRevenue = 0;
+        let totalIngredientsCost = 0;
+
+        ordersSnapshot.docs.forEach(doc => {
+            const order = doc.data();
+            if (order.status === 'Cancelado') return;
+
+            totalRevenue += order.totals?.grandTotal || 0;
+            if (order.items && Array.isArray(order.items)) {
+                order.items.forEach(item => {
+                    // Calcula o custo de cada item vendido e multiplica pela quantidade
+                    totalIngredientsCost += calculateItemCost(item, allIngredients) * item.quantity;
+                });
+            }
+        });
+
+        if (totalRevenue === 0) {
+            window.showToast("Nenhuma venda encontrada no último mês para calcular a média.", "warning");
+            return;
+        }
+
+        const variableCostPercentage = (totalIngredientsCost / totalRevenue) * 100;
+        
+        const custoVariavelInput = document.getElementById('proj-custo-variavel');
+        custoVariavelInput.value = variableCostPercentage.toFixed(2);
+        
+        // Dispara o evento de 'input' para que o cálculo das metas seja refeito
+        custoVariavelInput.dispatchEvent(new Event('input'));
+        
+        window.showToast(`Custo Variável calculado: ${variableCostPercentage.toFixed(2)}%`, "success");
+
+    } catch (error) {
+        console.error("Erro ao calcular custo variável:", error);
+        window.showToast("Erro ao calcular custo. Verifique o console.", "error");
+    } finally {
+        calcButton.disabled = false;
+        calcButton.textContent = 'Calcular';
+    }
+}
+
 function setupProjections() {
     const custosFixosInput = document.getElementById('proj-custos-fixos');
     const custoVariavelInput = document.getElementById('proj-custo-variavel');
     const proLaboreInput = document.getElementById('proj-pro-labore');
+    const calcButton = document.getElementById('calculate-variable-cost-btn');
 
     custosFixosInput.value = localStorage.getItem('projCustosFixos') || '';
-    custoVariavelInput.value = localStorage.getItem('projCustoVariavel') || '';
     proLaboreInput.value = localStorage.getItem('projProLabore') || '';
+    custoVariavelInput.value = localStorage.getItem('projCustoVariavel') || '';
 
     const inputs = [custosFixosInput, custoVariavelInput, proLaboreInput];
     
@@ -44,6 +129,8 @@ function setupProjections() {
     inputs.forEach(input => {
         input.addEventListener('input', calculateAndRenderProjections);
     });
+    
+    calcButton.addEventListener('click', calculateAndUpdateVariableCost);
 
     calculateAndRenderProjections();
 }
@@ -51,7 +138,6 @@ function setupProjections() {
 async function updateProgressBar(metaFaturamento) {
     const { collection, query, where, getDocs, Timestamp } = window.firebaseFirestore;
     const db = window.db;
-
     const today = new Date();
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     
@@ -76,9 +162,7 @@ async function updateProgressBar(metaFaturamento) {
     progressLabel.textContent = `${progressoPerc.toFixed(1)}%`;
 }
 
-
 // --- LÓGICA EXISTENTE DA GESTÃO FINANCEIRA ---
-
 async function initializeFinanceiroSection() {
     if (financeiroSectionInitialized) {
         document.getElementById('filter-financial-btn')?.click();
@@ -198,7 +282,6 @@ async function initializeFinanceiroSection() {
     setupProjections();
 }
 
-// A LINHA ABAIXO FOI REMOVIDA PARA CORRIGIR O ERRO
-// const formatPrice = (price) => ...
+const formatPrice = (price) => typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
 
 window.initializeFinanceiroSection = initializeFinanceiroSection;
