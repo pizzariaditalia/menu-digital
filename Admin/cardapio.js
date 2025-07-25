@@ -44,6 +44,9 @@ async function initializeCardapioSection() {
     stuffedCrustIdHidden = document.getElementById('stuffed-crust-id-hidden');
     cancelEditStuffedCrustBtn = document.getElementById('cancel-edit-stuffed-crust-btn');
     stuffedCrustListContainer = document.getElementById('stuffed-crust-list-container');
+    if (typeof initializeIngredientsSection === 'function') {
+        initializeIngredientsSection();
+    }
 
     // As funções que dependem das variáveis acima permanecem aqui.
     async function saveMenuToFirestore() {
