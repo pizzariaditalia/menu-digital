@@ -181,6 +181,7 @@ function initializeIngredientsSection() {
     // --- Função Principal de Execução ---
     async function main() {
         const ingredients = await fetchIngredients();
+        window.allIngredients = ingredients;
         renderIngredientsList(ingredients);
     }
 
