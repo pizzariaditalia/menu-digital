@@ -1148,6 +1148,35 @@ Calculando rota...
 <input type="text" id="item-image" placeholder="Caminho relativo da imagem">
 </div>
 </div>
+<hr style="margin: var(--space-lg) 0;">
+<div class="form-group">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+        <h4 style="margin: 0;"><i class="fas fa-clipboard-list" style="color: var(--admin-primary-blue);"></i> Ficha Técnica (Receita)</h4>
+        <div style="text-align: right;">
+            <span style="font-size: 0.9em; color: var(--admin-text-light);">Custo Total de Ingredientes:</span>
+            <strong id="item-cost-display" style="font-size: 1.2em; color: var(--admin-success-green); display: block;">R$ 0,00</strong>
+        </div>
+    </div>
+    
+    <div class="form-row" style="background-color: var(--admin-light-gray-bg); padding: var(--space-sm); border-radius: var(--border-radius-md);">
+        <div class="form-group">
+            <label for="select-ingredient">Ingrediente</label>
+            <select id="select-ingredient" class="form-control">
+                <option value="">Selecione...</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="ingredient-quantity-used">Qtd. Usada (g / ml / un)</label>
+            <input type="number" id="ingredient-quantity-used" class="form-control" placeholder="Ex: 200">
+        </div>
+        <div class="form-actions" style="padding-top: 24px;">
+            <button type="button" id="add-ingredient-to-recipe-btn" class="btn btn-primary">Adicionar</button>
+        </div>
+    </div>
+
+    <div id="item-recipe-list" style="margin-top: var(--space-md);">
+        </div>
+</div>
 <div class="form-actions">
 <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Salvar Item</button>
 </div>
