@@ -230,18 +230,21 @@ Acompanhe em tempo real a posição dos entregadores que estão com o aplicativo
 Preencha seus custos para calcular a meta de faturamento e acompanhar seu progresso.
 </p>
 <div class="form-row">
-<div class="form-group">
-<label for="proj-custos-fixos">Custos Fixos Mensais (R$)</label>
-<input type="number" id="proj-custos-fixos" class="form-control" placeholder="Ex: Aluguel, contas, etc.">
-</div>
-<div class="form-group">
-<label for="proj-custo-variavel">Custo Variável Médio (%)</label>
-<input type="number" id="proj-custo-variavel" class="form-control" placeholder="Ex: 35 (para 35%)">
-</div>
-<div class="form-group">
-<label for="proj-pro-labore">Seu Salário Desejado (Pró-labore)</label>
-<input type="number" id="proj-pro-labore" class="form-control" placeholder="Ex: 2000">
-</div>
+    <div class="form-group">
+      <label for="proj-custos-fixos">Custos Fixos Mensais (R$)</label>
+      <input type="number" id="proj-custos-fixos" class="form-control" placeholder="Ex: Aluguel, contas, etc.">
+    </div>
+    <div class="form-group">
+      <label for="proj-pro-labore">Seu Salário Desejado (Pró-labore)</label>
+      <input type="number" id="proj-pro-labore" class="form-control" placeholder="Ex: 2000">
+    </div>
+    <div class="form-group">
+      <label for="proj-custo-variavel">Custo Variável Médio (%)</label>
+      <div class="input-with-button">
+        <input type="number" id="proj-custo-variavel" class="form-control" placeholder="Calculado..." readonly style="background-color: #e9ecef;">
+        <button type="button" id="calculate-variable-cost-btn" class="btn btn-primary" title="Calcular com base nas vendas do último mês">Calcular</button>
+      </div>
+    </div>
 </div>
 
 <div id="projection-results-container" style="margin-top: var(--space-md);">
