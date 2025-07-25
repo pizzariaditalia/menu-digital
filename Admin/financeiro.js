@@ -1,4 +1,4 @@
-// Arquivo: financeiro.js - VERSÃO COM METAS E PROJEÇÕES
+// Arquivo: financeiro.js - VERSÃO SEM A FUNÇÃO 'formatPrice' DUPLICADA
 
 let financeiroSectionInitialized = false;
 const LANCAMENTOS_COLLECTION = "lancamentos_financeiros";
@@ -9,22 +9,19 @@ function setupProjections() {
     const custoVariavelInput = document.getElementById('proj-custo-variavel');
     const proLaboreInput = document.getElementById('proj-pro-labore');
 
-    // Salva os valores no localStorage para não precisar digitar sempre
     custosFixosInput.value = localStorage.getItem('projCustosFixos') || '';
     custoVariavelInput.value = localStorage.getItem('projCustoVariavel') || '';
     proLaboreInput.value = localStorage.getItem('projProLabore') || '';
 
     const inputs = [custosFixosInput, custoVariavelInput, proLaboreInput];
     
-    // Função para calcular e renderizar as projeções
     const calculateAndRenderProjections = () => {
         const custosFixos = parseFloat(custosFixosInput.value) || 0;
         const custoVariavelPerc = parseFloat(custoVariavelInput.value) || 0;
         const proLabore = parseFloat(proLaboreInput.value) || 0;
-
         const margemContribuicao = 1 - (custoVariavelPerc / 100);
 
-        if (margemContribuicao <= 0) { // Evita divisão por zero
+        if (margemContribuicao <= 0) {
             document.getElementById('proj-ponto-equilibrio').textContent = 'Inválido';
             document.getElementById('proj-meta-faturamento').textContent = 'Inválido';
             return;
@@ -37,12 +34,10 @@ function setupProjections() {
         document.getElementById('proj-meta-faturamento').textContent = formatPrice(metaFaturamento);
         document.getElementById('proj-meta-label').textContent = `Meta: ${formatPrice(metaFaturamento)}`;
         
-        // Salva os valores para a próxima visita
         localStorage.setItem('projCustosFixos', custosFixos);
         localStorage.setItem('projCustoVariavel', custoVariavelPerc);
         localStorage.setItem('projProLabore', proLabore);
 
-        // Atualiza a barra de progresso
         updateProgressBar(metaFaturamento);
     };
 
@@ -50,11 +45,9 @@ function setupProjections() {
         input.addEventListener('input', calculateAndRenderProjections);
     });
 
-    // Calcula na primeira vez que a página carrega
     calculateAndRenderProjections();
 }
 
-// Função para buscar o faturamento do mês atual e atualizar a barra de progresso
 async function updateProgressBar(metaFaturamento) {
     const { collection, query, where, getDocs, Timestamp } = window.firebaseFirestore;
     const db = window.db;
@@ -205,5 +198,7 @@ async function initializeFinanceiroSection() {
     setupProjections();
 }
 
-const formatPrice = (price) => typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
+// A LINHA ABAIXO FOI REMOVIDA PARA CORRIGIR O ERRO
+// const formatPrice = (price) => ...
+
 window.initializeFinanceiroSection = initializeFinanceiroSection;
