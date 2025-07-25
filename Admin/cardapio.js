@@ -137,34 +137,43 @@ async function initializeCardapioSection() {
     if (modalElement) modalElement.classList.remove('show');
   }
 
-  function openItemEditorModal(categoryKey, itemId = null) {
+async function openItemEditorModal(categoryKey, itemId = null) {
+    // CORREÇÃO: Garante que a lista de ingredientes está carregada
+    if (!window.allIngredients) {
+        await window.fetchIngredients();
+    }
+    
     itemEditorForm.reset();
     currentItemRecipe = [];
     document.getElementById('edit-item-category-key').value = categoryKey;
+    
+    const selectIngredient = document.getElementById('select-ingredient');
     if (selectIngredient) {
-      selectIngredient.innerHTML = '<option value="">Selecione...</option>';
-      (window.allIngredients || []).sort((a, b) => a.name.localeCompare(b.name)).forEach(ing => {
-        selectIngredient.add(new Option(ing.name, ing.id));
-      });
+        selectIngredient.innerHTML = '<option value="">Selecione...</option>';
+        (window.allIngredients || []).sort((a, b) => a.name.localeCompare(b.name)).forEach(ing => {
+            selectIngredient.add(new Option(ing.name, ing.id));
+        });
     }
+
     if (itemId) {
-      itemEditorTitle.innerHTML = '<i class="fas fa-edit"></i> Editar Item';
-      const item = window.menuData[categoryKey].items.find(i => i.id == itemId);
-      if (item) {
-        document.getElementById('edit-item-id').value = item.id;
-        document.getElementById('item-name').value = item.name;
-        document.getElementById('item-description').value = item.description || '';
-        document.getElementById('item-price').value = item.price;
-        document.getElementById('item-image').value = item.image || '';
-        currentItemRecipe = item.recipe || [];
-      }
+        itemEditorTitle.innerHTML = '<i class="fas fa-edit"></i> Editar Item';
+        const item = window.menuData[categoryKey].items.find(i => i.id == itemId);
+        if (item) {
+            document.getElementById('edit-item-id').value = item.id;
+            document.getElementById('item-name').value = item.name;
+            document.getElementById('item-description').value = item.description || '';
+            document.getElementById('item-price').value = item.price;
+            document.getElementById('item-image').value = item.image || '';
+            currentItemRecipe = item.recipe || [];
+        }
     } else {
-      itemEditorTitle.innerHTML = '<i class="fas fa-plus"></i> Novo Item';
-      document.getElementById('edit-item-id').value = '';
+        itemEditorTitle.innerHTML = '<i class="fas fa-plus"></i> Novo Item';
+        document.getElementById('edit-item-id').value = '';
     }
+    
     renderRecipeList();
     openModal(itemEditorModal);
-  }
+}
 
   function openCategoryEditorModal(categoryKey = null) {
     const modalTitle = addCategoryModal.querySelector('h3');
