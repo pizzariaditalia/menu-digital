@@ -224,6 +224,59 @@ Acompanhe em tempo real a posição dos entregadores que estão com o aplicativo
 </form>
 </div>
 
+<div class="admin-form" style="margin-top: var(--space-lg);">
+  <h3><i class="fas fa-bullseye"></i> Metas e Projeções Mensais</h3>
+  <p class="form-instruction">
+    Preencha seus custos para calcular a meta de faturamento e acompanhar seu progresso.
+  </p>
+  <div class="form-row">
+    <div class="form-group">
+      <label for="proj-custos-fixos">Custos Fixos Mensais (R$)</label>
+      <input type="number" id="proj-custos-fixos" class="form-control" placeholder="Ex: Aluguel, contas, etc.">
+    </div>
+    <div class="form-group">
+      <label for="proj-custo-variavel">Custo Variável Médio (%)</label>
+      <input type="number" id="proj-custo-variavel" class="form-control" placeholder="Ex: 35 (para 35%)">
+    </div>
+    <div class="form-group">
+      <label for="proj-pro-labore">Seu Salário Desejado (Pró-labore)</label>
+      <input type="number" id="proj-pro-labore" class="form-control" placeholder="Ex: 2000">
+    </div>
+  </div>
+
+  <div id="projection-results-container" style="margin-top: var(--space-md);">
+    <div class="sales-summary-container-v2">
+        <div class="summary-box-v2">
+            <div class="icon" style="background-color: #e2e3e5;"><i class="fas fa-balance-scale" style="color: var(--admin-secondary-gray);"></i></div>
+            <div class="text">
+                <span class="label">Ponto de Equilíbrio</span>
+                <span class="value" id="proj-ponto-equilibrio">R$ 0,00</span>
+            </div>
+        </div>
+        <div class="summary-box-v2">
+            <div class="icon" style="background-color: #d1e7dd;"><i class="fas fa-flag-checkered" style="color: var(--admin-success-green);"></i></div>
+            <div class="text">
+                <span class="label">Meta de Faturamento Mensal</span>
+                <span class="value" id="proj-meta-faturamento">R$ 0,00</span>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: var(--space-lg);">
+        <h4 style="font-weight: 500;">Progresso do Mês Atual</h4>
+        <div class="progress-bar-container">
+            <div id="proj-progress-bar" class="progress-bar-fill" style="width: 0%;">
+                <span id="proj-progress-label">0%</span>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85em; margin-top: 5px;">
+            <span id="proj-faturamento-atual">Faturamento Atual: R$ 0,00</span>
+            <span id="proj-meta-label">Meta: R$ 0,00</span>
+        </div>
+    </div>
+  </div>
+</div>
+
 <div id="lancamentos-history-container" style="margin-top: var(--space-lg);">
 <p class="empty-list-message">
 Carregando lançamentos...
