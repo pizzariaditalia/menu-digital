@@ -1,7 +1,27 @@
-// Arquivo: ingredientes.js
+// Arquivo: ingredientes.js - VERSÃO COMPLETA
 
 let ingredientsSectionInitialized = false;
 const INGREDIENTS_COLLECTION = "ingredientes";
+
+// --- FUNÇÃO DE BUSCA (AGORA PODE SER CHAMADA DE FORA) ---
+async function fetchIngredients() {
+    if (!window.db || !window.firebaseFirestore) return [];
+    const { collection, getDocs, query, orderBy } = window.firebaseFirestore;
+    try {
+        const q = query(collection(window.db, INGREDIENTS_COLLECTION), orderBy("name"));
+        const snapshot = await getDocs(q);
+        // Salva os ingredientes globalmente para serem usados por outros scripts
+        window.allIngredients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return window.allIngredients;
+    } catch (error) {
+        console.error("Erro ao buscar ingredientes:", error);
+        window.showToast("Erro ao carregar ingredientes.", "error");
+        return [];
+    }
+}
+// Exporta a função para que o cardapio.js possa chamá-la
+window.fetchIngredients = fetchIngredients;
+
 
 // Função principal que será chamada pelo cardapio.js
 function initializeIngredientsSection() {
@@ -21,22 +41,10 @@ function initializeIngredientsSection() {
     const listContainer = document.getElementById('ingredients-list-container');
 
     // --- Funções de Interação com o Firestore ---
-    async function fetchIngredients() {
-        const { collection, getDocs, query, orderBy } = window.firebaseFirestore;
-        try {
-            const q = query(collection(window.db, INGREDIENTS_COLLECTION), orderBy("name"));
-            const snapshot = await getDocs(q);
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        } catch (error) {
-            console.error("Erro ao buscar ingredientes:", error);
-            window.showToast("Erro ao carregar ingredientes.", "error");
-            return [];
-        }
-    }
-
     async function saveIngredient(id, data) {
         const { doc, setDoc } = window.firebaseFirestore;
         try {
+            // Usa o ID gerado (ou o nome normalizado) para criar/atualizar o documento
             await setDoc(doc(window.db, INGREDIENTS_COLLECTION, id), data);
             return true;
         } catch (error) {
@@ -98,13 +106,17 @@ function initializeIngredientsSection() {
             if (unit === 'kg' || unit === 'l') {
                 costPerBaseUnit = price / (quantity * 1000);
                 baseUnitLabel = unit === 'kg' ? '/g' : '/ml';
-            } else {
+            } else if (unit === 'g' || unit === 'ml'){
+                costPerBaseUnit = price / quantity;
+                baseUnitLabel = `/${unit}`;
+            }
+            else {
                 costPerBaseUnit = price / quantity;
                 baseUnitLabel = '/un';
             }
         }
         
-        const formattedCost = (costPerBaseUnit * (baseUnitLabel.includes('g') || baseUnitLabel.includes('ml') ? 1 : 1)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 4 });
+        const formattedCost = (costPerBaseUnit).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 4 });
 
         return `
             <tr>
@@ -181,7 +193,6 @@ function initializeIngredientsSection() {
     // --- Função Principal de Execução ---
     async function main() {
         const ingredients = await fetchIngredients();
-        window.allIngredients = ingredients;
         renderIngredientsList(ingredients);
     }
 
