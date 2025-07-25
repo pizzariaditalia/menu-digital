@@ -503,6 +503,54 @@ Carregando bordas...
 </div>
 </div>
 </div>
+<div class="settings-group active" style="margin-top: 2rem; border-top: 2px solid var(--admin-border-color); padding-top: 1rem;">
+  <h3 style="padding: 0 1rem; cursor: default;"><i class="fas fa-carrot"></i> Gerenciar Ingredientes (Ficha Técnica)</h3>
+  <div class="settings-content-wrapper" style="padding: 1rem; display: block;">
+
+    <form id="ingredient-form" class="admin-form" style="padding:var(--space-md); box-shadow: var(--box-shadow-sm); border: 1px solid var(--admin-border-color); border-radius: var(--border-radius-md); margin-bottom: 2rem;">
+      <h4 id="ingredient-form-title">Adicionar Novo Ingrediente</h4>
+      <input type="hidden" id="ingredient-id-hidden">
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="ingredient-name">Nome do Ingrediente</label>
+          <input type="text" id="ingredient-name" class="form-control" placeholder="Ex: Muçarela, Calabresa, Farinha" required>
+        </div>
+        <div class="form-group">
+          <label for="ingredient-price">Preço Pago (R$)</label>
+          <input type="number" id="ingredient-price" class="form-control" placeholder="Ex: 38.90" step="0.01" min="0" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="ingredient-unit">Unidade de Compra</label>
+          <select id="ingredient-unit" class="form-control" required>
+            <option value="kg">Quilograma (kg)</option>
+            <option value="g">Grama (g)</option>
+            <option value="l">Litro (l)</option>
+            <option value="ml">Mililitro (ml)</option>
+            <option value="un">Unidade (un)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="ingredient-quantity">Quantidade na Embalagem</label>
+          <input type="number" id="ingredient-quantity" class="form-control" placeholder="Ex: 1 (para 1kg)" step="0.01" min="0" required>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Salvar Ingrediente</button>
+        <button type="button" id="cancel-edit-ingredient-btn" class="btn btn-secondary hidden"><i class="fas fa-times"></i> Cancelar Edição</button>
+      </div>
+    </form>
+
+    <div id="ingredients-list-container">
+      <p class="empty-list-message">Carregando ingredientes...</p>
+    </div>
+
+  </div>
+</div>
 </section>
 
 <section id="pdv-content" class="admin-view">
