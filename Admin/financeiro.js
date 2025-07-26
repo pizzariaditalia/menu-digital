@@ -1,4 +1,4 @@
-// Arquivo: financeiro.js - VERSÃO COM CORREÇÃO DE INICIALIZAÇÃO SEGURA
+// Arquivo: financeiro.js - VERSÃO COM CORREÇÃO FINAL DE INICIALIZAÇÃO
 
 let financeiroSectionInitialized = false;
 const LANCAMENTOS_COLLECTION = "lancamentos_financeiros";
@@ -140,11 +140,12 @@ async function updateProgressBar(metaFaturamento) {
     progressLabel.textContent = `${progressoPerc.toFixed(1)}%`;
 }
 
-// --- LÓGICA EXISTENTE DA GESTÃO FINANCEIRA ---
+// --- LÓGICA PRINCIPAL DA GESTÃO FINANCEIRA ---
 async function initializeFinanceiroSection() {
-    // CORREÇÃO: Verifica se estamos na página de finanças antes de rodar QUALQUER código
+    // CORREÇÃO DEFINITIVA: Verifica se estamos na página de finanças antes de rodar QUALQUER código.
     const financialView = document.getElementById('financeiro-view');
     if (!financialView || !financialView.classList.contains('active')) {
+        financeiroSectionInitialized = false; // Garante que será inicializado da próxima vez
         return; // Para a execução se não estiver na página correta
     }
 
