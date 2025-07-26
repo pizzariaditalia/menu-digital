@@ -1,9 +1,10 @@
-// Arquivo: financeiro.js - VERSÃO SEM A FUNÇÃO 'formatPrice' DUPLICADA
+// Arquivo: financeiro.js - VERSÃO COM CORREÇÃO DE INICIALIZAÇÃO
 
 let financeiroSectionInitialized = false;
 const LANCAMENTOS_COLLECTION = "lancamentos_financeiros";
 
-// --- NOVA LÓGICA DE PROJEÇÕES ---
+// --- LÓGICA DE PROJEÇÕES ---
+
 function calculateItemCost(item, allIngredients) {
     if (!item.recipe || !Array.isArray(item.recipe) || !allIngredients) return 0;
     function getCostPerBaseUnit(ingredient) {
@@ -65,6 +66,9 @@ async function calculateAndUpdateVariableCost() {
 
 function setupProjections() {
     const custosFixosInput = document.getElementById('proj-custos-fixos');
+    // CORREÇÃO: Adicionamos esta verificação. Se o campo não existe na tela atual, a função para aqui.
+    if (!custosFixosInput) return;
+
     const proLaboreInput = document.getElementById('proj-pro-labore');
     const custoIngredientesInput = document.getElementById('proj-custo-ingredientes');
     const outrosCustosInput = document.getElementById('proj-outros-custos');
@@ -84,6 +88,7 @@ function setupProjections() {
         const outrosCustosPerc = parseFloat(outrosCustosInput.value) || 0;
         const custoVariavelTotalPerc = custoIngredientesPerc + outrosCustosPerc;
         const margemContribuicao = 1 - (custoVariavelTotalPerc / 100);
+
         if (margemContribuicao <= 0) {
             document.getElementById('proj-ponto-equilibrio').textContent = 'Inválido';
             document.getElementById('proj-meta-faturamento').textContent = 'Inválido';
