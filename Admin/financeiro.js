@@ -1,10 +1,9 @@
-// Arquivo: financeiro.js - VERSÃO COM CORREÇÃO FINAL DE INICIALIZAÇÃO
+// Arquivo: financeiro.js - VERSÃO COM CUSTO VARIÁVEL HÍBRIDO
 
 let financeiroSectionInitialized = false;
 const LANCAMENTOS_COLLECTION = "lancamentos_financeiros";
 
-// --- LÓGICA DE PROJEÇÕES ---
-
+// --- NOVA LÓGICA DE PROJEÇÕES ---
 function calculateItemCost(item, allIngredients) {
     if (!item.recipe || !Array.isArray(item.recipe) || !allIngredients) return 0;
     function getCostPerBaseUnit(ingredient) {
@@ -66,8 +65,6 @@ async function calculateAndUpdateVariableCost() {
 
 function setupProjections() {
     const custosFixosInput = document.getElementById('proj-custos-fixos');
-    if (!custosFixosInput) return;
-
     const proLaboreInput = document.getElementById('proj-pro-labore');
     const custoIngredientesInput = document.getElementById('proj-custo-ingredientes');
     const outrosCustosInput = document.getElementById('proj-outros-custos');
@@ -86,25 +83,18 @@ function setupProjections() {
         const custoIngredientesPerc = parseFloat(custoIngredientesInput.value) || 0;
         const outrosCustosPerc = parseFloat(outrosCustosInput.value) || 0;
         const custoVariavelTotalPerc = custoIngredientesPerc + outrosCustosPerc;
+
         const margemContribuicao = 1 - (custoVariavelTotalPerc / 100);
         if (margemContribuicao <= 0) {
             document.getElementById('proj-ponto-equilibrio').textContent = 'Inválido';
             document.getElementById('proj-meta-faturamento').textContent = 'Inválido';
-            document.getElementById('proj-meta-diaria-valor').textContent = 'Inválido';
-            document.getElementById('proj-meta-diaria-pizzas').textContent = 'Inválido';
             return;
         }
         const pontoEquilibrio = custosFixos / margemContribuicao;
         const metaFaturamento = (custosFixos + proLabore) / margemContribuicao;
-        const diasUteis = 26;
-        const metaDiariaValor = metaFaturamento / diasUteis;
-        const precoMedioPizza = 50;
-        const metaDiariaPizzas = Math.ceil(metaDiariaValor / precoMedioPizza);
         document.getElementById('proj-ponto-equilibrio').textContent = formatPrice(pontoEquilibrio);
         document.getElementById('proj-meta-faturamento').textContent = formatPrice(metaFaturamento);
         document.getElementById('proj-meta-label').textContent = `Meta: ${formatPrice(metaFaturamento)}`;
-        document.getElementById('proj-meta-diaria-valor').textContent = formatPrice(metaDiariaValor);
-        document.getElementById('proj-meta-diaria-pizzas').textContent = `${metaDiariaPizzas} pizzas`;
         localStorage.setItem('projCustosFixos', custosFixos);
         localStorage.setItem('projProLabore', proLabore);
         localStorage.setItem('projCustoIngredientes', custoIngredientesPerc);
@@ -116,16 +106,11 @@ function setupProjections() {
         input.addEventListener('input', calculateAndRenderProjections);
     });
     
-    if(calcButton) {
-        calcButton.addEventListener('click', calculateAndUpdateVariableCost);
-    }
+    calcButton.addEventListener('click', calculateAndUpdateVariableCost);
     calculateAndRenderProjections();
 }
 
 async function updateProgressBar(metaFaturamento) {
-    const progressBar = document.getElementById('proj-progress-bar');
-    if(!progressBar) return;
-
     const { collection, query, where, getDocs, Timestamp } = window.firebaseFirestore;
     const db = window.db;
     const today = new Date();
@@ -135,30 +120,19 @@ async function updateProgressBar(metaFaturamento) {
     const faturamentoAtual = ordersSnapshot.docs.map(doc => doc.data()).filter(p => p.status !== 'Cancelado').reduce((sum, order) => sum + (order.totals?.grandTotal || 0), 0);
     const progressoPerc = (metaFaturamento > 0) ? (faturamentoAtual / metaFaturamento) * 100 : 0;
     document.getElementById('proj-faturamento-atual').textContent = `Faturamento Atual: ${formatPrice(faturamentoAtual)}`;
+    const progressBar = document.getElementById('proj-progress-bar');
     const progressLabel = document.getElementById('proj-progress-label');
     progressBar.style.width = `${Math.min(progressoPerc, 100)}%`;
     progressLabel.textContent = `${progressoPerc.toFixed(1)}%`;
 }
 
-// --- LÓGICA PRINCIPAL DA GESTÃO FINANCEIRA ---
 async function initializeFinanceiroSection() {
-    // CORREÇÃO DEFINITIVA: Verifica se estamos na página de finanças antes de rodar QUALQUER código.
-    const financialView = document.getElementById('financeiro-view');
-    if (!financialView || !financialView.classList.contains('active')) {
-        financeiroSectionInitialized = false; // Garante que será inicializado da próxima vez
-        return; // Para a execução se não estiver na página correta
-    }
-
     if (financeiroSectionInitialized) {
-        if(document.getElementById('filter-financial-btn')) {
-            document.getElementById('filter-financial-btn').click();
-        }
-        setupProjections();
+        document.getElementById('filter-financial-btn')?.click();
         return;
     }
     financeiroSectionInitialized = true;
     console.log("Módulo Financeiro.js: Inicializando...");
-
     const startDateInput = document.getElementById('financial-start-date');
     const endDateInput = document.getElementById('financial-end-date');
     const filterBtn = document.getElementById('filter-financial-btn');
@@ -229,44 +203,40 @@ async function initializeFinanceiroSection() {
         });
     }
 
-    if(filterBtn) {
-        filterBtn.addEventListener('click', async () => {
-            const startDate = new Date(startDateInput.value + 'T00:00:00');
-            const endDate = new Date(endDateInput.value + 'T23:59:59');
-            if (startDateInput.value && endDateInput.value) {
-                const data = await fetchFinancialData(startDate, endDate);
-                processAndRenderData(data);
-            } else {
-                window.showToast("Por favor, selecione data de início e fim.", "warning");
-            }
-        });
-    }
+    filterBtn.addEventListener('click', async () => {
+        const startDate = new Date(startDateInput.value + 'T00:00:00');
+        const endDate = new Date(endDateInput.value + 'T23:59:59');
+        if (startDateInput.value && endDateInput.value) {
+            const data = await fetchFinancialData(startDate, endDate);
+            processAndRenderData(data);
+        } else {
+            window.showToast("Por favor, selecione data de início e fim.", "warning");
+        }
+    });
 
-    if(lancamentoForm) {
-        lancamentoForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const { collection, addDoc, Timestamp } = window.firebaseFirestore;
-            const formData = { 
-                description: document.getElementById('lancamento-descricao').value, 
-                value: parseFloat(document.getElementById('lancamento-valor').value), 
-                type: document.getElementById('lancamento-tipo').value, 
-                date: Timestamp.fromDate(new Date(document.getElementById('lancamento-data').value + 'T12:00:00')) 
-            };
-            if (!formData.description || isNaN(formData.value) || !formData.date) {
-                window.showToast("Preencha todos os campos do lançamento.", "error"); return;
-            }
-            try {
-                await addDoc(collection(window.db, LANCAMENTOS_COLLECTION), formData);
-                window.showToast("Lançamento salvo com sucesso!", "success");
-                lancamentoForm.reset();
-                document.getElementById('lancamento-data').valueAsDate = new Date();
-                filterBtn.click();
-            } catch (error) {
-                console.error("Erro ao salvar lançamento: ", error);
-                window.showToast("Erro ao salvar lançamento.", "error");
-            }
-        });
-    }
+    lancamentoForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const { collection, addDoc, Timestamp } = window.firebaseFirestore;
+        const formData = { 
+            description: document.getElementById('lancamento-descricao').value, 
+            value: parseFloat(document.getElementById('lancamento-valor').value), 
+            type: document.getElementById('lancamento-tipo').value, 
+            date: Timestamp.fromDate(new Date(document.getElementById('lancamento-data').value + 'T12:00:00')) 
+        };
+        if (!formData.description || isNaN(formData.value) || !formData.date) {
+            window.showToast("Preencha todos os campos do lançamento.", "error"); return;
+        }
+        try {
+            await addDoc(collection(window.db, LANCAMENTOS_COLLECTION), formData);
+            window.showToast("Lançamento salvo com sucesso!", "success");
+            lancamentoForm.reset();
+            document.getElementById('lancamento-data').valueAsDate = new Date();
+            filterBtn.click();
+        } catch (error) {
+            console.error("Erro ao salvar lançamento: ", error);
+            window.showToast("Erro ao salvar lançamento.", "error");
+        }
+    });
 
     const today = new Date();
     endDateInput.valueAsDate = today;
@@ -277,5 +247,7 @@ async function initializeFinanceiroSection() {
     
     setupProjections();
 }
+
+const formatPrice = (price) => typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
 
 window.initializeFinanceiroSection = initializeFinanceiroSection;
