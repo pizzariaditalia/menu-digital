@@ -4,7 +4,6 @@ let financeiroSectionInitialized = false;
 const LANCAMENTOS_COLLECTION = "lancamentos_financeiros";
 
 // --- LÓGICA DE PROJEÇÕES ---
-
 function calculateItemCost(item, allIngredients) {
     if (!item.recipe || !Array.isArray(item.recipe) || !allIngredients) return 0;
     function getCostPerBaseUnit(ingredient) {
@@ -280,7 +279,5 @@ async function initializeFinanceiroSection() {
     setupProjections();
 }
 
-// A função formatPrice é removida daqui para não causar duplicidade
-// window.formatPrice = (price) => ...
-
+// A função formatPrice é global e não precisa ser redeclarada aqui
 window.initializeFinanceiroSection = initializeFinanceiroSection;
