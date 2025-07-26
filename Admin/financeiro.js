@@ -48,6 +48,8 @@ async function calculateAndUpdateVariableCost() {
         });
         if (totalRevenue === 0) {
             window.showToast("Nenhuma venda encontrada no último mês para calcular a média.", "warning");
+            calcButton.disabled = false;
+            calcButton.textContent = 'Calcular';
             return;
         }
         const variableCostPercentage = (totalIngredientsCost / totalRevenue) * 100;
@@ -145,7 +147,7 @@ async function initializeFinanceiroSection() {
     // CORREÇÃO DEFINITIVA: Verifica se estamos na página de finanças antes de rodar QUALQUER código.
     const financialView = document.getElementById('financeiro-view');
     if (!financialView || !financialView.classList.contains('active')) {
-        financeiroSectionInitialized = false; // Garante que será inicializado da próxima vez que a página for aberta
+        financeiroSectionInitialized = false; // Garante que será inicializado da próxima vez
         return; // Para a execução se não estiver na página correta
     }
 
@@ -153,7 +155,7 @@ async function initializeFinanceiroSection() {
         if(document.getElementById('filter-financial-btn')) {
             document.getElementById('filter-financial-btn').click();
         }
-        setupProjections(); // Garante que a lógica de projeções seja re-executada se necessário
+        setupProjections();
         return;
     }
     financeiroSectionInitialized = true;
