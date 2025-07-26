@@ -1,44 +1,59 @@
-// Arquivo: financeiro.js - VERSÃO COM CORREÇÃO DE INICIALIZAÇÃO
+// Arquivo: financeiro.js - VERSÃO COMPLETA E FINAL COM METAS DIÁRIAS E CORREÇÃO DE INICIALIZAÇÃO
 
 let financeiroSectionInitialized = false;
 const LANCAMENTOS_COLLECTION = "lancamentos_financeiros";
 
-// --- LÓGICA DE PROJEÇÕES ---
+// --- NOVA LÓGICA DE PROJEÇÕES ---
 
+// Função que calcula o custo de um único item com base na sua ficha técnica
 function calculateItemCost(item, allIngredients) {
     if (!item.recipe || !Array.isArray(item.recipe) || !allIngredients) return 0;
+
     function getCostPerBaseUnit(ingredient) {
         if (!ingredient || typeof ingredient.price !== 'number' || typeof ingredient.quantity !== 'number' || ingredient.quantity === 0) return 0;
         if (ingredient.unit === 'kg' || ingredient.unit === 'l') return ingredient.price / (ingredient.quantity * 1000);
         if (ingredient.unit === 'g' || ingredient.unit === 'ml') return ingredient.price / ingredient.quantity;
         return ingredient.price / ingredient.quantity;
     }
+
     return item.recipe.reduce((total, recipeItem) => {
         const ingredient = allIngredients.find(i => i.id === recipeItem.id);
         return total + (getCostPerBaseUnit(ingredient) * recipeItem.quantity);
     }, 0);
 }
 
+// Função principal que busca as vendas e calcula o custo variável real
 async function calculateAndUpdateVariableCost() {
     const calcButton = document.getElementById('calculate-variable-cost-btn');
     calcButton.disabled = true;
     calcButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
     window.showToast("Analisando vendas e fichas técnicas do último mês...", "info");
+
     const { collection, query, where, getDocs, Timestamp } = window.firebaseFirestore;
     const db = window.db;
+
     const endDate = new Date();
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - 1);
+
     try {
         const ordersQuery = query(collection(db, "pedidos"), where('createdAt', '>=', Timestamp.fromDate(startDate)), where('createdAt', '<=', Timestamp.fromDate(endDate)));
         const ingredientsQuery = query(collection(db, "ingredientes"));
-        const [ordersSnapshot, ingredientsSnapshot] = await Promise.all([getDocs(ordersQuery), getDocs(ingredientsQuery)]);
+
+        const [ordersSnapshot, ingredientsSnapshot] = await Promise.all([
+            getDocs(ordersQuery),
+            getDocs(ingredientsQuery)
+        ]);
+
         const allIngredients = ingredientsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
         let totalRevenue = 0;
         let totalIngredientsCost = 0;
+
         ordersSnapshot.docs.forEach(doc => {
             const order = doc.data();
             if (order.status === 'Cancelado') return;
+
             totalRevenue += order.totals?.grandTotal || 0;
             if (order.items && Array.isArray(order.items)) {
                 order.items.forEach(item => {
@@ -46,15 +61,21 @@ async function calculateAndUpdateVariableCost() {
                 });
             }
         });
+
         if (totalRevenue === 0) {
             window.showToast("Nenhuma venda encontrada no último mês para calcular a média.", "warning");
             return;
         }
+
         const variableCostPercentage = (totalIngredientsCost / totalRevenue) * 100;
+        
         const custoIngredientesInput = document.getElementById('proj-custo-ingredientes');
         custoIngredientesInput.value = variableCostPercentage.toFixed(2);
+        
         custoIngredientesInput.dispatchEvent(new Event('input'));
+        
         window.showToast(`Custo de Ingredientes calculado: ${variableCostPercentage.toFixed(2)}%`, "success");
+
     } catch (error) {
         console.error("Erro ao calcular custo variável:", error);
         window.showToast("Erro ao calcular custo. Verifique o console.", "error");
@@ -66,8 +87,10 @@ async function calculateAndUpdateVariableCost() {
 
 function setupProjections() {
     const custosFixosInput = document.getElementById('proj-custos-fixos');
-    // CORREÇÃO: Adicionamos esta verificação. Se o campo não existe na tela atual, a função para aqui.
-    if (!custosFixosInput) return;
+    // CORREÇÃO: Verifica se o elemento principal existe antes de continuar
+    if (!custosFixosInput) {
+        return;
+    }
 
     const proLaboreInput = document.getElementById('proj-pro-labore');
     const custoIngredientesInput = document.getElementById('proj-custo-ingredientes');
@@ -125,6 +148,9 @@ function setupProjections() {
 }
 
 async function updateProgressBar(metaFaturamento) {
+    const progressBar = document.getElementById('proj-progress-bar');
+    if(!progressBar) return;
+
     const { collection, query, where, getDocs, Timestamp } = window.firebaseFirestore;
     const db = window.db;
     const today = new Date();
@@ -134,7 +160,6 @@ async function updateProgressBar(metaFaturamento) {
     const faturamentoAtual = ordersSnapshot.docs.map(doc => doc.data()).filter(p => p.status !== 'Cancelado').reduce((sum, order) => sum + (order.totals?.grandTotal || 0), 0);
     const progressoPerc = (metaFaturamento > 0) ? (faturamentoAtual / metaFaturamento) * 100 : 0;
     document.getElementById('proj-faturamento-atual').textContent = `Faturamento Atual: ${formatPrice(faturamentoAtual)}`;
-    const progressBar = document.getElementById('proj-progress-bar');
     const progressLabel = document.getElementById('proj-progress-label');
     progressBar.style.width = `${Math.min(progressoPerc, 100)}%`;
     progressLabel.textContent = `${progressoPerc.toFixed(1)}%`;
@@ -143,7 +168,9 @@ async function updateProgressBar(metaFaturamento) {
 // --- LÓGICA EXISTENTE DA GESTÃO FINANCEIRA ---
 async function initializeFinanceiroSection() {
     if (financeiroSectionInitialized) {
-        document.getElementById('filter-financial-btn')?.click();
+        if(document.getElementById('filter-financial-btn')) {
+            document.getElementById('filter-financial-btn').click();
+        }
         return;
     }
     financeiroSectionInitialized = true;
@@ -219,40 +246,44 @@ async function initializeFinanceiroSection() {
         });
     }
 
-    filterBtn.addEventListener('click', async () => {
-        const startDate = new Date(startDateInput.value + 'T00:00:00');
-        const endDate = new Date(endDateInput.value + 'T23:59:59');
-        if (startDateInput.value && endDateInput.value) {
-            const data = await fetchFinancialData(startDate, endDate);
-            processAndRenderData(data);
-        } else {
-            window.showToast("Por favor, selecione data de início e fim.", "warning");
-        }
-    });
+    if(filterBtn) {
+        filterBtn.addEventListener('click', async () => {
+            const startDate = new Date(startDateInput.value + 'T00:00:00');
+            const endDate = new Date(endDateInput.value + 'T23:59:59');
+            if (startDateInput.value && endDateInput.value) {
+                const data = await fetchFinancialData(startDate, endDate);
+                processAndRenderData(data);
+            } else {
+                window.showToast("Por favor, selecione data de início e fim.", "warning");
+            }
+        });
+    }
 
-    lancamentoForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const { collection, addDoc, Timestamp } = window.firebaseFirestore;
-        const formData = { 
-            description: document.getElementById('lancamento-descricao').value, 
-            value: parseFloat(document.getElementById('lancamento-valor').value), 
-            type: document.getElementById('lancamento-tipo').value, 
-            date: Timestamp.fromDate(new Date(document.getElementById('lancamento-data').value + 'T12:00:00')) 
-        };
-        if (!formData.description || isNaN(formData.value) || !formData.date) {
-            window.showToast("Preencha todos os campos do lançamento.", "error"); return;
-        }
-        try {
-            await addDoc(collection(window.db, LANCAMENTOS_COLLECTION), formData);
-            window.showToast("Lançamento salvo com sucesso!", "success");
-            lancamentoForm.reset();
-            document.getElementById('lancamento-data').valueAsDate = new Date();
-            filterBtn.click();
-        } catch (error) {
-            console.error("Erro ao salvar lançamento: ", error);
-            window.showToast("Erro ao salvar lançamento.", "error");
-        }
-    });
+    if(lancamentoForm) {
+        lancamentoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const { collection, addDoc, Timestamp } = window.firebaseFirestore;
+            const formData = { 
+                description: document.getElementById('lancamento-descricao').value, 
+                value: parseFloat(document.getElementById('lancamento-valor').value), 
+                type: document.getElementById('lancamento-tipo').value, 
+                date: Timestamp.fromDate(new Date(document.getElementById('lancamento-data').value + 'T12:00:00')) 
+            };
+            if (!formData.description || isNaN(formData.value) || !formData.date) {
+                window.showToast("Preencha todos os campos do lançamento.", "error"); return;
+            }
+            try {
+                await addDoc(collection(window.db, LANCAMENTOS_COLLECTION), formData);
+                window.showToast("Lançamento salvo com sucesso!", "success");
+                lancamentoForm.reset();
+                document.getElementById('lancamento-data').valueAsDate = new Date();
+                filterBtn.click();
+            } catch (error) {
+                console.error("Erro ao salvar lançamento: ", error);
+                window.showToast("Erro ao salvar lançamento.", "error");
+            }
+        });
+    }
 
     const today = new Date();
     endDateInput.valueAsDate = today;
