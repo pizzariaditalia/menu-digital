@@ -1,4 +1,4 @@
-// Arquivo: financeiro.js - VERSÃO COM CORREÇÃO DE INICIALIZAÇÃO
+// Arquivo: financeiro.js - VERSÃO COM CORREÇÃO DE INICIALIZAÇÃO SEGURA
 
 let financeiroSectionInitialized = false;
 const LANCAMENTOS_COLLECTION = "lancamentos_financeiros";
@@ -66,10 +66,7 @@ async function calculateAndUpdateVariableCost() {
 
 function setupProjections() {
     const custosFixosInput = document.getElementById('proj-custos-fixos');
-    // CORREÇÃO: Adicionamos esta verificação. Se o campo não existe na tela atual, a função para aqui.
-    if (!custosFixosInput) {
-        return;
-    }
+    if (!custosFixosInput) return;
 
     const proLaboreInput = document.getElementById('proj-pro-labore');
     const custoIngredientesInput = document.getElementById('proj-custo-ingredientes');
@@ -145,11 +142,16 @@ async function updateProgressBar(metaFaturamento) {
 
 // --- LÓGICA EXISTENTE DA GESTÃO FINANCEIRA ---
 async function initializeFinanceiroSection() {
+    // CORREÇÃO: Verifica se estamos na página de finanças antes de rodar QUALQUER código
+    const financialView = document.getElementById('financeiro-view');
+    if (!financialView || !financialView.classList.contains('active')) {
+        return; // Para a execução se não estiver na página correta
+    }
+
     if (financeiroSectionInitialized) {
         if(document.getElementById('filter-financial-btn')) {
             document.getElementById('filter-financial-btn').click();
         }
-        // Garante que a lógica de projeções seja re-executada se necessário
         setupProjections();
         return;
     }
