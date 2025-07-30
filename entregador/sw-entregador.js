@@ -38,7 +38,7 @@ messaging.onBackgroundMessage(function(payload) {
 });
 
 // A sua lógica de cache continua a mesma
-const CACHE_NAME = 'ditalia-entregador-cache-v102'; // Versão incrementada
+const CACHE_NAME = 'ditalia-entregador-cache-v103'; // Versão incrementada
 const URLS_TO_CACHE = [
   './',
   './login.html',
