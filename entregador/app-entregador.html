@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D'Italia Entregador</title>
+  <link rel="stylesheet" href="style-entregador.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+  <link rel="manifest" href="manifest-entregador.json">
+  <meta name="theme-color" content="#333333">
+ <!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+<script>
+  eruda.init();
+</script> -->
+</head>
+<body class="app-view">
+
+  <div id="app-loader" class="loading-state" style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh;">
+    <div class="spinner"></div>
+    <p>
+      Verificando sessão...
+    </p>
+  </div>
+
+  <div id="app-content" class="hidden">
+    <header class="app-header">
+      <div class="header-content">
+        <div class="driver-info">
+          <i class="fas fa-motorcycle"></i>
+          <div class="driver-details">
+            <span id="driver-name">Carregando...</span>
+            <span id="driver-balance" class="driver-balance"></span>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button id="home-btn" class="header-icon-btn active" title="Início / Entregas">
+            <i class="fas fa-home"></i>
+          </button>
+          <button id="financial-btn" class="header-icon-btn" title="Meu Caixa">
+            <i class="fas fa-money-bill-wave"></i>
+          </button>
+          <button id="achievements-btn" class="header-icon-btn" title="Ver Conquistas">
+            <i class="fas fa-trophy"></i>
+          </button>
+          <button id="history-btn" class="header-icon-btn" title="Ver Histórico do Dia">
+            <i class="fas fa-history"></i>
+          </button>
+          <button id="logout-btn" class="header-icon-btn" title="Sair">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <div id="current-deliveries-section">
+        <div class="daily-summary-card">
+          <div class="summary-item">
+            <span class="label">Total Taxas do Dia</span>
+            <span class="value" id="today-fees-value">R$ 0,00</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Entregas Finalizadas</span>
+            <span class="value" id="today-deliveries-count">0</span>
+          </div>
+        </div>
+        <h3>Entregas Disponíveis</h3>
+        <div id="delivery-queue-list">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>
+              Aguardando novas entregas...
+            </p>
+          </div>
+        </div>
+      </div>
+      <div id="history-section" class="hidden">
+        <h3>Histórico de Entregas</h3>
+        <div id="history-filter-controls" class="history-filter-card">
+          <div class="filter-group">
+            <label for="start-date">Data de Início:</label>
+            <input type="date" id="start-date" class="form-control">
+          </div>
+          <div class="filter-group">
+            <label for="end-date">Data de Fim:</label>
+            <input type="date" id="end-date" class="form-control">
+          </div>
+          <button id="filter-history-btn" class="btn">Buscar</button>
+        </div>
+        <div id="history-summary" class="history-summary-card">
+          <div class="summary-item">
+            <span class="label">Total de Taxas a Receber</span>
+            <span class="value" id="total-fees-value">R$ 0,00</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Entregas Finalizadas</span>
+            <span class="value" id="total-deliveries-count">0</span>
+          </div>
+        </div>
+        <div id="history-list"></div>
+      </div>
+    </main>
+
+    <div id="financial-control-view" class="hidden app-main">
+      <div id="financial-control-card" class="card">
+        <h2>Meu Caixa</h2>
+        <div class="saldo-container">
+          <h3>Saldo Atual: <span id="saldo-atual-view">R$ 0,00</span></h3>
+        </div>
+        <form id="form-financeiro">
+          <select id="tipo-movimentacao" required>
+            <option value="receita">Receita (Entrada)</option>
+            <option value="retirada">Retirada (Saída)</option>
+          </select>
+          <input type="number" id="valor-movimentacao" placeholder="Valor (R$)" step="0.01" required>
+          <input type="text" id="descricao-movimentacao" placeholder="Descrição (Ex: Taxa Pedido)" required>
+          <button type="submit">Adicionar Lançamento</button>
+          <button type="button" id="request-withdrawal-btn" class="btn btn-secondary">
+            <i class="fab fa-whatsapp"></i> Solicitar Saque
+          </button>
+        </form>
+        <div class="historico-container">
+          <h4>Histórico de Lançamentos</h4>
+          <ul id="lista-historico-financeiro">
+            <li>Nenhum lançamento ainda.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div id="delivery-details-modal" class="modal-view">
+    <div class="modal-content">
+      <header class="modal-header">
+        <h3>Detalhes da Entrega</h3>
+        <button class="close-modal-btn">×</button>
+      </header>
+      <main class="modal-body">
+        <p>
+          Carregando detalhes...
+        </p>
+      </main>
+      <footer class="modal-footer">
+        <button id="btn-send-message" class="btn btn-secondary">
+          <i class="fas fa-comment-dots"></i> Enviar Mensagem
+        </button>
+        <button id="btn-delivery-action" class="btn btn-primary">
+          <i class="fas fa-motorcycle"></i> Saindo para Entrega
+        </button>
+        <button id="btn-complete-delivery" class="btn btn-success">
+          <i class="fas fa-check-circle"></i> Entrega Finalizada
+        </button>
+      </footer>
+    </div>
+  </div>
+  <div id="achievements-modal" class="modal-view">
+    <div class="modal-content">
+      <header class="modal-header">
+        <h3><i class="fas fa-trophy" style="color: #f1c40f;"></i> Minhas Conquistas</h3>
+        <button class="close-modal-btn">×</button>
+      </header>
+      <main class="modal-body" id="achievements-list">
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>
+            Carregando suas medalhas...
+          </p>
+        </div>
+      </main>
+    </div>
+  </div>
+  <div id="quick-message-modal" class="modal-view">
+    <div class="modal-content">
+      <header class="modal-header">
+        <h3>Enviar Mensagem Rápida</h3>
+        <button class="close-modal-btn">×</button>
+      </header>
+      <main class="modal-body" id="quick-message-list">
+        <button class="quick-message-btn" data-message="Trânsito intenso, vou atrasar um pouco.">Trânsito intenso, vou atrasar um pouco.</button>
+        <button class="quick-message-btn" data-message="Endereço não encontrado, tentando contato.">Endereço não encontrado, tentando contato.</button>
+        <button class="quick-message-btn" data-message="Cliente não atende o telefone.">Cliente não atende o telefone.</button>
+        <button class="quick-message-btn" data-message="Problema com o pedido, preciso de ajuda.">Problema com o pedido, preciso de ajuda.</button>
+        <button class="quick-message-btn" data-message="Cheguei ao local.">Cheguei ao local.</button>
+      </main>
+    </div>
+  </div>
+  <div id="notification-prompt-modal" class="modal-view">
+    <div class="modal-content" style="max-width: 420px; border-radius: 16px;">
+        <div class="modal-body" style="padding: 30px; text-align: center;">
+            <i class="fas fa-bell" style="font-size: 2.5em; color: var(--primary-red); margin-bottom: 15px;"></i>
+            <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 1.4em;">Não Perca Nenhuma Entrega!</h3>
+            <p style="color: var(--medium-gray); line-height: 1.6;">
+                Ative as notificações para ser avisado em tempo real sempre que um novo pedido for atribuído a você.
+            </p>
+            <div class="form-actions" style="margin-top: 25px; display:flex; flex-direction: column; gap: 10px;">
+                <button id="prompt-activate-notifications-btn" class="btn btn-primary" style="width: 100%; padding: 12px;">Sim, quero ativar!</button>
+                <button id="prompt-decline-notifications-btn" class="btn btn-secondary-outline" style="width: 100%; padding: 12px; border: none;">Agora não</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+  <script type="module">
+    import {
+      initializeApp
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    const firebaseConfig = {
+    apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
+    authDomain: "app-ditalia.firebaseapp.com",
+    projectId: "app-ditalia",
+    storageBucket: "app-ditalia.firebasestorage.app",
+    messagingSenderId: "122567535166",
+    appId: "1:122567535166:web:19de7b8925042027063f6f",
+    measurementId: "G-5QW3MVGYME"
+};
+    const app = initializeApp(firebaseConfig);
+    window.db = getFirestore(app);
+    window.auth = getAuth(app);
+  </script>
+  <script type="module" src="app-entregador.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw-entregador.js')
+        .then((reg) => console.log('Service Worker do Entregador registrado!', reg.scope))
+        .catch((err) => console.log('Falha ao registrar Service Worker:', err));
+      });
+    }
+  </script>
+
+</body>
+</html>
