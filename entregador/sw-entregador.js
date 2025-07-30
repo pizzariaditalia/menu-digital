@@ -32,7 +32,7 @@ messaging.onBackgroundMessage(function(payload) {
 });
 
 // A LÓGICA DE CACHE COM A VERSÃO ATUALIZADA
-const CACHE_NAME = 'ditalia-entregador-cache-v200'; // VERSÃO ATUALIZADA
+const CACHE_NAME = 'ditalia-entregador-cache-v210'; // VERSÃO ATUALIZADA
 const URLS_TO_CACHE = [
   './',
   './login.html',
