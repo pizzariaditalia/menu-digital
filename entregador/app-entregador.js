@@ -1,5 +1,6 @@
-// app-entregador.js - VERSÃO DE TESTE COM FLAG VISUAL
+// app-entregador.js - VERSÃO 100% COMPLETA E FINAL COM POP-UP DE NOTIFICAÇÃO
 
+// Importa funções do Firebase
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, updateDoc, Timestamp, orderBy, getDocs, runTransaction, addDoc, serverTimestamp, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
@@ -12,10 +13,11 @@ let historicalOrders = [];
 let selectedOrder = null;
 let isFirstLoad = true;
 
+// --- USA AS INSTÂNCIAS GLOBAIS CRIADAS PELO HTML ---
 const db = window.db;
 const auth = window.auth;
 
-// --- Seletores de Elementos do DOM ---
+// --- SELETORES DE ELEMENTOS DO DOM ---
 const driverNameSpan = document.getElementById('driver-name');
 const driverBalanceSpan = document.getElementById('driver-balance');
 const logoutBtn = document.getElementById('logout-btn');
@@ -57,14 +59,16 @@ const todayFeesEl = document.getElementById('today-fees-value');
 const todayCountEl = document.getElementById('today-deliveries-count');
 const requestWithdrawalBtn = document.getElementById('request-withdrawal-btn');
 
-// Lógica de Notificações
+// ===================================================================
+// LÓGICA DE NOTIFICAÇÕES (ATUALIZADA)
+// ===================================================================
 async function requestAndSaveToken(driverDocId) {
     if (!driverDocId) return;
     try {
         const messaging = getMessaging();
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-            const vapidKey = 'BMYSc8laKJbTISeIp7KpYrdP9M3gvyums_RphL8xJ8_IxPyi_aTIjIMsCNvA3sXiuLBeqvr5bwPDX5Ji9gEsHCQ';
+            const vapidKey = 'BEu5mwSdY7ci-Tl8lUJcrq12Ct1w62_2ywucGfPq0FanERTxEUk7wB9PK37dxxles-9jpbN2nsrv3S2xnzelqYU';
             const currentToken = await getToken(messaging, { vapidKey: vapidKey });
             if (currentToken) {
                 const driverRef = doc(db, "delivery_people", driverDocId);
@@ -86,23 +90,28 @@ async function requestAndSaveToken(driverDocId) {
 function initializeNotificationPrompt(driverDocId) {
     const promptModal = document.getElementById('notification-prompt-modal');
     if (!promptModal || !('Notification' in window)) return;
+
     const permissionStatus = Notification.permission;
     if (permissionStatus === 'default') {
         const activateBtn = document.getElementById('prompt-activate-notifications-btn');
         const declineBtn = document.getElementById('prompt-decline-notifications-btn');
+
         const closeModal = () => promptModal.classList.remove('show');
+
         activateBtn.addEventListener('click', () => {
             requestAndSaveToken(driverDocId);
             closeModal();
         });
+
         declineBtn.addEventListener('click', closeModal);
+
         setTimeout(() => {
             promptModal.classList.add('show');
         }, 3000);
     }
 }
 
-// Rastreamento de Localização
+// --- RASTREAMENTO DE LOCALIZAÇÃO ---
 function startLocationTracking(driverId) {
   if (locationWatcherId) {
     navigator.geolocation.clearWatch(locationWatcherId);
@@ -125,7 +134,9 @@ function startLocationTracking(driverId) {
           console.error("Erro ao salvar localização do entregador:", error);
         }
       },
-      (error) => { console.error("Erro no Geolocation: ", error.message); },
+      (error) => {
+        console.error("Erro no Geolocation: ", error.message);
+      },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
     );
   }
@@ -139,7 +150,7 @@ function stopLocationTracking() {
   }
 }
 
-// Conquistas
+// --- Define a estrutura das conquistas ---
 const ACHIEVEMENTS = {
   '10_deliveries': { name: 'Entregador Iniciante', description: 'Complete 10 entregas', requiredCount: 10, icon: 'fa-baby-carriage' },
   '50_deliveries': { name: 'Entregador Experiente', description: 'Complete 50 entregas', requiredCount: 50, icon: 'fa-motorcycle' },
@@ -147,8 +158,9 @@ const ACHIEVEMENTS = {
   '250_deliveries': { name: 'Lenda das Ruas', description: 'Complete 250 entregas', requiredCount: 250, icon: 'fa-crown' }
 };
 
-// Funções Utilitárias
+// --- FUNÇÕES UTILITÁRIAS ---
 const formatPrice = (price) => typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
+
 function showView(viewName) {
   Object.values(mainViews).forEach(view => { if(view) view.classList.add('hidden'); });
   if (mainViews[viewName]) mainViews[viewName].classList.remove('hidden');
@@ -156,6 +168,7 @@ function showView(viewName) {
   historyBtn.classList.toggle('active', viewName === 'history');
   financialBtn.classList.toggle('active', viewName === 'financial');
 }
+
 window.showToast = function(message, type = 'success') {
   const toast = document.createElement('div');
   toast.className = `toast-notification ${type}`;
@@ -310,6 +323,7 @@ function renderHistory(orders) {
     addCardClickListeners(historyList, historicalOrders);
 }
 
+// --- LÓGICA PRINCIPAL ---
 async function listenForHistory(driverId, startDate, endDate) {
     if (!historyList) return;
     historyList.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Buscando...</p></div>`;
@@ -470,16 +484,6 @@ if (requestWithdrawalBtn) {
 
 // --- LÓGICA DE AUTENTICAÇÃO E INICIALIZAÇÃO ---
 onAuthStateChanged(auth, async (user) => {
-    // =================================================================
-    // AQUI ESTÁ A MUDANÇA PRINCIPAL PARA O NOSSO TESTE
-    // Verifica se o Service Worker deixou uma "anotação" para nós
-    const swMessageFlag = localStorage.getItem('sw_message_received');
-    if (swMessageFlag) {
-        alert('SUCESSO! O Service Worker recebeu uma mensagem em segundo plano: ' + swMessageFlag);
-        localStorage.removeItem('sw_message_received'); // Limpa a flag para o próximo teste
-    }
-    // =================================================================
-
     const appLoader = document.getElementById('app-loader');
     const appContent = document.getElementById('app-content');
     if (user) {
@@ -511,6 +515,7 @@ onAuthStateChanged(auth, async (user) => {
         updateDailySummaryVisuals(correctDriverId);
         startLocationTracking(user.uid);
         
+        // Chama a função para verificar e mostrar o pop-up de notificação
         initializeNotificationPrompt(correctDriverId);
 
         showView('deliveries');
