@@ -1,6 +1,5 @@
-// app-entregador.js - VERSÃO 100% COMPLETA E FINAL COM POP-UP DE NOTIFICAÇÃO
+// app-entregador.js - VERSÃO DE TESTE PARA VERIFICAR O STATUS DA PERMISSÃO
 
-// Importa funções do Firebase
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, updateDoc, Timestamp, orderBy, getDocs, runTransaction, addDoc, serverTimestamp, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
@@ -59,9 +58,6 @@ const todayFeesEl = document.getElementById('today-fees-value');
 const todayCountEl = document.getElementById('today-deliveries-count');
 const requestWithdrawalBtn = document.getElementById('request-withdrawal-btn');
 
-// ===================================================================
-// LÓGICA DE NOTIFICAÇÕES (ATUALIZADA)
-// ===================================================================
 async function requestAndSaveToken(driverDocId) {
     if (!driverDocId) return;
     try {
@@ -111,7 +107,6 @@ function initializeNotificationPrompt(driverDocId) {
     }
 }
 
-// --- RASTREAMENTO DE LOCALIZAÇÃO ---
 function startLocationTracking(driverId) {
   if (locationWatcherId) {
     navigator.geolocation.clearWatch(locationWatcherId);
@@ -150,7 +145,6 @@ function stopLocationTracking() {
   }
 }
 
-// --- Define a estrutura das conquistas ---
 const ACHIEVEMENTS = {
   '10_deliveries': { name: 'Entregador Iniciante', description: 'Complete 10 entregas', requiredCount: 10, icon: 'fa-baby-carriage' },
   '50_deliveries': { name: 'Entregador Experiente', description: 'Complete 50 entregas', requiredCount: 50, icon: 'fa-motorcycle' },
@@ -158,7 +152,6 @@ const ACHIEVEMENTS = {
   '250_deliveries': { name: 'Lenda das Ruas', description: 'Complete 250 entregas', requiredCount: 250, icon: 'fa-crown' }
 };
 
-// --- FUNÇÕES UTILITÁRIAS ---
 const formatPrice = (price) => typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
 
 function showView(viewName) {
@@ -181,7 +174,6 @@ window.showToast = function(message, type = 'success') {
   }, 3000);
 }
 
-// --- LÓGICA DO CHAT ---
 if (btnSendMessage) {
   btnSendMessage.addEventListener('click', () => {
     if (selectedOrder) quickMessageModal.classList.add('show');
@@ -216,7 +208,6 @@ if (quickMessageModal) {
   });
 }
 
-// --- LÓGICA DAS CONQUISTAS ---
 function renderAchievements() {
   if (!achievementsListDiv || !currentDriverProfile) return;
   achievementsListDiv.innerHTML = Object.keys(ACHIEVEMENTS).map(id => {
@@ -268,7 +259,6 @@ async function checkAndAwardAchievements(driverRef) {
   }
 }
 
-// --- FUNÇÕES DE RENDERIZAÇÃO E UI ---
 function createDeliveryCard(order) {
     const status = order.status || 'Indefinido';
     let paymentTagHTML = '';
@@ -323,7 +313,6 @@ function renderHistory(orders) {
     addCardClickListeners(historyList, historicalOrders);
 }
 
-// --- LÓGICA PRINCIPAL ---
 async function listenForHistory(driverId, startDate, endDate) {
     if (!historyList) return;
     historyList.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Buscando...</p></div>`;
@@ -482,8 +471,10 @@ if (requestWithdrawalBtn) {
     });
 }
 
-// --- LÓGICA DE AUTENTICAÇÃO E INICIALIZAÇÃO ---
 onAuthStateChanged(auth, async (user) => {
+    // LINHA DE TESTE ADICIONADA:
+    alert('Status atual da permissão de notificação: ' + Notification.permission);
+
     const appLoader = document.getElementById('app-loader');
     const appContent = document.getElementById('app-content');
     if (user) {
@@ -515,7 +506,6 @@ onAuthStateChanged(auth, async (user) => {
         updateDailySummaryVisuals(correctDriverId);
         startLocationTracking(user.uid);
         
-        // Chama a função para verificar e mostrar o pop-up de notificação
         initializeNotificationPrompt(correctDriverId);
 
         showView('deliveries');
