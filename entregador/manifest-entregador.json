@@ -1,0 +1,24 @@
+{
+  "name": "D'Italia Entregador",
+  "short_name": "D'italia Entregador",
+  "id": "/entregador/",
+  "start_url": "/entregador/app-entregador.html",
+  "display": "standalone",
+  "background_color": "#333333",
+  "theme_color": "#333333",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "../img/icons/icon-entregador.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../img/icons/icon-entregador.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}

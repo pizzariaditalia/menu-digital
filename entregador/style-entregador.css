@@ -1,0 +1,955 @@
+/* ============================================= */
+/* --- ESTILOS GERAIS E TELA DE LOGIN --- */
+/* ============================================= */
+
+:root {
+    --primary-red: #d32f2f;
+    --primary-yellow: #ffc107;
+    --light-gray-bg: #f5f5f5;
+    --dark-text: #333333;
+    --light-text: #757575;
+    --white: #ffffff;
+    --border-color: #e0e0e0;
+    --success-green: #28a745;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: var(--light-gray-bg);
+    color: var(--dark-text);
+}
+
+body:not(.app-view) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.login-container {
+    background-color: var(--white);
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-sizing: border-box;
+    margin: 20px;
+}
+
+.logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px;
+    border: 4px solid var(--white);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.login-container h1 {
+    font-size: 1.8em;
+    margin: 0 0 5px 0;
+    color: var(--primary-red);
+}
+
+.login-container .subtitle {
+    color: var(--light-text);
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.input-icon-group {
+    position: relative;
+}
+
+.input-icon-group i {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    color: var(--light-text);
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    font-size: 1em;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2);
+}
+
+.btn {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn-primary { background-color: var(--primary-red); color: var(--white); }
+.btn-primary:hover { background-color: #b71c1c; }
+.btn-google { background-color: #4285F4; color: var(--white); }
+.btn-google:hover { background-color: #357ae8; }
+.btn-success { background-color: var(--success-green); color: var(--white); }
+.error-message { color: var(--primary-red); font-weight: 500; margin-top: 15px; min-height: 20px; }
+.hidden { display: none !important; }
+
+
+/* ============================================= */
+/* --- ESTILOS DA PÁGINA PRINCIPAL DO APP --- */
+/* ============================================= */
+
+body.app-view {
+    background-color: #f0f2f5;
+    display: block; 
+    padding-top: 70px;
+}
+
+.app-header {
+    background-color: var(--dark-text, #333);
+    color: var(--white);
+    padding: 15px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.app-header .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.app-header .driver-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-weight: 500;
+}
+
+.app-header .driver-info i {
+    font-size: 1.2em;
+}
+
+.app-header .header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.header-icon-btn {
+    background: rgba(255,255,255,0.1);
+    color: var(--white);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    font-size: 1em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.header-icon-btn:hover { background-color: rgba(255,255,255,0.2); }
+.header-icon-btn.active { background-color: var(--primary-yellow); color: var(--dark-text); }
+
+
+.app-main {
+    padding: 20px;
+}
+
+.app-main h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.4em;
+    color: var(--dark-text);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.loading-state { text-align: center; padding: 50px 20px; color: var(--light-text); }
+.loading-state .spinner { width: 40px; height: 40px; border: 4px solid var(--border-color); border-top-color: var(--primary-red); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.delivery-card { background-color: var(--white); border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border-left: 5px solid var(--primary-yellow); padding: 20px; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.delivery-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+.card-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.card-row:last-child { margin-bottom: 0; }
+.customer-info .name { font-size: 1.2em; font-weight: 500; color: var(--dark-text); }
+.customer-info .address { font-size: 0.9em; color: var(--light-text); }
+.order-value { font-size: 1.5em; font-weight: 700; color: var(--primary-red); white-space: nowrap; padding-left: 15px; }
+.payment-info .tag, .status-info .tag { font-size: 0.8em; font-weight: bold; padding: 4px 10px; border-radius: 20px; }
+
+/* TAGS DE PAGAMENTO COM CORES CORRIGIDAS */
+.payment-info .tag.dinheiro { background-color: #d1e7dd; color: #0f5132; border: 1px solid #a3cfbb;}
+.payment-info .tag.cartao-de-credito, .payment-info .tag.cartao-de-debito { background-color: #cfe2ff; color: #0a58ca; border: 1px solid #9ec5fe;}
+.payment-info .tag.pix { background-color: #cff4fc; color: #055160; border: 1px solid #9eeaf9; }
+
+/* TAGS DE STATUS COM CORES CORRIGIDAS */
+.status-info .tag.em-preparo { background-color: var(--primary-yellow); color: var(--dark-text); }
+.status-info .tag.saiu-para-entrega { background-color: #e9d5ff; color: #5815ae; border: 1px solid #d39eff;}
+.status-info .tag.entregue { background-color: var(--success-green); color: var(--white); }
+
+
+/* ============================================= */
+/* --- ESTILOS DO MODAL DE DETALHES (CORRIGIDO) --- */
+/* ============================================= */
+
+.modal-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 2000; justify-content: center; align-items: center; }
+.modal-view.show { display: flex; }
+.modal-view .modal-content { background-color: var(--white); width: 95%; max-width: 500px; max-height: 90vh; border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); display: flex; flex-direction: column; }
+.modal-header { padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+.modal-header h3 { margin: 0; font-size: 1.2em; color: var(--dark-text); }
+.close-modal-btn { background: none; border: none; font-size: 1.8em; color: var(--light-text); cursor: pointer; }
+.modal-body { padding: 20px; overflow-y: auto; flex-grow: 1; }
+.modal-section { margin-bottom: 20px; }
+.modal-section h4 { font-size: 1em; font-weight: 500; color: var(--primary-red); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin: 0 0 12px 0; display: flex; align-items: center; gap: 10px; }
+.detail-line { display: flex; justify-content: space-between; font-size: 0.95em; margin-bottom: 8px; align-items: baseline; }
+.detail-line .label { color: var(--light-text); }
+.detail-line .value { font-weight: 500; text-align: right; padding-left: 10px; }
+.detail-line .value.total { font-weight: 700; font-size: 1.1em; color: var(--success-green); }
+.address-block { font-size: 0.95em; line-height: 1.6; }
+.order-items-list { font-size: 0.9em; list-style: none; padding: 0; margin: 0; }
+.order-items-list li { padding: 4px 0; }
+.modal-footer { padding: 15px; border-top: 1px solid var(--border-color); display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex-shrink: 0; }
+
+/* CORREÇÃO ADICIONADA: Estilos específicos para os botões-link dentro do modal */
+.modal-body a.btn {
+    color: var(--white);
+    text-decoration: none;
+    font-size: 1em; /* Tamanho da fonte menor */
+    padding: 10px; /* Padding menor */
+    margin-top: 10px;
+}
+.modal-body a.btn i {
+    margin-right: 8px;
+}
+
+
+/* ============================================= */
+/* --- ESTILOS DA SEÇÃO DE HISTÓRICO --- */
+/* ============================================= */
+
+#history-section { margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--border-color); }
+.history-summary-card { background: linear-gradient(135deg, var(--dark-text) 0%, #4a4a4a 100%); color: var(--white); padding: 20px; border-radius: 12px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+.history-summary-card .summary-item .label { font-size: 0.85em; opacity: 0.8; display: block; margin-bottom: 5px; }
+.history-summary-card .summary-item .value { font-size: 1.6em; font-weight: 700; display: block; }
+#history-list .delivery-card { border-left-color: var(--success-green); cursor: pointer; opacity: 1; }
+
+/* Adicione este estilo ao final de style-entregador.css */
+.history-filter-card {
+    background-color: var(--white);
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+}
+.filter-group {
+    flex-grow: 1;
+}
+.filter-group label {
+    display: block;
+    font-size: 0.8em;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+.filter-group .form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+.history-filter-card .btn {
+    width: 100%;
+    padding: 10px;
+    background-color: var(--primary-red);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+}
+@media (min-width: 600px) {
+    .history-filter-card .btn {
+        flex-grow: 0;
+        width: auto;
+    }
+}
+
+/* Adicione este estilo ao final de style-entregador.css */
+.quick-stats-card {
+    background: linear-gradient(135deg, var(--dark-text) 0%, #4a4a4a 100%);
+    color: var(--white);
+    padding: 20px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Duas colunas */
+    gap: 15px;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.stat-item i {
+    font-size: 1.8em;
+    margin-bottom: 8px;
+    opacity: 0.7;
+}
+
+.stat-item .stat-value {
+    font-size: 2em;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.stat-item .stat-label {
+    font-size: 0.8em;
+    opacity: 0.9;
+    margin-top: 4px;
+}
+
+/* Adicione este estilo ao final de style-entregador.css */
+#achievements-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+  padding: 20px;
+}
+
+.achievement-card {
+  background-color: #f7f7f7;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.achievement-card.unlocked {
+  border-color: #f1c40f;
+  background-color: #fffbeb;
+}
+
+.achievement-card.unlocked:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(241, 196, 15, 0.2);
+}
+
+.achievement-card .icon {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+  color: #cccccc; /* Cinza para bloqueado */
+}
+
+.achievement-card.unlocked .icon {
+  color: #f1c40f; /* Dourado para desbloqueado */
+  animation: pulse-gold 2s infinite;
+}
+
+.achievement-card .name {
+  font-weight: 600;
+  font-size: 0.9em;
+  margin-bottom: 5px;
+}
+
+.achievement-card .description {
+  font-size: 0.75em;
+  color: #777;
+}
+
+@keyframes pulse-gold {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Adicione este estilo ao final de style-entregador.css */
+.modal-footer {
+    display: grid;
+    /* Ajustado para 3 colunas se todos os botões estiverem visíveis */
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+/* Estilo para o botão secundário de mensagens */
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Estilos para o modal de mensagens rápidas */
+#quick-message-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+}
+
+.quick-message-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 1em;
+    font-weight: 500;
+    text-align: left;
+    background-color: var(--light-gray-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.quick-message-btn:hover {
+    background-color: #e9ecef;
+    transform: translateY(-2px);
+}
+
+/* Adicione no final de style-entregador.css */
+
+/* NOVO: Estilos para o cronômetro do pedido */
+.delivery-card .card-header {
+    display: flex;
+    justify-content: flex-end; /* Alinha o cronômetro à direita */
+    padding: 8px 12px 0 12px; /* Espaçamento interno */
+}
+
+.order-timer {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: 700;
+    color: white;
+    min-width: 50px;
+    text-align: center;
+}
+
+/* Classes de cor para o tempo */
+.timer-green {
+    background-color: #28a745; /* Verde */
+}
+
+.timer-yellow {
+    background-color: #ffc107; /* Amarelo */
+    color: #333; /* Texto escuro para melhor contraste */
+}
+
+.timer-red {
+    background-color: #dc3545; /* Vermelho */
+}
+
+/* Adicione no final de style-entregador.css */
+
+/* --- NOVOS ESTILOS PARA TAGS DE PAGAMENTO --- */
+.payment-info .tag {
+    color: white;
+    font-weight: 500;
+}
+
+.tag.tag-payment-paid {
+    background-color: #28a745; /* Verde para PAGO */
+}
+
+.tag.tag-payment-unpaid {
+    background-color: #dc3545; /* Vermelho para NÃO PAGO */
+}
+
+.tag.tag-payment-delivery {
+    background-color: #0d6efd; /* Azul para pagamento na entrega */
+}
+
+/* --- ESTILOS PARA A SPLASH SCREEN --- */
+#splash-screen-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #f5f5f5; /* Cor de fundo da sua página */
+  z-index: 100;
+  transition: opacity 0.5s ease;
+}
+
+#splash-screen-container .splash-logo {
+  width: 90px;
+  margin-bottom: 20px;
+}
+
+#splash-screen-container .spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(0,0,0,0.1);
+  border-top-color: var(--primary-red);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+#splash-screen-container p {
+  margin-top: 15px;
+  font-weight: 500;
+  color: var(--light-text);
+}
+
+/* Classe para esconder/mostrar elementos */
+.hidden {
+  display: none !important;
+}
+
+/* ============================================= */
+/* --- NOVOS ESTILOS PARA O CONTROLE FINANCEIRO --- */
+/* ============================================= */
+
+#financial-control-card {
+    background-color: var(--white);
+    border-radius: 12px;
+    margin-bottom: 25px; /* Aumenta a margem para separar da próxima seção */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border-left: 5px solid #17a2b8; /* Cor azul para diferenciar */
+    padding: 20px;
+}
+
+#financial-control-card h2 {
+    margin: 0 0 15px 0;
+    font-size: 1.4em;
+    color: var(--dark-text);
+}
+
+.saldo-container {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: var(--light-gray-bg);
+    border-radius: 8px;
+}
+
+.saldo-container h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.saldo-container span {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--success-green);
+}
+
+#form-financeiro {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#form-financeiro select,
+#form-financeiro input,
+#form-financeiro button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1em;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+#form-financeiro button {
+    background-color: #17a2b8;
+    color: var(--white);
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+#form-financeiro button:hover {
+    background-color: #138496;
+}
+
+.historico-container {
+    margin-top: 15px;
+}
+
+.historico-container h4 {
+    font-size: 1em;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+#lista-historico-financeiro {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#lista-historico-financeiro li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+#lista-historico-financeiro li:last-child {
+    border-bottom: none;
+}
+
+#lista-historico-financeiro li.receita .valor {
+    color: var(--success-green);
+    font-weight: bold;
+}
+#lista-historico-financeiro li.retirada .valor {
+    color: var(--primary-red);
+    font-weight: bold;
+}
+
+/* ============================================= */
+/* --- NOVOS ESTILOS PARA O CABEÇALHO E FINANCEIRO --- */
+/* ============================================= */
+
+.driver-balance {
+    font-weight: bold;
+    color: var(--success-green);
+    margin-left: 8px;
+}
+
+.header-actions button#financial-btn {
+    /* Estilos opcionais para o botão do caixa, se quiser diferenciá-lo */
+}
+
+#financial-control-view {
+    padding: 15px; /* Adiciona um pouco de padding ao redor da view */
+}
+
+#financial-control-card {
+    background-color: var(--white);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border-left: 5px solid #17a2b8; /* Cor azul para diferenciar */
+    padding: 20px;
+    max-width: 600px; /* Limita a largura em telas maiores */
+    margin: 20px auto; /* Centraliza o card */
+}
+
+#financial-control-card h2 {
+    margin: 0 0 15px 0;
+    font-size: 1.4em;
+    color: var(--dark-text);
+}
+
+.saldo-container {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: var(--light-gray-bg);
+    border-radius: 8px;
+}
+
+.saldo-container h3 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+.saldo-container span {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--success-green);
+}
+
+#form-financeiro {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#form-financeiro select,
+#form-financeiro input,
+#form-financeiro button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1em;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+#form-financeiro button {
+    background-color: #17a2b8;
+    color: var(--white);
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s ease;
+}
+
+#form-financeiro button:hover {
+    background-color: #138496;
+}
+
+.historico-container {
+    margin-top: 15px;
+}
+
+.historico-container h4 {
+    font-size: 1em;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+#lista-historico-financeiro {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#lista-historico-financeiro li {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+#lista-historico-financeiro li:last-child {
+    border-bottom: none;
+}
+
+#lista-historico-financeiro li.receita .valor {
+    color: var(--success-green);
+    font-weight: bold;
+}
+#lista-historico-financeiro li.retirada .valor {
+    color: var(--primary-red);
+    font-weight: bold;
+}
+
+#financial-control-view.hidden {
+    display: none !important;
+}
+
+#back-to-deliveries {
+    background-color: var(--secondary-color);
+    color: var(--white);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+    margin-top: 20px;
+}
+
+#back-to-deliveries:hover {
+    background-color: var(--secondary-darker);
+}
+
+/* ============================================= */
+/* --- ESTILOS PARA O RESUMO DIÁRIO --- */
+/* ============================================= */
+
+.daily-summary-card {
+    background: var(--white);
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Duas colunas de tamanho igual */
+    gap: 15px;
+    text-align: center;
+    border-top: 4px solid var(--primary-yellow);
+}
+
+.daily-summary-card .summary-item .label {
+    font-size: 0.85em;
+    color: var(--light-text);
+    display: block;
+    margin-bottom: 5px;
+}
+
+.daily-summary-card .summary-item .value {
+    font-size: 1.6em;
+    font-weight: 700;
+    color: var(--dark-text);
+    display: block;
+}
+
+.daily-summary-card .summary-item:first-child .value {
+    color: var(--success-green);
+}
+
+/* ============================================= */
+/* --- AJUSTES NO CABEÇALHO DO ENTREGADOR --- */
+/* ============================================= */
+
+.driver-info .driver-details {
+    display: flex;
+    flex-direction: column; /* Faz os itens ficarem um em cima do outro */
+    align-items: flex-start; /* Alinha à esquerda */
+    line-height: 1.2; /* Deixa o espaçamento entre eles mais justo */
+}
+
+.driver-balance {
+    font-size: 0.8em;
+    font-weight: 400; /* Deixa a fonte mais leve que o nome */
+    color: var(--light-text);
+    opacity: 0.9;
+}
+
+/* ESTILO PARA O NOVO BOTÃO DE SAQUE */
+.btn-secondary {
+    background-color: #6c757d; /* Cinza escuro */
+    color: var(--white);
+    margin-top: 10px; /* Espaço para separar do botão de cima */
+    transition: background-color 0.2s ease;
+    border: none;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* ============================================= */
+/* --- AJUSTES DE RESPONSIVIDADE (MOBILE) --- */
+/* ============================================= */
+
+/* Estas regras serão aplicadas apenas em telas com largura máxima de 380px */
+@media (max-width: 380px) {
+
+    /* -- Cabeçalho -- */
+    .app-header .header-content {
+        gap: 8px; /* Reduz o espaço entre os elementos do cabeçalho */
+    }
+
+    .app-header .driver-info .driver-details #driver-name {
+        font-size: 0.9em; /* Diminui um pouco o nome para caber melhor */
+    }
+    
+    .app-header .header-actions {
+        gap: 5px; /* Diminui o espaço entre os botões de ação */
+    }
+    
+    .header-icon-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9em;
+    }
+
+    /* -- Corpo Principal -- */
+    .app-main {
+        padding: 15px; /* Reduz o padding geral */
+    }
+
+    /* -- Cards de Resumo -- */
+    .daily-summary-card,
+    .history-summary-card {
+        grid-template-columns: 1fr; /* Empilha os itens do resumo um em cima do outro */
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    .daily-summary-card .summary-item .value {
+        font-size: 1.4em;
+    }
+    
+    .history-summary-card .summary-item .value {
+        font-size: 1.4em;
+    }
+
+    /* -- Card de Entrega -- */
+    .delivery-card {
+        padding: 15px;
+    }
+
+    .customer-info .name {
+        font-size: 1.1em;
+    }
+
+    .order-value {
+        font-size: 1.3em;
+    }
+
+    /* -- Modal de Detalhes -- */
+    .modal-footer {
+        grid-template-columns: 1fr; /* Empilha os botões do modal */
+    }
+
+    /* -- Página do Caixa -- */
+    #financial-control-card {
+        padding: 15px;
+    }
+}
+
+/* Adicione no final de style-entregador.css */
+
+.toast-notification {
+    position: fixed;
+    bottom: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--success-green);
+    color: white;
+    padding: 14px 22px;
+    border-radius: 8px;
+    z-index: 3000;
+    font-size: 0.95em;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    opacity: 0;
+    transition: opacity 0.4s ease, bottom 0.4s ease;
+}
+.toast-notification.show {
+    opacity: 1;
+    bottom: 30px;
+}
+.toast-notification.error { 
+    background-color: var(--primary-red); 
+}
+.toast-notification.warning { 
+    background-color: var(--primary-yellow); 
+    color: var(--dark-text);
+}
