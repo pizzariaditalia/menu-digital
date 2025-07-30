@@ -1,4 +1,4 @@
-// sw-entregador.js - VERSÃO DE TESTE COM FLAG VISUAL
+// sw-entregador.js - VERSÃO FINAL DE PRODUÇÃO
 
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
@@ -19,12 +19,6 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage(function(payload) {
   console.log('[SW Entregador] Mensagem de DADOS recebida em segundo plano: ', payload);
 
-  // =================================================================
-  // AQUI ESTÁ A MUDANÇA PRINCIPAL PARA O NOSSO TESTE
-  // Ele vai "anotar" que a mensagem chegou para a página principal poder ler depois.
-  self.localStorage.setItem('sw_message_received', 'SUCESSO! Mensagem recebida às ' + new Date().toLocaleTimeString());
-  // =================================================================
-
   const notificationTitle = payload.data.title;
   const notificationOptions = {
     body: payload.data.body,
@@ -37,8 +31,8 @@ messaging.onBackgroundMessage(function(payload) {
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// A sua lógica de cache continua a mesma
-const CACHE_NAME = 'ditalia-entregador-cache-v103'; // Versão incrementada
+// A LÓGICA DE CACHE COM A VERSÃO ATUALIZADA
+const CACHE_NAME = 'ditalia-entregador-cache-v200'; // VERSÃO ATUALIZADA
 const URLS_TO_CACHE = [
   './',
   './login.html',
