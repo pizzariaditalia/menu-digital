@@ -1,5 +1,6 @@
-// app-entregador.js - VERSÃO FINAL DE PRODUÇÃO
+// app-entregador.js - VERSÃO FINAL DE PRODUÇÃO COM BOTÃO MANUAL DE NOTIFICAÇÃO
 
+// Importa funções do Firebase
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, query, where, onSnapshot, doc, getDoc, updateDoc, Timestamp, orderBy, getDocs, runTransaction, addDoc, serverTimestamp, setDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
@@ -24,6 +25,8 @@ const historyBtn = document.getElementById('history-btn');
 const achievementsBtn = document.getElementById('achievements-btn');
 const financialBtn = document.getElementById('financial-btn');
 const homeBtn = document.getElementById('home-btn');
+// SELETOR DO NOVO BOTÃO
+const forceNotificationBtn = document.getElementById('force-notification-btn');
 const mainViews = {
   deliveries: document.getElementById('current-deliveries-section'),
   history: document.getElementById('history-section'),
@@ -59,7 +62,7 @@ const todayCountEl = document.getElementById('today-deliveries-count');
 const requestWithdrawalBtn = document.getElementById('request-withdrawal-btn');
 
 // ===================================================================
-// LÓGICA DE NOTIFICAÇÕES (ATUALIZADA)
+// LÓGICA DE NOTIFICAÇÕES
 // ===================================================================
 async function requestAndSaveToken(driverDocId) {
     if (!driverDocId) return;
@@ -86,6 +89,7 @@ async function requestAndSaveToken(driverDocId) {
     }
 }
 
+// O pop-up automático continua aqui para novos usuários
 function initializeNotificationPrompt(driverDocId) {
     const promptModal = document.getElementById('notification-prompt-modal');
     if (!promptModal || !('Notification' in window)) return;
@@ -111,6 +115,7 @@ function initializeNotificationPrompt(driverDocId) {
 }
 
 // --- RASTREAMENTO DE LOCALIZAÇÃO ---
+// ... (código de rastreamento, conquistas, utilitários, etc. continua o mesmo) ...
 function startLocationTracking(driverId) {
   if (locationWatcherId) {
     navigator.geolocation.clearWatch(locationWatcherId);
@@ -149,7 +154,6 @@ function stopLocationTracking() {
   }
 }
 
-// --- Define a estrutura das conquistas ---
 const ACHIEVEMENTS = {
   '10_deliveries': { name: 'Entregador Iniciante', description: 'Complete 10 entregas', requiredCount: 10, icon: 'fa-baby-carriage' },
   '50_deliveries': { name: 'Entregador Experiente', description: 'Complete 50 entregas', requiredCount: 50, icon: 'fa-motorcycle' },
@@ -157,7 +161,6 @@ const ACHIEVEMENTS = {
   '250_deliveries': { name: 'Lenda das Ruas', description: 'Complete 250 entregas', requiredCount: 250, icon: 'fa-crown' }
 };
 
-// --- FUNÇÕES UTILITÁRIAS ---
 const formatPrice = (price) => typeof price === 'number' ? price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
 
 function showView(viewName) {
@@ -180,7 +183,6 @@ window.showToast = function(message, type = 'success') {
   }, 3000);
 }
 
-// --- LÓGICA DO CHAT ---
 if (btnSendMessage) {
   btnSendMessage.addEventListener('click', () => {
     if (selectedOrder) quickMessageModal.classList.add('show');
@@ -215,7 +217,6 @@ if (quickMessageModal) {
   });
 }
 
-// --- LÓGICA DAS CONQUISTAS ---
 function renderAchievements() {
   if (!achievementsListDiv || !currentDriverProfile) return;
   achievementsListDiv.innerHTML = Object.keys(ACHIEVEMENTS).map(id => {
@@ -267,7 +268,6 @@ async function checkAndAwardAchievements(driverRef) {
   }
 }
 
-// --- FUNÇÕES DE RENDERIZAÇÃO E UI ---
 function createDeliveryCard(order) {
     const status = order.status || 'Indefinido';
     let paymentTagHTML = '';
@@ -322,7 +322,6 @@ function renderHistory(orders) {
     addCardClickListeners(historyList, historicalOrders);
 }
 
-// --- LÓGICA PRINCIPAL ---
 async function listenForHistory(driverId, startDate, endDate) {
     if (!historyList) return;
     historyList.innerHTML = `<div class="loading-state"><div class="spinner"></div><p>Buscando...</p></div>`;
@@ -509,12 +508,23 @@ onAuthStateChanged(auth, async (user) => {
         appContent.classList.remove('hidden');
         if (driverNameSpan) driverNameSpan.textContent = user.displayName ? user.displayName.split(' ')[0] : "Entregador";
         
+        // LÓGICA DO NOVO BOTÃO ADICIONADA AQUI
+        if (forceNotificationBtn) {
+            forceNotificationBtn.addEventListener('click', () => {
+                if (currentDriverProfile && currentDriverProfile.id) {
+                    requestAndSaveToken(currentDriverProfile.id);
+                } else {
+                    console.error("Não foi possível obter o perfil do entregador para ativar as notificações.");
+                    window.showToast("Erro ao obter perfil. Tente recarregar.", "error");
+                }
+            });
+        }
+        
         listenForDeliveries(correctDriverId);
         carregarRelatorioFinanceiro(correctDriverId);
         updateDailySummaryVisuals(correctDriverId);
         startLocationTracking(user.uid);
         
-        // Chama a função para verificar e mostrar o pop-up de notificação
         initializeNotificationPrompt(correctDriverId);
 
         showView('deliveries');
