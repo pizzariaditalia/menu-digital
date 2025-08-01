@@ -228,16 +228,19 @@
     window.db = getFirestore(app);
     window.auth = getAuth(app);
   </script>
+  
   <script type="module" src="app-entregador.js"></script>
+  
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw-entregador.js')
-        .then((reg) => console.log('Service Worker do Entregador registrado!', reg.scope))
-        .catch((err) => console.log('Falha ao registrar Service Worker:', err));
-      });
-    }
-  </script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      // CORREÇÃO: Registra o Service Worker UNIFICADO que está na RAIZ do site
+      navigator.serviceWorker.register('/firebase-messaging-sw.js')
+      .then((reg) => console.log('Service Worker unificado registrado a partir do app do entregador!', reg.scope))
+      .catch((err) => console.log('Falha ao registrar SW unificado:', err));
+    });
+  }
+</script>
 
 </body>
 </html>
