@@ -1,36 +1,49 @@
-// Arquivo: firebase-messaging-sw.js - VERSÃO FINAL E CORRIGIDA
+// ARQUIVO: firebase-messaging-sw.js (VERSÃO UNIFICADA E FINAL)
 
-// Importa os scripts necessários do Firebase (versão compatível para Service Workers)
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
 
-// Sua configuração do Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
-    authDomain: "app-ditalia.firebaseapp.com",
-    projectId: "app-ditalia",
-    storageBucket: "app-ditalia.firebasestorage.app",
-    messagingSenderId: "122567535166",
-    appId: "1:122567535166:web:19de7b8925042027063f6f",
-    measurementId: "G-5QW3MVGYME"
+  apiKey: "AIzaSyDMaD6Z3CDxdkyzQXHpV3b0QBWr--xQTso",
+  authDomain: "app-ditalia.firebaseapp.com",
+  projectId: "app-ditalia",
+  storageBucket: "app-ditalia.firebasestorage.app",
+  messagingSenderId: "122567535166",
+  appId: "1:122567535166:web:19de7b8925042027063f6f",
+  measurementId: "G-5QW3MVGYME"
 };
 
-// Inicializa o Firebase no Service Worker
 firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
-// Handler para quando a notificação é recebida com o site em segundo plano
 messaging.onBackgroundMessage(function(payload) {
-    console.log('[SW] Mensagem recebida em segundo plano: ', payload);
+  console.log('SW Unificado recebeu a mensagem:', payload);
+  
+  let notificationTitle = '';
+  let notificationOptions = {};
 
-    const notificationTitle = payload.notification.title;
-    const notificationOptions = {
-        body: payload.notification.body,
-        icon: '/img/icons/icon-192x192.png' // Use um caminho absoluto a partir da raiz do site
-    };
+  // Se a mensagem tiver o nosso identificador, trata como notificação de entregador
+  if (payload.data && payload.data.type === 'delivery_assigned') {
+      notificationTitle = payload.data.title;
+      notificationOptions = {
+          body: payload.data.body,
+          icon: '/img/icons/icon-entregador.png', // Ícone do entregador
+          vibrate: [200, 100, 200]
+      };
+  } 
+  // Senão, trata como uma notificação normal para o cliente
+  else if (payload.notification) {
+      notificationTitle = payload.notification.title;
+      notificationOptions = {
+          body: payload.notification.body,
+          icon: '/img/icons/icon.png' // Ícone do cliente
+      };
+  }
 
-    // Exibe a notificação
-    self.registration.showNotification(notificationTitle, notificationOptions);
+  // Se um título foi definido, mostra a notificação
+  if (notificationTitle) {
+    return self.registration.showNotification(notificationTitle, notificationOptions);
+  }
 });
 
 const CACHE_NAME = 'ditalia-pizzaria-cache-v310'; // Mudei a versão mais uma vez
