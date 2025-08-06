@@ -127,7 +127,11 @@
 .empty-state-icon { font-size: 3.5em; color: var(--admin-primary-blue); margin-bottom: var(--space-md); }
 .empty-state-message { font-size: 1.1em; color: var(--admin-text-dark); margin-bottom: var(--space-lg); max-width: 300px; line-height: 1.6; }
 
-.orders-list-container.card-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-md); }
+#orders-list-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-md);
+}
 .order-card { background-color: var(--admin-white); border-radius: var(--border-radius-lg); box-shadow: var(--box-shadow-sm); border: 1px solid var(--admin-border-color); border-left: 5px solid var(--admin-secondary-gray); display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; }
 .order-card:hover { transform: translateY(-3px); box-shadow: var(--box-shadow-md); }
 .order-card[data-status="recebido"], .order-card[data-status="aguardando-pagamento"], .order-card[data-status="aguardando-comprovante"] { border-left-color: #ff9800; }
