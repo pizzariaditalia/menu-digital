@@ -128,9 +128,25 @@
 .empty-state-message { font-size: 1.1em; color: var(--admin-text-dark); margin-bottom: var(--space-lg); max-width: 300px; line-height: 1.6; }
 
 #orders-list-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: var(--space-md);
+    display: flex; /* USA FLEXBOX */
+    flex-wrap: wrap; /* PERMITE QUE OS ITENS QUEBREM PARA A PRÓXIMA LINHA */
+    gap: 16px; /* MANTÉM O ESPAÇAMENTO ENTRE OS CARDS */
+    align-items: flex-start; /* ALINHA OS CARDS NO TOPO */
+}
+
+.order-card {
+    background-color: var(--admin-white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow-sm);
+    border: 1px solid var(--admin-border-color);
+    border-left: 5px solid var(--admin-secondary-gray);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    /* ---> ADIÇÃO MAIS IMPORTANTE <--- */
+    flex-basis: 320px; /* DEFINE A LARGURA BASE DE CADA CARD */
+    flex-grow: 1; /* PERMITE QUE O CARD CRESÇA PARA OCUPAR ESPAÇO EXTRA */
 }
 .order-card { background-color: var(--admin-white); border-radius: var(--border-radius-lg); box-shadow: var(--box-shadow-sm); border: 1px solid var(--admin-border-color); border-left: 5px solid var(--admin-secondary-gray); display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; }
 .order-card:hover { transform: translateY(-3px); box-shadow: var(--box-shadow-md); }
