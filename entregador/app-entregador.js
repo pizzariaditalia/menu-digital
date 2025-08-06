@@ -284,15 +284,94 @@ function createDeliveryCard(order) {
 function openDetailsModal(order) {
     selectedOrder = order;
     const address = order.delivery.address || `${order.delivery.street}, ${order.delivery.number}`;
-    const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address + ', ' + order.delivery.neighborhood)}`;
-    const customerHTML = `<div class="modal-section"><h4><i class="fas fa-user"></i> Cliente</h4><div class="detail-line"><span class="label">Nome</span><span class="value">${order.customer.firstName} ${order.customer.lastName}</span></div><a href="https://wa.me/55${order.customer.whatsapp}" target="_blank" class="btn" style="background-color:#25D366; width: 95%; margin: 10px auto 0 auto;"><i class="fab fa-whatsapp"></i> Chamar no WhatsApp</a></div>`;
-    const addressHTML = `<div class="modal-section"><h4><i class="fas fa-map-marker-alt"></i> Endereço</h4><div class="address-block">${address}<br>Bairro: ${order.delivery.neighborhood}<br>${order.delivery.complement ? `Comp: ${order.delivery.complement}<br>` : ''}${order.delivery.reference ? `Ref: ${order.delivery.reference}` : ''}</div><a href="${mapLink}" target="_blank" class="btn" style="background-color:#4285F4; width:95%; margin:10px auto 0 auto;"><i class="fas fa-map-signs"></i> Ver no Mapa</a></div>`;
+    const fullAddressForMap = `${address}, ${order.delivery.neighborhood}, Caçapava, SP`;
+    const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddressForMap)}`;
+    
+    const customerHTML = `
+        <div class="modal-section">
+            <h4><i class="fas fa-user"></i> Cliente</h4>
+            <div class="detail-line">
+                <span class="label">Nome</span>
+                <span class="value">${order.customer.firstName} ${order.customer.lastName}</span>
+            </div>
+            <a href="https://wa.me/55${order.customer.whatsapp}" target="_blank" class="btn" style="background-color:#25D366; width: 95%; margin: 10px auto 0 auto;"><i class="fab fa-whatsapp"></i> Chamar no WhatsApp</a>
+        </div>`;
+
+    const addressHTML = `
+        <div class="modal-section">
+            <h4><i class="fas fa-map-marker-alt"></i> Endereço</h4>
+            <div class="address-block">
+                ${address}<br>
+                Bairro: ${order.delivery.neighborhood}<br>
+                ${order.delivery.complement ? `Comp: ${order.delivery.complement}<br>` : ''}
+                ${order.delivery.reference ? `Ref: ${order.delivery.reference}` : ''}
+            </div>
+            <a href="${mapLink}" target="_blank" class="btn" style="background-color:#4285F4; width:95%; margin:10px auto 0 auto;"><i class="fas fa-map-signs"></i> Ver no Mapa</a>
+        </div>`;
+
     const { subtotal = 0, discount = 0, deliveryFee = 0, grandTotal = 0 } = order.totals;
-    const financialHTML = `<div class="modal-section"><h4><i class="fas fa-file-invoice-dollar"></i> Resumo Financeiro</h4><div class="detail-line"><span class="label">Subtotal</span><span class="value">${formatPrice(subtotal)}</span></div>${discount > 0 ? `<div class="detail-line"><span class="label">Desconto</span><span class="value" style="color:var(--primary-red);">- ${formatPrice(discount)}</span></div>` : ''}<div class="detail-line"><span class="label">Taxa de Entrega</span><span class="value">${formatPrice(deliveryFee)}</span></div><hr><div class="detail-line"><span class="label">VALOR A COBRAR</span><span class="value total">${formatPrice(grandTotal)}</span></div><div class="detail-line"><span class="label">Forma de Pagamento</span><span class="value">${order.payment.method}</span></div>${order.payment.method === 'Dinheiro' && order.payment.changeFor > 0 ? `<div class="detail-line"><span class="label">Levar Troco Para</span><span class="value">${formatPrice(order.payment.changeFor)}</span></div>` : ''}</div>`;
-    const itemsHTML = `<div class="modal-section"><h4><i class="fas fa-shopping-basket"></i> Itens do Pedido</h4><ul class="order-items-list">${order.items.map(item => `<li>${item.quantity}x ${item.name}</li>`).join('')}</ul></div>`;
+    const financialHTML = `
+        <div class="modal-section">
+            <h4><i class="fas fa-file-invoice-dollar"></i> Resumo Financeiro</h4>
+            <div class="detail-line">
+                <span class="label">Subtotal</span><span class="value">${formatPrice(subtotal)}</span>
+            </div>
+            ${discount > 0 ? `<div class="detail-line"><span class="label">Desconto</span><span class="value" style="color:var(--primary-red);">- ${formatPrice(discount)}</span></div>` : ''}
+            <div class="detail-line">
+                <span class="label">Taxa de Entrega</span><span class="value">${formatPrice(deliveryFee)}</span>
+            </div>
+            <hr>
+            <div class="detail-line">
+                <span class="label">VALOR A COBRAR</span><span class="value total">${formatPrice(grandTotal)}</span>
+            </div>
+            <div class="detail-line">
+                <span class="label">Forma de Pagamento</span><span class="value">${order.payment.method}</span>
+            </div>
+            ${order.payment.method === 'Dinheiro' && order.payment.changeFor > 0 ? `<div class="detail-line"><span class="label">Levar Troco Para</span><span class="value">${formatPrice(order.payment.changeFor)}</span></div>` : ''}
+        </div>`;
+
+    const itemsHTML = `
+        <div class="modal-section">
+            <h4><i class="fas fa-shopping-basket"></i> Itens do Pedido</h4>
+            <ul class="order-items-list">${order.items.map(item => `<li>${item.quantity}x ${item.name}</li>`).join('')}</ul>
+        </div>`;
+
     modalBody.innerHTML = customerHTML + addressHTML + financialHTML + itemsHTML;
+
+    // --- LÓGICA CORRIGIDA E ADICIONADA ---
+    
+    // Mostra o botão de enviar mensagem sempre
     btnSendMessage.style.display = 'grid';
-    btnCompleteDelivery.style.display = (order.status === "Saiu para Entrega") ? 'grid' : 'none';
+
+    // Mostra o botão "Saindo para Entrega" apenas se o pedido estiver 'Aprovado' ou 'Em Preparo'
+    if (["Aprovado", "Em Preparo"].includes(order.status)) {
+        btnDeliveryAction.style.display = 'grid';
+    } else {
+        btnDeliveryAction.style.display = 'none';
+    }
+
+    // Adiciona o evento de clique ao botão "Saindo para Entrega"
+    btnDeliveryAction.addEventListener('click', async () => {
+        if (!selectedOrder) return;
+        
+        btnDeliveryAction.disabled = true;
+        
+        const orderRef = doc(db, "pedidos", selectedOrder.id);
+        await updateDoc(orderRef, { status: "Saiu para Entrega", lastStatusUpdate: serverTimestamp() });
+        
+        window.showToast("Status atualizado para 'Saiu para Entrega'!", "success");
+        closeDetailsModal();
+        btnDeliveryAction.disabled = false;
+        
+    }, { once: true }); // O { once: true } é uma boa prática para garantir que o evento seja adicionado apenas uma vez
+
+    // Mostra o botão "Entrega Finalizada" apenas se o pedido já saiu para entrega
+    if (order.status === "Saiu para Entrega") {
+        btnCompleteDelivery.style.display = 'grid';
+    } else {
+        btnCompleteDelivery.style.display = 'none';
+    }
+
     deliveryDetailsModal.classList.add('show');
 }
 
