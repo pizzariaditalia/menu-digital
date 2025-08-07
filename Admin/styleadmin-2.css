@@ -129,6 +129,38 @@
 
 .orders-list-container.card-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-md); }
 .order-card { background-color: var(--admin-white); border-radius: var(--border-radius-lg); box-shadow: var(--box-shadow-sm); border: 1px solid var(--admin-border-color); border-left: 5px solid var(--admin-secondary-gray); display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+
+/* ==========================================================================
+   INÍCIO DO BLOCO DE CORREÇÃO PARA OS CARDS DE PEDIDOS
+   ========================================================================== */
+
+#orders-list-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: stretch;
+}
+
+.order-card {
+    position: relative !important;
+    flex: 1 1 320px;
+    min-width: 320px;
+    background-color: var(--admin-white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--box-shadow-sm);
+    border: 1px solid var(--admin-border-color);
+    border-left: 5px solid var(--admin-secondary-gray);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* ==========================================================================
+   FIM DO BLOCO DE CORREÇÃO
+   ========================================================================== */
+
+
+
 .order-card:hover { transform: translateY(-3px); box-shadow: var(--box-shadow-md); }
 .order-card[data-status="recebido"], .order-card[data-status="aguardando-pagamento"], .order-card[data-status="aguardando-comprovante"] { border-left-color: #ff9800; }
 .order-card[data-status="em-preparo"] { border-left-color: var(--admin-primary-blue); }
