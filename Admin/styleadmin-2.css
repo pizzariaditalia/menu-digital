@@ -1606,3 +1606,26 @@ input:checked + .slider:before { transform: translateX(20px); }
 .progress-bar-fill span {
     text-shadow: 0 1px 1px rgba(0,0,0,0.2);
 }
+
+/* ==========================================================================
+   CORREÇÃO FINAL PARA LAYOUT DOS CARDS DE PEDIDOS
+   (Adicionar este bloco no FINAL do arquivo styleadmin-2.css)
+   ========================================================================== */
+
+/* 1. Define o contêiner para alinhar os itens em LINHA e permitir a QUEBRA DE LINHA */
+#orders-list-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+/* 2. Define o tamanho e comportamento de CADA card dentro da linha */
+#orders-list-container .order-card {
+    /* Define a largura base do card. Ele tentará ter 320px */
+    flex-basis: 320px;
+    /* Permite que o card cresça se houver espaço na linha */
+    flex-grow: 1;
+    /* Garante que o card não seja esmagado se não houver espaço */
+    min-width: 320px;
+}
