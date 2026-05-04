@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MegaG - Controle de Ponto</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #0b0e16;
+            --bg-card: #161b2c;
+            --bg-input: #1f263d;
+            --accent: #38bdf8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Sora', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding: 16px;
+            padding-bottom: 50px;
+            line-height: 1.4;
+        }
+
+        .container { width: 100%; max-width: 500px; margin: 0 auto; }
+
+        /* Setup Inicial */
+        #setup-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-body); z-index: 9999; display: flex; 
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        .setup-card { 
+            background: var(--bg-card); padding: 32px; border-radius: 28px; 
+            border: 1px solid var(--border); width: 100%; box-shadow: var(--shadow);
+            text-align: center;
+        }
+        .setup-card h2 { font-size: 24px; margin-bottom: 12px; font-weight: 800; }
+        .setup-card p { color: var(--text-dim); margin-bottom: 24px; font-size: 14px; }
+
+        header { margin-bottom: 20px; }
+        .brand-pill {
+            display: inline-block; background: rgba(56, 189, 248, 0.1);
+            color: var(--accent); font-size: 10px; font-weight: 800;
+            padding: 6px 14px; border-radius: 50px; text-transform: uppercase; 
+            margin-bottom: 8px; border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+        header h1 { font-size: 24px; font-weight: 800; }
+        header p { font-size: 13px; color: var(--text-dim); }
+
+        /* Dashboard de Cards */
+        .dashboard { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+        
+        .card {
+            background: var(--bg-card); padding: 16px; border-radius: 20px;
+            border: 1px solid var(--border); display: flex; flex-direction: column;
+            transition: transform 0.2s;
+        }
+        
+        .card.wide { 
+            grid-column: span 2; 
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); 
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .card-label { font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .card-value { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; }
+        .value-lg { font-size: 30px; color: var(--success); }
+
+        .finance-breakdown {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+            margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .sub-val { font-size: 9px; color: var(--text-dim); text-align: center; font-weight: 600; }
+        .sub-val span { display: block; color: var(--text-main); font-size: 11px; font-family: 'JetBrains Mono'; margin-top: 2px; }
+
+        /* Cores dos Mini Cards */
+        .c-60 { border-left: 4px solid var(--accent); }
+        .c-100 { border-left: 4px solid var(--warning); }
+        .c-200 { border-left: 4px solid var(--danger); }
+        .c-banco { border-left: 4px solid #a78bfa; }
+
+        /* Tabs */
+        .tabs { display: flex; background: rgba(0,0,0,0.3); padding: 4px; border-radius: 16px; margin-bottom: 24px; gap: 4px; }
+        .tab-btn {
+            flex: 1; border: none; background: none; color: var(--text-dim);
+            padding: 12px 5px; font-size: 11px; font-weight: 700; border-radius: 12px;
+        }
+        .tab-btn.active { background: var(--bg-card); color: var(--accent); box-shadow: var(--shadow); }
+
+        .content-section { display: none; }
+        .content-section.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .panel { background: var(--bg-card); border-radius: 24px; padding: 24px; border: 1px solid var(--border); }
+
+        .timer-display {
+            font-family: 'JetBrains Mono', monospace; font-size: 46px;
+            font-weight: 700; text-align: center; margin: 20px 0; color: var(--text-main);
+            letter-spacing: -2px;
+        }
+        .timer-display.running { color: var(--success); text-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+
+        .btn-main {
+            width: 100%; padding: 18px; border-radius: 16px; border: none;
+            font-size: 14px; font-weight: 800; text-transform: uppercase; cursor: pointer; transition: 0.2s;
+        }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-start { background: var(--accent); color: #000; }
+        .btn-stop { background: var(--danger); color: #fff; }
+        .btn-save { background: var(--text-main); color: #000; margin-top: 12px; }
+
+        input, select {
+            width: 100%; background: var(--bg-input); border: 1px solid var(--border);
+            border-radius: 14px; padding: 14px; color: white; font-size: 15px; margin-bottom: 12px;
+            font-family: 'Sora';
+        }
+
+        .filter-area { margin-bottom: 15px; }
+        .filter-area select { background: var(--bg-card); border-color: var(--accent); color: var(--accent); font-weight: 700; }
+
+        .history-item {
+            background: var(--bg-card); border-radius: 20px; padding: 16px; margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+        .hist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .hist-date { font-weight: 800; font-size: 15px; }
+        .btn-del { color: var(--danger); background: none; border: none; font-size: 20px; cursor: pointer; }
+        
+        .hist-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .tag { font-size: 9px; padding: 3px 8px; border-radius: 6px; font-weight: 800; text-transform: uppercase; }
+        .tag-60 { background: rgba(56, 189, 248, 0.15); color: var(--accent); }
+        .tag-100 { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .tag-200 { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .tag-banco { background: rgba(167, 139, 250, 0.15); color: #a78bfa; }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div id="setup-overlay" class="hidden">
+    <div class="setup-card">
+        <h2>Olá! Seja bem Bem-vindo</h2>
+        <p>Para começar, configure seu perfil abaixo.</p>
+        <input type="text" id="setup-name" placeholder="Digite seu nome">
+        <select id="setup-role">
+            <option value="ajudante">Ajudante de Motorista</option>
+            <option value="motorista">Motorista</option>
+        </select>
+        <button class="btn-main btn-start" onclick="saveSetup()">Concluir Configuração</button>
+    </div>
+</div>
+
+<div class="container">
+    <header>
+        <div class="brand-pill" id="user-role-badge">MegaG Alimentos</div>
+        <h1 id="user-welcome">Bem-vindo</h1>
+        <p id="current-cycle-label">Ciclo Atual: 16 a 15</p>
+    </header>
+
+    <div class="dashboard">
+        <div class="card wide">
+            <div class="card-label">💰 Estimativa de horas Extras (No Ciclo)</div>
+            <div id="dash-money" class="card-value value-lg">R$ 0,00</div>
+            <div class="finance-breakdown">
+                <div class="sub-val">60%<span>R$ 0,00</span></div>
+                <div class="sub-val">100%<span>R$ 0,00</span></div>
+                <div class="sub-val">200%<span>R$ 0,00</span></div>
+            </div>
+        </div>
+
+        <div class="card c-banco">
+            <div class="card-label">⌛ Banco</div>
+            <div id="dash-banco" class="card-value">0.0h</div>
+        </div>
+        <div class="card">
+            <div class="card-label">🎫 Dobra de Ticket</div>
+            <div id="dash-ticket" class="card-value">0</div>
+        </div>
+        <div class="card c-60">
+            <div class="card-label">🔵 Horas 60%</div>
+            <div id="dash-h60" class="card-value">0.0h</div>
+        </div>
+        <div class="card c-100">
+            <div class="card-label">🟠 Horas 100%</div>
+            <div id="dash-h100" class="card-value">0.0h</div>
+        </div>
+        <div class="card c-200" style="grid-column: span 2;">
+            <div class="card-label">🔴 Horas 200%</div>
+            <div id="dash-h200" class="card-value">0.0h</div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-ponto', this)">PONTO</button>
+        <button class="tab-btn" onclick="switchTab('tab-manual', this)">MANUAL</button>
+        <button class="tab-btn" onclick="switchTab('tab-history', this)">HISTÓRICO</button>
+    </div>
+
+    <section id="tab-ponto" class="content-section active">
+        <div class="panel">
+            <div class="timer-display" id="timer-val">00:00:00</div>
+            <div id="timer-status" style="text-align: center; font-size: 13px; color: var(--text-dim); margin-bottom: 25px;">Aguardando início...</div>
+            <button id="btn-timer" class="btn-main btn-start" onclick="handleTimer()">Iniciar Jornada</button>
+        </div>
+    </section>
+
+    <section id="tab-manual" class="content-section">
+        <div class="panel">
+            <label style="font-size: 12px; color: var(--text-dim);">Data do Trabalho</label>
+            <input type="date" id="man-date">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                    <label style="font-size: 12px; color: var(--text-dim);">Entrada</label>
+                    <input type="time" id="man-in" value="04:00">
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: var(--text-dim);">Saída</label>
+                    <input type="time" id="man-out">
+                </div>
+            </div>
+            <label style="font-size: 12px; color: var(--text-dim);">Tipo de Dia</label>
+            <select id="man-type">
+                <option value="normal">Segunda a Sexta</option>
+                <option value="sabado">Sábado (60%)</option>
+                <option value="feriado">Feriado (100%)</option>
+                <option value="trabalhador">Feriado (200%)</option>
+                <option value="banco">Uso de Banco</option>
+                <option value="folga">Folga / Domingo</option>
+            </select>
+            <button class="btn-main btn-save" onclick="addManual()">Salvar no Histórico</button>
+        </div>
+    </section>
+
+    <section id="tab-history" class="content-section">
+        <div class="filter-area">
+            <select id="cycle-filter" onchange="render()"></select>
+        </div>
+        <div id="history-list"></div>
+    </section>
+</div>
+
+<script>
+    // Configurações Salariais
+    const RATES = {
+        ajudante: { h60: 15.31, h100: 19.22, h200: 28.83 },
+        motorista: { h60: 18.91, h100: 23.64, h200: 35.46 }
+    };
+
+    let db = JSON.parse(localStorage.getItem('megag_v3_data')) || [];
+    let config = JSON.parse(localStorage.getItem('megag_v3_config')) || null;
+    let activePonto = JSON.parse(localStorage.getItem('megag_v3_active')) || null;
+    let timerTick;
+
+    // Inicialização
+    function init() {
+        if (!config) {
+            document.getElementById('setup-overlay').classList.remove('hidden');
+        } else {
+            document.getElementById('setup-overlay').classList.add('hidden');
+            document.getElementById('user-welcome').innerText = `Olá, ${config.name.split(' ')[0]}`;
+            document.getElementById('user-role-badge').innerText = `MegaG • ${config.role}`;
+            setupCycleFilter();
+            render();
+            if (activePonto) startTimerUI();
+        }
+    }
+
+    function saveSetup() {
+        const name = document.getElementById('setup-name').value;
+        const role = document.getElementById('setup-role').value;
+        if (!name) return alert("Por favor, digite seu nome.");
+        config = { name, role };
+        localStorage.setItem('megag_v3_config', JSON.stringify(config));
+        init();
+    }
+
+    // Lógica de Ciclo (16 a 15)
+    function getCycleKey(dateInput) {
+        const d = new Date(dateInput + "T12:00:00");
+        let m = d.getMonth();
+        let y = d.getFullYear();
+        if (d.getDate() >= 16) {
+            m++;
+            if (m > 11) { m = 0; y++; }
+        }
+        return `${y}-${String(m + 1).padStart(2, '0')}`;
+    }
+
+    function setupCycleFilter() {
+        const select = document.getElementById('cycle-filter');
+        const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+        const today = new Date();
+        const current = getCycleKey(today.toISOString().split('T')[0]);
+        
+        select.innerHTML = '';
+        for(let i = -2; i <= 1; i++) {
+            let d = new Date();
+            d.setMonth(today.getMonth() + i);
+            let key = getCycleKey(d.toISOString().split('T')[0]);
+            let [y, m] = key.split('-');
+            let opt = document.createElement('option');
+            opt.value = key;
+            opt.text = `Folha ${months[m-1]}/${y} (16 a 15)`;
+            if(key === current) opt.selected = true;
+            select.appendChild(opt);
+        }
+    }
+
+    // Cronômetro
+    function handleTimer() {
+        if (!activePonto) {
+            activePonto = { start: new Date().getTime() };
+            localStorage.setItem('megag_v3_active', JSON.stringify(activePonto));
+            startTimerUI();
+        } else {
+            if (confirm("Deseja finalizar o turno agora?")) {
+                const now = new Date();
+                const start = new Date(activePonto.start);
+                const dataStr = start.toISOString().split('T')[0];
+                const hIn = start.getHours().toString().padStart(2,'0') + ":" + start.getMinutes().toString().padStart(2,'0');
+                const hOut = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+                
+                let type = "normal";
+                if(start.getDay() === 5) type = "sexta";
+                if(start.getDay() === 6) type = "sabado";
+                if(start.getDay() === 0) type = "folga";
+
+                db.push({ id: Date.now(), date: dataStr, in: hIn, out: hOut, type: type });
+                localStorage.setItem('megag_v3_data', JSON.stringify(db));
+                activePonto = null;
+                localStorage.removeItem('megag_v3_active');
+                stopTimerUI();
+                render();
+                switchTab('tab-history', document.querySelectorAll('.tab-btn')[2]);
+            }
+        }
+    }
+
+    function startTimerUI() {
+        const btn = document.getElementById('btn-timer');
+        btn.innerText = "Finalizar Turno"; btn.className = "btn-main btn-stop";
+        document.getElementById('timer-val').classList.add('running');
+        timerTick = setInterval(() => {
+            const diff = new Date().getTime() - activePonto.start;
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            document.getElementById('timer-val').innerText = 
+                `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        }, 1000);
+    }
+
+    function stopTimerUI() {
+        clearInterval(timerTick);
+        document.getElementById('timer-val').innerText = "00:00:00";
+        document.getElementById('timer-val').classList.remove('running');
+        document.getElementById('btn-timer').innerText = "Iniciar Jornada";
+        document.getElementById('btn-timer').className = "btn-main btn-start";
+    }
+
+    // Cálculos
+    function calcPonto(reg) {
+        const dSemana = new Date(reg.date + "T00:00:00").getDay();
+        let meta = 9;
+        if(reg.type === 'sexta' || dSemana === 5) meta = 7;
+        if(['sabado', 'feriado', 'trabalhador', 'folga'].includes(reg.type) || dSemana === 6 || dSemana === 0) meta = 0;
+
+        let liq = 0, b = 0, e60 = 0, e100 = 0, e200 = 0, tkt = 0;
+
+        if(!['banco', 'folga'].includes(reg.type)) {
+            const tIn = new Date(`${reg.date}T${reg.in}`);
+            let tOut = new Date(`${reg.date}T${reg.out}`);
+            if (tOut < tIn) tOut.setDate(tOut.getDate() + 1);
+            
+            liq = Math.max(0, ((tOut - tIn) / 3600000) - 1); // Desconto 1h almoço
+            tkt = (tOut.getHours() >= 19 || tOut.getDate() > tIn.getDate()) ? 1 : 0;
+
+            if(reg.type === 'trabalhador') e200 = liq;
+            else if(reg.type === 'feriado' || dSemana === 0 || reg.type === 'folga') e100 = liq;
+            else if(reg.type === 'sabado' || dSemana === 6) e60 = liq;
+            else {
+                let diff = liq - meta;
+                if(diff > 0) { b = Math.min(diff, 2); e60 = Math.max(0, diff - 2); }
+                else { b = diff; }
+            }
+        } else if(reg.type === 'banco') {
+            b = -meta;
+        }
+
+        return { liq, b, e60, e100, e200, tkt };
+    }
+
+    function render() {
+        const targetCycle = document.getElementById('cycle-filter').value;
+        const listDiv = document.getElementById('history-list');
+        listDiv.innerHTML = '';
+
+        let totalB = 0, total60 = 0, total100 = 0, total200 = 0, totalTkt = 0;
+        const currentRates = RATES[config.role];
+
+        db.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(reg => {
+            const key = getCycleKey(reg.date);
+            if (key !== targetCycle) return;
+
+            const c = calcPonto(reg);
+            totalB += c.b; total60 += c.e60; total100 += c.e100; total200 += c.e200; totalTkt += c.tkt;
+
+            let tagHtml = '';
+            if(c.e60 > 0) tagHtml += `<span class="tag tag-60">60%: ${c.e60.toFixed(1)}h</span>`;
+            if(c.e100 > 0) tagHtml += `<span class="tag tag-100">100%: ${c.e100.toFixed(1)}h</span>`;
+            if(c.e200 > 0) tagHtml += `<span class="tag tag-200">200%: ${c.e200.toFixed(1)}h</span>`;
+            if(c.b !== 0) tagHtml += `<span class="tag tag-banco">Banco: ${c.b.toFixed(1)}h</span>`;
+
+            listDiv.innerHTML += `
+                <div class="history-item">
+                    <div class="hist-header">
+                        <span class="hist-date">${reg.date.split('-').reverse().join('/')}</span>
+                        <button class="btn-del" onclick="removeReg(${reg.id})">&times;</button>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono'; font-size:13px">
+                        <span>${reg.in} ➔ ${reg.out}</span>
+                        <strong>${c.liq.toFixed(2)}h liq.</strong>
+                    </div>
+                    <div class="hist-tags">${tagHtml}</div>
+                </div>`;
+        });
+
+        // Atualizar Dashboard
+        const money60 = total60 * currentRates.h60;
+        const money100 = total100 * currentRates.h100;
+        const money200 = total200 * currentRates.h200;
+        const moneyTotal = money60 + money100 + money200;
+
+        document.getElementById('dash-money').innerText = moneyTotal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+        const breakdown = document.querySelectorAll('.sub-val span');
+        breakdown[0].innerText = money60.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+        breakdown[1].innerText = money100.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+        breakdown[2].innerText = money200.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+
+        document.getElementById('dash-banco').innerText = totalB.toFixed(1) + "h";
+        document.getElementById('dash-ticket').innerText = totalTkt;
+        document.getElementById('dash-h60').innerText = total60.toFixed(1) + "h";
+        document.getElementById('dash-h100').innerText = total100.toFixed(1) + "h";
+        document.getElementById('dash-h200').innerText = total200.toFixed(1) + "h";
+    }
+
+    function addManual() {
+        const date = document.getElementById('man-date').value;
+        const hIn = document.getElementById('man-in').value;
+        const hOut = document.getElementById('man-out').value;
+        const type = document.getElementById('man-type').value;
+
+        if(!date || !hOut) return alert("Por favor, preencha a data e a hora de saída.");
+
+        db.push({ id: Date.now(), date, in: hIn, out: hOut, type });
+        localStorage.setItem('megag_v3_data', JSON.stringify(db));
+        render();
+        switchTab('tab-history', document.querySelectorAll('.tab-btn')[2]);
+    }
+
+    function removeReg(id) {
+        if(confirm("Excluir este registro?")) {
+            db = db.filter(r => r.id !== id);
+            localStorage.setItem('megag_v3_data', JSON.stringify(db));
+            render();
+        }
+    }
+
+    function switchTab(id, btn) {
+        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    document.getElementById('man-date').valueAsDate = new Date();
+    init();
+</script>
+
+</body>
+</html>
+
