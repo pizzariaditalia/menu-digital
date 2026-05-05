@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MegaG - Controle de Ponto</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0b0e16">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MegaG Ponto">
+    <link rel="apple-touch-icon" href="icon.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -176,8 +184,12 @@
 
 <div id="setup-overlay" class="overlay-bg hidden">
     <div class="setup-card">
-        <h2>Olá! Seja Bem-vindo</h2>
-        <p>Para começar, configure seu perfil abaixo.</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h2 style="margin: 0;">Configurações</h2>
+            <button class="btn-del" onclick="fecharSetup()" style="font-size: 28px;">&times;</button>
+        </div>
+        <p>Ajuste seu perfil ou faça backup dos seus dados.</p>
+        
         <input type="text" id="setup-name" placeholder="Digite seu nome">
         <select id="setup-role">
             <option value="ajudante">Ajudante de Motorista</option>
@@ -185,7 +197,20 @@
         </select>
         <label style="font-size: 11px; color: var(--accent); display: block; text-align: left; margin-bottom: 4px; font-weight: 700;">Salário Base (CTPS)</label>
         <input type="number" id="setup-salary" placeholder="Ex: 2600.00">
-        <button class="btn-main btn-start" onclick="saveSetup()">Concluir Configuração</button>
+        <button class="btn-main btn-start" onclick="saveSetup()">Salvar e Concluir</button>
+
+        <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border);">
+            <h3 style="font-size: 13px; margin-bottom: 12px; color: var(--text-main); font-weight: 800;">🔄 Backup de Dados</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="btn-main" style="background: var(--bg-input); color: var(--accent); padding: 12px; font-size: 12px;" onclick="exportarDados()">Exportar</button>
+                
+                <label class="btn-main" style="background: var(--bg-input); color: var(--success); padding: 12px; font-size: 12px; margin: 0; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                    Importar
+                    <input type="file" style="display: none;" accept=".json" onchange="importarDados(event)">
+                </label>
+            </div>
+            <p style="font-size: 10px; color: var(--text-dim); margin-top: 10px;">Exporte o arquivo e importe no novo link para não perder o histórico!</p>
+        </div>
     </div>
 </div>
 
@@ -392,7 +417,11 @@
         document.getElementById('setup-overlay').classList.remove('hidden');
     }
 
-    // Função para abrir/fechar o painel didático de Informações
+    function fecharSetup() {
+        if (!config) return alert("Por favor, conclua a configuração inicial.");
+        document.getElementById('setup-overlay').classList.add('hidden');
+    }
+
     function toggleInfo() {
         document.getElementById('info-overlay').classList.toggle('hidden');
     }
@@ -408,6 +437,43 @@
         localStorage.setItem('megag_v3_config', JSON.stringify(config));
         init();
     }
+
+    // --- FUNÇÕES DE EXPORTAR E IMPORTAR DADOS ---
+    function exportarDados() {
+        const dadosCompletos = {
+            data: localStorage.getItem('megag_v3_data'),
+            config: localStorage.getItem('megag_v3_config'),
+            active: localStorage.getItem('megag_v3_active')
+        };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosCompletos));
+        const a = document.createElement('a');
+        a.href = dataStr;
+        a.download = "megag_backup.json";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    }
+
+    function importarDados(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importado = JSON.parse(e.target.result);
+                if (importado.data) localStorage.setItem('megag_v3_data', importado.data);
+                if (importado.config) localStorage.setItem('megag_v3_config', importado.config);
+                if (importado.active) localStorage.setItem('megag_v3_active', importado.active);
+                
+                alert("Dados importados com sucesso! O aplicativo será recarregado.");
+                location.reload();
+            } catch (err) {
+                alert("Erro ao importar o arquivo. Verifique se escolheu o arquivo correto de backup.");
+            }
+        };
+        reader.readAsText(file);
+    }
+    // --------------------------------------------
 
     // Cálculos de Impostos (Tabelas 2026)
     function calcINSS(bruto) {
@@ -724,6 +790,17 @@
 
     document.getElementById('man-date').valueAsDate = new Date();
     init();
+
+    // REGISTRO DO SERVICE WORKER (Para permitir instalação do PWA)
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').then(reg => {
+                console.log('App pronto para instalação (SW Registrado).');
+            }).catch(err => {
+                console.log('Erro ao registrar SW:', err);
+            });
+        });
+    }
 </script>
 
 </body>
