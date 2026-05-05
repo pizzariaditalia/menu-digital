@@ -410,6 +410,11 @@
 
             setupCycleFilter();
             handleCycleChange(); 
+            
+            // Retoma o cronômetro se existir um turno ativo
+            if (activePonto) {
+                startTimerUI();
+            }
         }
     }
 
@@ -598,24 +603,40 @@
 
     function startTimerUI() {
         const btn = document.getElementById('btn-timer');
-        btn.innerText = "Finalizar Turno"; btn.className = "btn-main btn-stop";
-        document.getElementById('timer-val').classList.add('running');
-        timerTick = setInterval(() => {
+        btn.innerText = "Finalizar Turno"; 
+        btn.className = "btn-main btn-stop";
+        
+        const timerVal = document.getElementById('timer-val');
+        timerVal.classList.add('running');
+        
+        const status = document.getElementById('timer-status');
+        status.innerText = "Turno em andamento...";
+        status.style.color = "var(--success)";
+
+        const atualizarCronometro = () => {
             const diff = new Date().getTime() - activePonto.start;
             const h = Math.floor(diff / 3600000);
             const m = Math.floor((diff % 3600000) / 60000);
             const s = Math.floor((diff % 60000) / 1000);
-            document.getElementById('timer-val').innerText = 
+            timerVal.innerText = 
                 `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-        }, 1000);
+        };
+
+        atualizarCronometro(); // Atualiza instantaneamente ao invés de esperar 1 segundo
+        timerTick = setInterval(atualizarCronometro, 1000);
     }
 
     function stopTimerUI() {
         clearInterval(timerTick);
         document.getElementById('timer-val').innerText = "00:00:00";
         document.getElementById('timer-val').classList.remove('running');
+        
         document.getElementById('btn-timer').innerText = "Iniciar Jornada";
         document.getElementById('btn-timer').className = "btn-main btn-start";
+        
+        const status = document.getElementById('timer-status');
+        status.innerText = "Aguardando início...";
+        status.style.color = "var(--text-dim)";
     }
 
     function calcularHorasNoturnas(data, entradaStr, saidaStr) {
@@ -805,4 +826,3 @@
 
 </body>
 </html>
-
