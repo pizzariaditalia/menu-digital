@@ -5,13 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MegaG - Controle de Ponto</title>
     
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0b0e16">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="MegaG Ponto">
-    <link rel="apple-touch-icon" href="icon.png">
-
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -41,7 +34,7 @@
 
         .container { width: 100%; max-width: 500px; margin: 0 auto; }
 
-        /* Overlays (Setup e Informações) */
+        /* Overlays (Setup, Info, Menu e Finanças) */
         .overlay-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-body); z-index: 9999; display: flex; 
@@ -50,7 +43,7 @@
         .setup-card { 
             background: var(--bg-card); padding: 32px; border-radius: 28px; 
             border: 1px solid var(--border); width: 100%; box-shadow: var(--shadow);
-            text-align: center; max-height: 90vh; display: flex; flex-direction: column;
+            text-align: center; max-height: 90vh; display: flex; flex-direction: column; overflow-y: auto;
         }
         .setup-card h2 { font-size: 24px; margin-bottom: 12px; font-weight: 800; }
         .setup-card p { color: var(--text-dim); margin-bottom: 24px; font-size: 14px; }
@@ -214,6 +207,68 @@
     </div>
 </div>
 
+<div id="main-menu-overlay" class="overlay-bg hidden">
+    <div class="setup-card" style="padding: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h2 style="margin: 0; font-size: 20px;">Menu de Opções</h2>
+            <button class="btn-del" onclick="toggleMainMenu()" style="font-size: 28px;">&times;</button>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <button class="btn-main" style="background: var(--bg-input); color: var(--accent); padding: 16px; text-align: left; display: flex; align-items: center; gap: 12px;" onclick="toggleMainMenu(); abrirSetup();">
+                <span style="font-size: 18px;">⚙️</span> Configurações e Backup
+            </button>
+            <button class="btn-main" style="background: var(--bg-input); color: var(--success); padding: 16px; text-align: left; display: flex; align-items: center; gap: 12px;" onclick="toggleMainMenu(); abrirLancamentoFinanceiro();">
+                <span style="font-size: 18px;">💰</span> Lançar Bônus / Descontos
+            </button>
+            <button class="btn-main" style="background: var(--bg-input); color: var(--text-main); padding: 16px; text-align: left; display: flex; align-items: center; gap: 12px;" onclick="toggleMainMenu(); toggleInfo();">
+                <span style="font-size: 18px;">📖</span> Entenda a Folha
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="finance-overlay" class="overlay-bg hidden">
+    <div class="setup-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; font-size: 20px;">Lançamento Avulso</h2>
+            <button class="btn-del" onclick="fecharLancamentoFinanceiro()" style="font-size: 28px;">&times;</button>
+        </div>
+        <p style="font-size: 12px; margin-bottom: 15px; color: var(--text-dim);">Adicione outras verbas ou descontos da sua folha.</p>
+
+        <label style="font-size: 11px; color: var(--text-dim); display: block; text-align: left; margin-bottom: 4px;">Tipo de Lançamento</label>
+        <select id="fin-type">
+            <option value="bonus">➕ Bonificação / Prêmio</option>
+            <option value="desconto">➖ Desconto Diversos</option>
+        </select>
+        
+        <label style="font-size: 11px; color: var(--text-dim); display: block; text-align: left; margin-bottom: 4px;">Descrição (Nome)</label>
+        <input type="text" id="fin-name" placeholder="Ex: Empréstimo, Odonto, Prêmio...">
+
+        <label style="font-size: 11px; color: var(--text-dim); display: block; text-align: left; margin-bottom: 4px;">Modo de Lançamento</label>
+        <select id="fin-value-type" onchange="toggleFinBase()">
+            <option value="fixo">Valor Fixo (R$)</option>
+            <option value="porcentagem">Porcentagem (%)</option>
+        </select>
+
+        <div id="fin-base-container" class="hidden">
+            <label style="font-size: 11px; color: var(--accent); display: block; text-align: left; margin-bottom: 4px; font-weight: 700;">Calcular % sobre:</label>
+            <select id="fin-base">
+                <option value="base">Salário Base (CTPS)</option>
+                <option value="bruto">Folha Completa (Base + Variáveis)</option>
+            </select>
+        </div>
+        
+        <label style="font-size: 11px; color: var(--text-dim); display: block; text-align: left; margin-bottom: 4px; margin-top: 5px;">Valor / % e Data</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <input type="number" id="fin-value" placeholder="0.00" step="0.01">
+            <input type="date" id="fin-date">
+        </div>
+        
+        <button class="btn-main btn-start" style="margin-top: 10px;" onclick="salvarLancamentoFinanceiro()">Salvar no Histórico</button>
+    </div>
+</div>
+
 <div id="info-overlay" class="overlay-bg hidden">
     <div class="setup-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -265,7 +320,7 @@
             <h1 id="user-welcome" onclick="abrirSetup()" title="Clique para editar seu perfil">Bem-vindo</h1>
             <p id="current-cycle-label">Ciclo Atual: 16 a 15</p>
         </div>
-        <button class="btn-icon" onclick="toggleInfo()" title="Como funciona?">ℹ️</button>
+        <button class="btn-icon" onclick="toggleMainMenu()" title="Menu Principal">☰</button>
     </header>
 
     <div class="dashboard">
@@ -274,13 +329,13 @@
             <div id="dash-net" class="card-value value-lg value-net">R$ 0,00</div>
             <div class="finance-breakdown" style="border-top-color: rgba(16, 185, 129, 0.2);">
                 <div class="sub-val" style="color: var(--success);">Base CTPS<span id="sub-base" style="color: #fff;">R$ 0,00</span></div>
-                <div class="sub-val" style="color: var(--danger);">INSS + IRRF<span id="sub-desc" style="color: #fff;">R$ 0,00</span></div>
+                <div class="sub-val" style="color: var(--danger);">INSS+IRRF+DESC.<span id="sub-desc" style="color: #fff;">R$ 0,00</span></div>
                 <div class="sub-val" style="color: var(--accent);">Variáveis<span id="sub-var" style="color: #fff;">R$ 0,00</span></div>
             </div>
         </div>
 
         <div class="card wide">
-            <div class="card-label">💰 Variáveis (Extras + Noturno + DSR)</div>
+            <div class="card-label">💰 Variáveis (Extras + Noturno + DSR + Prêmios)</div>
             <div id="dash-money" class="card-value value-lg">R$ 0,00</div>
             <div class="finance-breakdown">
                 <div class="sub-val">60%<span>R$ 0,00</span></div>
@@ -382,6 +437,16 @@
 </div>
 
 <script>
+    // --- FAXINEIRO DE CACHE ---
+    // Remove qualquer Service Worker antigo que esteja travando atualizações
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for(let registration of registrations) {
+                registration.unregister();
+            }
+        });
+    }
+
     // Configurações Salariais
     const RATES = {
         ajudante: { base: 9.57, h60: 15.31, h100: 19.22, h200: 28.83 },
@@ -411,11 +476,15 @@
             setupCycleFilter();
             handleCycleChange(); 
             
-            // Retoma o cronômetro se existir um turno ativo
             if (activePonto) {
                 startTimerUI();
             }
         }
+    }
+
+    // --- FUNÇÕES DE CONTROLE DE MENUS ---
+    function toggleMainMenu() {
+        document.getElementById('main-menu-overlay').classList.toggle('hidden');
     }
 
     function abrirSetup() {
@@ -431,6 +500,26 @@
         document.getElementById('info-overlay').classList.toggle('hidden');
     }
 
+    function abrirLancamentoFinanceiro() {
+        document.getElementById('fin-date').valueAsDate = new Date();
+        document.getElementById('finance-overlay').classList.remove('hidden');
+    }
+
+    function fecharLancamentoFinanceiro() {
+        document.getElementById('finance-overlay').classList.add('hidden');
+    }
+
+    function toggleFinBase() {
+        const type = document.getElementById('fin-value-type').value;
+        const container = document.getElementById('fin-base-container');
+        if(type === 'porcentagem') {
+            container.classList.remove('hidden');
+        } else {
+            container.classList.add('hidden');
+        }
+    }
+
+    // --- SALVAMENTO DE CONFIGURAÇÕES E LANÇAMENTOS ---
     function saveSetup() {
         const name = document.getElementById('setup-name').value;
         const role = document.getElementById('setup-role').value;
@@ -441,6 +530,27 @@
         config = { name, role, baseSalary };
         localStorage.setItem('megag_v3_config', JSON.stringify(config));
         init();
+    }
+
+    function salvarLancamentoFinanceiro() {
+        const type = document.getElementById('fin-type').value;
+        const name = document.getElementById('fin-name').value;
+        const value = parseFloat(document.getElementById('fin-value').value);
+        const date = document.getElementById('fin-date').value;
+        const valueType = document.getElementById('fin-value-type').value;
+        const baseType = document.getElementById('fin-base').value;
+
+        if(!name || isNaN(value) || !date) return alert("Por favor, preencha a descrição e o valor corretamente.");
+
+        db.push({ id: Date.now(), date, type, name, value, valueType, baseType });
+        localStorage.setItem('megag_v3_data', JSON.stringify(db));
+        
+        fecharLancamentoFinanceiro();
+        document.getElementById('fin-name').value = '';
+        document.getElementById('fin-value').value = '';
+        
+        render();
+        switchTab('tab-history', document.querySelectorAll('.tab-btn')[2]);
     }
 
     // --- FUNÇÕES DE EXPORTAR E IMPORTAR DADOS ---
@@ -478,7 +588,6 @@
         };
         reader.readAsText(file);
     }
-    // --------------------------------------------
 
     // Cálculos de Impostos (Tabelas 2026)
     function calcINSS(bruto) {
@@ -531,10 +640,17 @@
             let d = new Date();
             d.setMonth(today.getMonth() + i);
             let key = getCycleKey(d.toISOString().split('T')[0]);
-            let [y, m] = key.split('-');
+            
+            let [y, mStr] = key.split('-');
+            let mNum = parseInt(mStr); // 1 a 12
+            
+            let currentMName = months[mNum - 1];
+            // Lógica para pegar o mês anterior
+            let prevMName = months[mNum - 2 < 0 ? 11 : mNum - 2];
+            
             let opt = document.createElement('option');
             opt.value = key;
-            opt.text = `Folha ${months[m-1]}/${y} (16 a 15)`;
+            opt.text = `Folha ${prevMName}/${currentMName} (16 a 15)`;
             if(key === current) opt.selected = true;
             select.appendChild(opt);
         }
@@ -622,7 +738,7 @@
                 `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
         };
 
-        atualizarCronometro(); // Atualiza instantaneamente ao invés de esperar 1 segundo
+        atualizarCronometro(); 
         timerTick = setInterval(atualizarCronometro, 1000);
     }
 
@@ -695,91 +811,150 @@
         const listDiv = document.getElementById('history-list');
         listDiv.innerHTML = '';
 
-        // Cálculo do Banco de Horas Acumulado (Não zera por ciclo)
+        // Filtra os itens do ciclo selecionado
+        const cycleItems = db.filter(reg => getCycleKey(reg.date) === targetCycle);
+
+        // Banco Global (Puxa tudo do banco, não apenas o ciclo)
         let bancoTotalGlobal = 0;
         db.forEach(reg => {
+            if(reg.type === 'bonus' || reg.type === 'desconto') return;
             const c = calcPonto(reg);
             bancoTotalGlobal += c.b;
         });
 
+        // 1. Cálculos de Ponto Fixo do Ciclo
         let total60 = 0, total100 = 0, total200 = 0, totalTkt = 0, totalNoturnoH = 0;
         const currentRates = RATES[config.role];
 
-        db.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(reg => {
-            const key = getCycleKey(reg.date);
-            if (key !== targetCycle) return;
-
+        cycleItems.forEach(reg => {
+            if(reg.type === 'bonus' || reg.type === 'desconto') return;
             const c = calcPonto(reg);
             total60 += c.e60; total100 += c.e100; total200 += c.e200; totalTkt += c.tkt;
             totalNoturnoH += c.horasNoturnas;
-
-            let tagHtml = '';
-            if(c.e60 > 0) tagHtml += `<span class="tag tag-60">60%: ${c.e60.toFixed(1)}h</span>`;
-            if(c.e100 > 0) tagHtml += `<span class="tag tag-100">100%: ${c.e100.toFixed(1)}h</span>`;
-            if(c.e200 > 0) tagHtml += `<span class="tag tag-200">200%: ${c.e200.toFixed(1)}h</span>`;
-            if(c.b !== 0) tagHtml += `<span class="tag tag-banco">Banco: ${c.b.toFixed(1)}h</span>`;
-            if(c.horasNoturnas > 0) tagHtml += `<span class="tag tag-noturno">Noturno: ${c.horasNoturnas.toFixed(1)}h</span>`;
-
-            listDiv.innerHTML += `
-                <div class="history-item">
-                    <div class="hist-header">
-                        <span class="hist-date">${reg.date.split('-').reverse().join('/')}</span>
-                        <button class="btn-del" onclick="removeReg(${reg.id})">&times;</button>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono'; font-size:13px">
-                        <span>${reg.in} ➔ ${reg.out}</span>
-                        <strong>${c.liq.toFixed(2)}h liq.</strong>
-                    </div>
-                    <div class="hist-tags">${tagHtml}</div>
-                </div>`;
         });
 
-        // Cálculos Financeiros
         const money60 = total60 * currentRates.h60;
         const money100 = total100 * currentRates.h100;
         const money200 = total200 * currentRates.h200;
         const moneyNoturnoTotal = totalNoturnoH * (currentRates.base * 0.20);
-
+        
         const diasUteisInput = parseFloat(document.getElementById('input-dias-uteis').value) || 22;
         const folgasInput = parseFloat(document.getElementById('input-folgas').value) || 4;
         const valorDSR = ((money60 + money100 + money200 + moneyNoturnoTotal) / diasUteisInput) * folgasInput;
 
-        // Total Variável (Apenas os bônus do mês)
-        const totalVariaveis = money60 + money100 + money200 + moneyNoturnoTotal + valorDSR;
-        const moneyTicketTotal = totalTkt * VALOR_DOBRA_TICKET;
-
-        // Cálculos de INSS e IRRF baseados no Salário CTPS + Variáveis
         const baseSalary = config.baseSalary || 0;
-        const brutoTotal = baseSalary + totalVariaveis;
-        const descINSS = calcINSS(brutoTotal);
-        const descIRRF = calcIRRF(brutoTotal - descINSS);
-        const totalDescontos = descINSS + descIRRF;
-        const liquido = brutoTotal - totalDescontos;
+        const variaveisPonto = money60 + money100 + money200 + moneyNoturnoTotal + valorDSR;
+        const brutoPonto = baseSalary + variaveisPonto;
 
-        // Atualização da UI (Salário Líquido)
+        // 2. Cálculo dos Bônus Lançados Manualmente (Precisam vir antes dos Descontos para formar o Bruto Real)
+        let totalBonus = 0;
+        cycleItems.forEach(reg => {
+            if (reg.type === 'bonus') {
+                let val = 0;
+                if(reg.valueType === 'porcentagem') {
+                    val = reg.baseType === 'base' ? (baseSalary * reg.value / 100) : (brutoPonto * reg.value / 100);
+                } else {
+                    val = reg.value || 0;
+                }
+                reg.calculatedValue = val; 
+                totalBonus += val;
+            }
+        });
+
+        const totalVariaveis = variaveisPonto + totalBonus;
+        const brutoTotalCompleto = baseSalary + totalVariaveis; 
+
+        // 3. Cálculo dos Descontos Manuais (Que podem usar o BrutoTotalCompleto como base)
+        let totalDescontoManual = 0;
+        cycleItems.forEach(reg => {
+            if (reg.type === 'desconto') {
+                let val = 0;
+                if(reg.valueType === 'porcentagem') {
+                    val = reg.baseType === 'base' ? (baseSalary * reg.value / 100) : (brutoTotalCompleto * reg.value / 100);
+                } else {
+                    val = reg.value || 0;
+                }
+                reg.calculatedValue = val;
+                totalDescontoManual += val;
+            }
+        });
+
+        // 4. Cálculos Governamentais e Líquido Final
+        const descINSS = calcINSS(brutoTotalCompleto);
+        const descIRRF = calcIRRF(brutoTotalCompleto - descINSS);
+        const totalDescontosGerais = descINSS + descIRRF + totalDescontoManual;
+        const liquido = brutoTotalCompleto - totalDescontosGerais;
+
+        // --- ATUALIZAÇÃO DA INTERFACE (UI) ---
         document.getElementById('dash-net').innerText = liquido.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
         document.getElementById('sub-base').innerText = baseSalary.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-        document.getElementById('sub-desc').innerText = `-${totalDescontos.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}`;
+        document.getElementById('sub-desc').innerText = `-${totalDescontosGerais.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})}`;
         document.getElementById('sub-var').innerText = totalVariaveis.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 
-        // Atualização da UI (Demais Valores)
         document.getElementById('dash-money').innerText = totalVariaveis.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
         const breakdown = document.querySelectorAll('.sub-val span');
-        // Ignorando as 3 primeiras do novo card (índices 0, 1 e 2), vamos para as do card "Variáveis" (3, 4 e 5)
         breakdown[3].innerText = money60.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
         breakdown[4].innerText = money100.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
         breakdown[5].innerText = money200.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
 
         document.getElementById('dash-noturno').innerText = moneyNoturnoTotal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
         document.getElementById('dash-dsr').innerText = valorDSR.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-        
-        // Aplica o valor do banco total acumulado
         document.getElementById('dash-banco').innerText = bancoTotalGlobal.toFixed(1) + "h";
         
+        const moneyTicketTotal = totalTkt * VALOR_DOBRA_TICKET;
         document.getElementById('dash-ticket').innerText = `${totalTkt} (${moneyTicketTotal.toLocaleString('pt-BR', {style:'currency', currency:'BRL'})})`;
         document.getElementById('dash-h60').innerText = total60.toFixed(1) + "h";
         document.getElementById('dash-h100').innerText = total100.toFixed(1) + "h";
         document.getElementById('dash-h200').innerText = total200.toFixed(1) + "h";
+
+        // --- RENDERIZAÇÃO DO HISTÓRICO ---
+        cycleItems.sort((a,b) => new Date(b.date) - new Date(a.date)).forEach(reg => {
+            if (reg.type === 'bonus' || reg.type === 'desconto') {
+                const isBonus = reg.type === 'bonus';
+                const color = isBonus ? 'var(--success)' : 'var(--danger)';
+                const sign = isBonus ? '+' : '-';
+                const valRender = reg.calculatedValue || 0;
+                
+                let infoTag = 'Valor Fixo';
+                if (reg.valueType === 'porcentagem') {
+                    infoTag = `${reg.value}% sobre ${reg.baseType === 'base' ? 'Sal. Base' : 'Folha Completa'}`;
+                }
+
+                listDiv.innerHTML += `
+                    <div class="history-item" style="border-left: 4px solid ${color}; padding-left: 12px;">
+                        <div class="hist-header">
+                            <span class="hist-date">${reg.date.split('-').reverse().join('/')}</span>
+                            <button class="btn-del" onclick="removeReg(${reg.id})">&times;</button>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom: 4px;">
+                            <span style="font-size: 13px; font-weight: 700;">${isBonus ? '🟢 Prêmio' : '🔴 Desconto'} - ${reg.name}</span>
+                            <strong style="color: ${color}; font-family: 'JetBrains Mono';">${sign} R$ ${valRender.toFixed(2)}</strong>
+                        </div>
+                        <div style="font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px;">${infoTag}</div>
+                    </div>`;
+            } else {
+                const c = calcPonto(reg);
+                let tagHtml = '';
+                if(c.e60 > 0) tagHtml += `<span class="tag tag-60">60%: ${c.e60.toFixed(1)}h</span>`;
+                if(c.e100 > 0) tagHtml += `<span class="tag tag-100">100%: ${c.e100.toFixed(1)}h</span>`;
+                if(c.e200 > 0) tagHtml += `<span class="tag tag-200">200%: ${c.e200.toFixed(1)}h</span>`;
+                if(c.b !== 0) tagHtml += `<span class="tag tag-banco">Banco: ${c.b.toFixed(1)}h</span>`;
+                if(c.horasNoturnas > 0) tagHtml += `<span class="tag tag-noturno">Noturno: ${c.horasNoturnas.toFixed(1)}h</span>`;
+
+                listDiv.innerHTML += `
+                    <div class="history-item">
+                        <div class="hist-header">
+                            <span class="hist-date">${reg.date.split('-').reverse().join('/')}</span>
+                            <button class="btn-del" onclick="removeReg(${reg.id})">&times;</button>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-family:'JetBrains Mono'; font-size:13px">
+                            <span>${reg.in} ➔ ${reg.out}</span>
+                            <strong>${c.liq.toFixed(2)}h liq.</strong>
+                        </div>
+                        <div class="hist-tags">${tagHtml}</div>
+                    </div>`;
+            }
+        });
     }
 
     function addManual() {
@@ -812,16 +987,6 @@
     document.getElementById('man-date').valueAsDate = new Date();
     init();
 
-    // REGISTRO DO SERVICE WORKER (Para permitir instalação do PWA)
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js').then(reg => {
-                console.log('App pronto para instalação (SW Registrado).');
-            }).catch(err => {
-                console.log('Erro ao registrar SW:', err);
-            });
-        });
-    }
 </script>
 
 </body>
