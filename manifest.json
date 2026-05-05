@@ -1,7 +1,7 @@
 {
   "name": "MegaG Controle de Ponto",
   "short_name": "MegaG Ponto",
-  "start_url": "./index.html",
+  "start_url": "./Controle-de-Ponto.html",
   "display": "standalone",
   "background_color": "#0b0e16",
   "theme_color": "#0b0e16",
