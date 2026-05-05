@@ -189,7 +189,7 @@
             <option value="motorista">Motorista</option>
         </select>
         <label style="font-size: 11px; color: var(--accent); display: block; text-align: left; margin-bottom: 4px; font-weight: 700;">Salário Base (CTPS)</label>
-        <input type="number" id="setup-salary" placeholder="Ex: 2600.00">
+        <input type="text" inputmode="decimal" id="setup-salary" placeholder="Ex: 2600,00">
         <button class="btn-main btn-start" onclick="saveSetup()">Salvar e Concluir</button>
 
         <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border);">
@@ -261,7 +261,7 @@
         
         <label style="font-size: 11px; color: var(--text-dim); display: block; text-align: left; margin-bottom: 4px; margin-top: 5px;">Valor / % e Data</label>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <input type="number" id="fin-value" placeholder="0.00" step="0.01">
+            <input type="text" inputmode="decimal" id="fin-value" placeholder="Ex: 150,00">
             <input type="date" id="fin-date">
         </div>
         
@@ -437,8 +437,7 @@
 </div>
 
 <script>
-    // --- FAXINEIRO DE CACHE ---
-    // Remove qualquer Service Worker antigo que esteja travando atualizações
+    // --- FAXINEIRO DE CACHE (Limpa resquícios do PWA antigo) ---
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(function(registrations) {
             for(let registration of registrations) {
@@ -460,6 +459,15 @@
     let activePonto = JSON.parse(localStorage.getItem('megag_v3_active')) || null;
     let timerTick;
 
+    // Função para pegar a data de hoje no formato correto de forma segura
+    const getHojeFormatado = () => {
+        const now = new Date();
+        const ano = now.getFullYear();
+        const mes = String(now.getMonth() + 1).padStart(2, '0');
+        const dia = String(now.getDate()).padStart(2, '0');
+        return `${ano}-${mes}-${dia}`;
+    };
+
     function init() {
         if (!config) {
             document.getElementById('setup-overlay').classList.remove('hidden');
@@ -468,7 +476,6 @@
             document.getElementById('user-welcome').innerText = `Olá, ${config.name.split(' ')[0]}`;
             document.getElementById('user-role-badge').innerText = `MegaG • ${config.role}`;
             
-            // Popula os campos do setup caso o usuário queira editar depois
             document.getElementById('setup-name').value = config.name;
             document.getElementById('setup-role').value = config.role;
             if(config.baseSalary) document.getElementById('setup-salary').value = config.baseSalary;
@@ -501,7 +508,7 @@
     }
 
     function abrirLancamentoFinanceiro() {
-        document.getElementById('fin-date').valueAsDate = new Date();
+        document.getElementById('fin-date').value = getHojeFormatado();
         document.getElementById('finance-overlay').classList.remove('hidden');
     }
 
@@ -523,7 +530,14 @@
     function saveSetup() {
         const name = document.getElementById('setup-name').value;
         const role = document.getElementById('setup-role').value;
-        const baseSalary = parseFloat(document.getElementById('setup-salary').value) || 0;
+        
+        let baseSalaryStr = document.getElementById('setup-salary').value;
+        if(baseSalaryStr.includes(',') && baseSalaryStr.includes('.')) {
+            baseSalaryStr = baseSalaryStr.replace(/\./g, '').replace(',', '.');
+        } else if (baseSalaryStr.includes(',')) {
+            baseSalaryStr = baseSalaryStr.replace(',', '.');
+        }
+        const baseSalary = parseFloat(baseSalaryStr) || 0;
         
         if (!name) return alert("Por favor, digite seu nome.");
         
@@ -535,12 +549,23 @@
     function salvarLancamentoFinanceiro() {
         const type = document.getElementById('fin-type').value;
         const name = document.getElementById('fin-name').value;
-        const value = parseFloat(document.getElementById('fin-value').value);
+        
+        // Tratamento da vírgula brasileira para ponto universal
+        let valStr = document.getElementById('fin-value').value;
+        if(valStr.includes(',') && valStr.includes('.')) {
+            valStr = valStr.replace(/\./g, '').replace(',', '.');
+        } else if (valStr.includes(',')) {
+            valStr = valStr.replace(',', '.');
+        }
+        
+        const value = parseFloat(valStr);
         const date = document.getElementById('fin-date').value;
         const valueType = document.getElementById('fin-value-type').value;
         const baseType = document.getElementById('fin-base').value;
 
-        if(!name || isNaN(value) || !date) return alert("Por favor, preencha a descrição e o valor corretamente.");
+        if(!name || isNaN(value) || value <= 0 || !date) {
+            return alert("Ops! Por favor, preencha a descrição e digite um valor numérico válido (ex: 150,00).");
+        }
 
         db.push({ id: Date.now(), date, type, name, value, valueType, baseType });
         localStorage.setItem('megag_v3_data', JSON.stringify(db));
@@ -645,7 +670,6 @@
             let mNum = parseInt(mStr); // 1 a 12
             
             let currentMName = months[mNum - 1];
-            // Lógica para pegar o mês anterior
             let prevMName = months[mNum - 2 < 0 ? 11 : mNum - 2];
             
             let opt = document.createElement('option');
@@ -670,13 +694,9 @@
         while (dataAuxiliar <= dataFim) {
             const diaDaSemana = dataAuxiliar.getDay();
             
-            // Domingo (0) é considerado folga padrão do DSR.
             if (diaDaSemana === 0) {
                 diasFolga++;
-            } 
-            // Apenas Segunda (1) a Sexta (5) são Dias Úteis.
-            // Sábado (6) não incrementa nada, pois é hora extra integral.
-            else if (diaDaSemana >= 1 && diaDaSemana <= 5) {
+            } else if (diaDaSemana >= 1 && diaDaSemana <= 5) {
                 diasUteis++;
             }
             dataAuxiliar.setDate(dataAuxiliar.getDate() + 1);
@@ -811,10 +831,9 @@
         const listDiv = document.getElementById('history-list');
         listDiv.innerHTML = '';
 
-        // Filtra os itens do ciclo selecionado
         const cycleItems = db.filter(reg => getCycleKey(reg.date) === targetCycle);
 
-        // Banco Global (Puxa tudo do banco, não apenas o ciclo)
+        // Banco Global
         let bancoTotalGlobal = 0;
         db.forEach(reg => {
             if(reg.type === 'bonus' || reg.type === 'desconto') return;
@@ -846,7 +865,7 @@
         const variaveisPonto = money60 + money100 + money200 + moneyNoturnoTotal + valorDSR;
         const brutoPonto = baseSalary + variaveisPonto;
 
-        // 2. Cálculo dos Bônus Lançados Manualmente (Precisam vir antes dos Descontos para formar o Bruto Real)
+        // 2. Cálculo dos Bônus Lançados Manualmente
         let totalBonus = 0;
         cycleItems.forEach(reg => {
             if (reg.type === 'bonus') {
@@ -864,7 +883,7 @@
         const totalVariaveis = variaveisPonto + totalBonus;
         const brutoTotalCompleto = baseSalary + totalVariaveis; 
 
-        // 3. Cálculo dos Descontos Manuais (Que podem usar o BrutoTotalCompleto como base)
+        // 3. Cálculo dos Descontos Manuais
         let totalDescontoManual = 0;
         cycleItems.forEach(reg => {
             if (reg.type === 'desconto') {
@@ -984,7 +1003,7 @@
         btn.classList.add('active');
     }
 
-    document.getElementById('man-date').valueAsDate = new Date();
+    document.getElementById('man-date').value = getHojeFormatado();
     init();
 
 </script>
