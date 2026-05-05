@@ -1,6 +1,6 @@
 const CACHE_NAME = 'megag-ponto-v1';
 const urlsToCache = [
-  './index.html',
+  './Controle-de-Ponto.html',
   './manifest.json',
   './icon.png'
 ];
